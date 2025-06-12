@@ -1,0 +1,37 @@
+{
+  "name": "taxonomy-pipeline",
+  "version": "2.0.0",
+  "description": "Complete pipeline for analyzing public comments with theme taxonomy and position discovery",
+  "type": "module",
+  "scripts": {
+    "// Core Pipeline": "",
+    "generate": "bun run taxonomy-pipeline.ts generate",
+    "setup-db": "bun run taxonomy-pipeline.ts setup-db",
+    "abstract": "bun run taxonomy-pipeline.ts abstract",
+    "// Position Analysis": "",
+    "discover-axes": "bun run axis-discovery.ts discover-axes",
+    "classify-positions": "bun run axis-discovery.ts classify-positions",
+    "// Combined Workflows": "",
+    "pipeline": "bun run generate ./comments && bun run setup-db && bun run abstract ./comments",
+    "full-pipeline": "bun run pipeline && bun run discover-axes && bun run classify-positions",
+    "// Database Operations": "",
+    "db:create": "sqlite3 ./output/abstractions.db < database-schema.sql",
+    "db:analyze": "sqlite3 ./output/abstractions.db < analysis-queries.sql",
+    "db:export": "sqlite3 -header -csv ./output/abstractions.db < analysis-queries.sql > ./output/analysis-results.csv",
+    "// Utilities": "",
+    "clean": "rm -rf ./output/*",
+    "validate": "bun run check-data"
+  },
+  "dependencies": {
+    "@google/genai": "^1.4.0",
+    "commander": "^14.0.0",
+    "csv-parse": "^5.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "bun-types": "latest"
+  },
+  "engines": {
+    "bun": ">=1.0.0"
+  }
+}
