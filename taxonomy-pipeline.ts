@@ -25,12 +25,34 @@ const inputPath = process.argv[3];
 let batchCount = DEFAULT_BATCH_COUNT;
 let debugMode = false;
 
-// Parse remaining arguments for batch count and debug flag
+// Abstract command specific options
+let limitComments = 1000; // Default limit for abstract command
+let randomSelection = false;
+let filters: Array<{key: string, value: string}> = [];
+
+// Parse remaining arguments
 for (let i = 4; i < process.argv.length; i++) {
   const arg = process.argv[i];
+  
   if (arg === '--debug') {
     debugMode = true;
-  } else if (!isNaN(parseInt(arg))) {
+  } else if (arg === '--random') {
+    randomSelection = true;
+  } else if (arg === '--limit' && i + 1 < process.argv.length) {
+    const limitValue = parseInt(process.argv[i + 1]);
+    if (!isNaN(limitValue)) {
+      limitComments = limitValue;
+      i++; // Skip the next argument since we consumed it
+    }
+  } else if (arg === '--filter' && i + 1 < process.argv.length) {
+    const filterArg = process.argv[i + 1];
+    const [key, value] = filterArg.split('=');
+    if (key && value) {
+      filters.push({ key: key.trim(), value: value.trim() });
+      i++; // Skip the next argument since we consumed it
+    }
+  } else if (!isNaN(parseInt(arg)) && command === 'generate') {
+    // Batch count only applies to generate command
     batchCount = parseInt(arg);
   }
 }
@@ -40,13 +62,31 @@ if (!command || !['generate', 'abstract', 'setup-db'].includes(command)) {
 Taxonomy Pipeline - Core Commands
 
 Usage:
-  bun run taxonomy-pipeline.ts generate <comments-db-file> [batch-count] [--debug]  # Generate taxonomy
-  bun run taxonomy-pipeline.ts abstract <comments-db-file>                          # Abstract comments
-  bun run taxonomy-pipeline.ts setup-db                                             # Setup database with taxonomy
+  bun run taxonomy-pipeline.ts generate <comments-db-file> [batch-count] [--debug]
+  bun run taxonomy-pipeline.ts abstract <comments-db-file> [--limit N] [--random] [--filter key=value] [--debug]
+  bun run taxonomy-pipeline.ts setup-db [--debug]
   
-Arguments:
+Generate Arguments:
   batch-count: Number of independent batches to taxonomize (default: ${DEFAULT_BATCH_COUNT})
+  
+Abstract Arguments:
+  --limit N: Maximum number of comments to process (default: 1000)
+  --random: Randomly select comments from the filtered set
+  --filter key=value: Filter comments by JSON attribute (can use multiple times)
+                     Examples: --filter category=Individual --filter country=US
+  
+Global Arguments:
   --debug: Save all intermediate prompts, responses, and parsed values to ./progress/
+  
+Examples:
+  # Generate taxonomy from 2 batches
+  bun run taxonomy-pipeline.ts generate comments.db 2
+  
+  # Abstract 500 random comments
+  bun run taxonomy-pipeline.ts abstract comments.db --limit 500 --random
+  
+  # Abstract comments from individuals in California
+  bun run taxonomy-pipeline.ts abstract comments.db --filter category=Individual --filter stateProvinceRegion=CA
   `);
   process.exit(1);
 }
@@ -82,7 +122,6 @@ const initDB = () => {
       stakeholder_category TEXT,
       geographic_scope TEXT,
       technical_sophistication TEXT,
-      regulatory_stance TEXT,
       primary_themes TEXT,
       processed_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
@@ -175,17 +214,14 @@ const ABSTRACT_JSON_OUTPUT_FORMAT = `{
   "attributes": {
     "market_segment": "[from observed]",
     "geographic_scope": "[from observed]",
-    "stakeholder_category": "[derived category]",
-    "technical_sophistication": "[High|Medium|Low]",
-    "regulatory_stance": "[from observed sentiments]"
+    "[other categories]": "[from additonal categories]"
   },
   "primary_themes": ["[theme_code]", "[theme_code]", "..."],
   "perspectives": [
     {
       "taxonomy_code": "[theme_code]",
-      "perspective": "[viewpoint description]",
-      "excerpt": "[direct quote]",
-      "sentiment": "[from observed]"
+      "perspective": "[pithy viewpoint description]",
+      "excerpts": "[direct quotes, semicolon-separated]"
     }
   ]
 }`;
@@ -201,15 +237,61 @@ OBSERVED ATTRIBUTES:
 COMMENT:
 {CONTENT}
 
-Extract:
-1. For each perspective: taxonomy code, viewpoint-neutral framing, exact excerpt, sentiment
+
+Think about every viewpoint the commenter has expressed; we call these "perspectives." For each perspective, extract:
+1. taxonomy code where the perspecitve best fits (use higher level codes if leaf nodes don't work), a brief articulation of the perspective, and any excerpt(s) that support it.
 2. Submitter identification using observed types (with confidence level)
-3. Attributes using only the observed categories
-4. Derived attributes: stakeholder category, technical sophistication, regulatory stance
-5. Primary theme codes (top 3-5 by emphasis)
+3. Attributes using the observed categories and values
 
 Output as JSON:
 ${ABSTRACT_JSON_OUTPUT_FORMAT}`;
+
+// Helper function to filter comments based on JSON attributes
+function filterComments(comments: any[], filters: Array<{key: string, value: string}>): any[] {
+  if (filters.length === 0) return comments;
+  
+  return comments.filter(comment => {
+    try {
+      const attributes = JSON.parse(comment.attributes_json);
+      
+      return filters.every(filter => {
+        // Support nested key access with dot notation (e.g., "submitter.type")
+        const value = filter.key.split('.').reduce((obj, key) => obj?.[key], attributes);
+        
+        // Case-insensitive comparison
+        if (typeof value === 'string') {
+          return value.toLowerCase().includes(filter.value.toLowerCase());
+        }
+        
+        // Exact match for non-strings
+        return value === filter.value;
+      });
+    } catch (e) {
+      // If JSON parsing fails, exclude the comment
+      return false;
+    }
+  });
+}
+
+// Helper function to select comments (with optional random sampling)
+function selectComments(comments: any[], limit: number, random: boolean): any[] {
+  if (comments.length <= limit) {
+    return random ? comments.sort(() => Math.random() - 0.5) : comments;
+  }
+  
+  if (random) {
+    // Fisher-Yates shuffle and take first N
+    const shuffled = [...comments];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled.slice(0, limit);
+  } else {
+    // Take first N comments
+    return comments.slice(0, limit);
+  }
+}
 
 async function generateTaxonomy(dbPath: string) {
   const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
@@ -346,8 +428,9 @@ async function generateTaxonomy(dbPath: string) {
     attributes: refinedAttributes.attributes
   };
 
-  // Save final taxonomy
-  await Bun.write('./output/final_taxonomy.md', formatOutput(final));
+  // Save final taxonomy (themes only, no bold formatting)
+  const cleanThemes = final.themes.replace(/\*\*/g, ''); // Remove all ** bold markers
+  await Bun.write('./output/taxonomy.md', cleanThemes);
   await Bun.write('./output/observed_attributes.json', JSON.stringify(final.attributes, null, 2));
   
   if (debugMode) {
@@ -358,7 +441,8 @@ async function generateTaxonomy(dbPath: string) {
   console.log(`- Processed ${validComments.length} comments across ${batchesToProcess.length} initial batches`);
   console.log(`- Performed ${mergeLevel - 1} levels of merging`);
   console.log(`- Applied final attribute refinement`);
-  console.log(`- Final taxonomy saved to ./output/final_taxonomy.md`);
+  console.log(`- Final taxonomy saved to ./output/taxonomy.md`);
+  console.log(`- Observed attributes saved to ./output/observed_attributes.json`);
   if (debugMode) {
     console.log(`- Debug artifacts saved to ./progress/`);
   }
@@ -373,7 +457,7 @@ async function abstractComments(dbPath: string) {
   // Load taxonomy and attributes
   let taxonomyData: TaxonomyOutput;
   try {
-    const themes = await readFile('./output/final_taxonomy.md', 'utf-8');
+    const themes = await readFile('./output/taxonomy.md', 'utf-8');
     const attributes = JSON.parse(await readFile('./output/observed_attributes.json', 'utf-8'));
     taxonomyData = { themes, attributes };
   } catch (error) {
@@ -382,14 +466,31 @@ async function abstractComments(dbPath: string) {
   }
   
   // Process comments from DB using core library
-  const { comments, totalComments } = loadCommentsFromDb(dbPath);
-  console.log(`📊 Processing ${comments.length} submissions from ${totalComments} total comments`);
+  const { comments: allComments, totalComments } = loadCommentsFromDb(dbPath);
+  console.log(`📊 Loaded ${allComments.length} submissions from ${totalComments} total comments`);
+  
+  // Apply filters if specified
+  let filteredComments = allComments;
+  if (filters.length > 0) {
+    filteredComments = filterComments(allComments, filters);
+    console.log(`🔍 Applied ${filters.length} filter(s), ${filteredComments.length} comments match`);
+    filters.forEach(f => console.log(`   - ${f.key}=${f.value}`));
+  }
+  
+  // Apply limit and random selection
+  const selectedComments = selectComments(filteredComments, limitComments, randomSelection);
+  console.log(`📝 Selected ${selectedComments.length} comments for processing${randomSelection ? ' (random selection)' : ''}`);
+  
+  if (selectedComments.length === 0) {
+    console.warn('No comments to process after filtering and selection.');
+    return;
+  }
 
   const insertAbstraction = db.prepare(`
     INSERT INTO abstractions (
       filename, content, submitter_type, submitter_type_confidence,
       organization_name, market_segment, stakeholder_category,
-      geographic_scope, technical_sophistication, regulatory_stance,
+      geographic_scope, technical_sophistication,
       primary_themes
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
@@ -403,9 +504,9 @@ async function abstractComments(dbPath: string) {
   let successCount = 0;
   let errorCount = 0;
   
-  for (const [idx, comment] of comments.entries()) {
+  for (const [idx, comment] of selectedComments.entries()) {
     const file = comment.id; // Use comment ID as the filename identifier
-    console.log(`Abstracting ${idx + 1}/${comments.length}: ${file}`);
+    console.log(`Abstracting ${idx + 1}/${selectedComments.length}: ${file}`);
     
     try {
       const attributes = JSON.parse(comment.attributes_json);
@@ -442,7 +543,6 @@ async function abstractComments(dbPath: string) {
         data.attributes.stakeholder_category,
         data.attributes.geographic_scope,
         data.attributes.technical_sophistication,
-        data.attributes.regulatory_stance,
         data.primary_themes.join(', ')
       );
       
@@ -498,7 +598,7 @@ async function setupDatabase() {
   
   try {
     // Load taxonomy
-    const taxonomyText = await readFile('./output/final_taxonomy.md', 'utf-8');
+    const taxonomyText = await readFile('./output/taxonomy.md', 'utf-8');
     const attributes = JSON.parse(await readFile('./output/observed_attributes.json', 'utf-8'));
     
     // Parse and populate taxonomy reference
@@ -578,7 +678,10 @@ if (command === 'generate') {
     .then(() => console.log('\nTaxonomy generation complete!'))
     .catch(console.error);
 } else if (command === 'abstract') {
-  console.log(`Abstracting comments from ${inputPath}`);
+  const filterDesc = filters.length > 0 ? ` with ${filters.length} filter(s)` : '';
+  const limitDesc = limitComments !== 1000 ? ` (limit: ${limitComments})` : '';
+  const randomDesc = randomSelection ? ' (random selection)' : '';
+  console.log(`Abstracting comments from ${inputPath}${filterDesc}${limitDesc}${randomDesc}`);
   abstractComments(inputPath)
     .catch(console.error);
 } else if (command === 'setup-db') {
