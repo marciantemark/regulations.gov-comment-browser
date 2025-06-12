@@ -5,15 +5,23 @@ CREATE TABLE IF NOT EXISTS abstractions (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   filename TEXT NOT NULL,
   content TEXT NOT NULL,
+  
+  -- Processing status tracking
+  status TEXT DEFAULT 'pending' CHECK(status IN ('pending', 'in_progress', 'completed', 'failed')),
+  error_message TEXT, -- Store error details for failed items
+  attempt_count INTEGER DEFAULT 0,
+  last_attempt_at DATETIME,
+  
+  -- LLM-generated fields
   submitter_type TEXT,
   submitter_type_confidence TEXT CHECK(submitter_type_confidence IN ('Explicit', 'High', 'Medium', 'Low')),
   organization_name TEXT,
-  market_segment TEXT,
-  stakeholder_category TEXT CHECK(stakeholder_category IN ('Patient', 'Provider', 'Payer', 'Vendor', 'Regulator', 'Other')),
-  geographic_scope TEXT,
-  technical_sophistication TEXT CHECK(technical_sophistication IN ('High', 'Medium', 'Low')),
-  regulatory_stance TEXT,
+  attributes_json TEXT, -- Store flexible LLM-generated attributes as a JSON string
   primary_themes TEXT, -- Comma-separated theme codes
+  
+  -- Original metadata from regulations.gov as JSON
+  original_metadata_json TEXT, -- Store original regulations.gov metadata as JSON
+  
   processed_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -86,7 +94,14 @@ CREATE INDEX IF NOT EXISTS idx_perspectives_abstraction ON perspectives(abstract
 CREATE INDEX IF NOT EXISTS idx_perspective_positions_axis ON perspective_positions(axis_id);
 CREATE INDEX IF NOT EXISTS idx_perspective_positions_position ON perspective_positions(position_id);
 CREATE INDEX IF NOT EXISTS idx_abstractions_submitter ON abstractions(submitter_type);
-CREATE INDEX IF NOT EXISTS idx_abstractions_stakeholder ON abstractions(stakeholder_category);
+-- JSON-based indexes for original metadata
+CREATE INDEX IF NOT EXISTS idx_abstractions_original_category ON abstractions(json_extract(original_metadata_json, '$.category'));
+CREATE INDEX IF NOT EXISTS idx_abstractions_state ON abstractions(json_extract(original_metadata_json, '$.stateProvinceRegion'));
+CREATE INDEX IF NOT EXISTS idx_abstractions_org ON abstractions(json_extract(original_metadata_json, '$.organization'));
+CREATE INDEX IF NOT EXISTS idx_abstractions_receive_date ON abstractions(json_extract(original_metadata_json, '$.receiveDate'));
+-- Status tracking indexes
+CREATE INDEX IF NOT EXISTS idx_abstractions_status ON abstractions(status);
+CREATE INDEX IF NOT EXISTS idx_abstractions_attempt_count ON abstractions(attempt_count);
 
 -- Useful views for analysis
 
@@ -118,7 +133,7 @@ JOIN axis_positions ap ON ta.id = ap.axis_id
 LEFT JOIN perspective_positions pp ON ap.id = pp.position_id
 GROUP BY ta.id;
 
--- Stakeholder alignment by position
+-- Stakeholder alignment by position (LLM-generated submitter type)
 CREATE VIEW IF NOT EXISTS stakeholder_alignment AS
 SELECT 
   a.submitter_type,
@@ -136,6 +151,43 @@ JOIN theme_axes ta ON pp.axis_id = ta.id
 JOIN axis_positions ap ON pp.position_id = ap.id
 WHERE pp.confidence IN ('high', 'medium')
 GROUP BY a.submitter_type, ta.id, ap.id;
+
+-- Original stakeholder alignment by position (regulations.gov category)
+CREATE VIEW IF NOT EXISTS original_stakeholder_alignment AS
+SELECT 
+  json_extract(a.original_metadata_json, '$.category') as original_category,
+  ta.theme_code,
+  ta.axis_name,
+  ap.position_label,
+  COUNT(*) as count,
+  ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER (
+    PARTITION BY json_extract(a.original_metadata_json, '$.category'), ta.id
+  ), 1) as percent
+FROM perspective_positions pp
+JOIN perspectives p ON pp.perspective_id = p.id
+JOIN abstractions a ON p.abstraction_id = a.id
+JOIN theme_axes ta ON pp.axis_id = ta.id
+JOIN axis_positions ap ON pp.position_id = ap.id
+WHERE pp.confidence IN ('high', 'medium')
+GROUP BY json_extract(a.original_metadata_json, '$.category'), ta.id, ap.id;
+
+-- Geographic analysis view
+CREATE VIEW IF NOT EXISTS geographic_alignment AS
+SELECT 
+  json_extract(a.original_metadata_json, '$.stateProvinceRegion') as state_province_region,
+  json_extract(a.original_metadata_json, '$.country') as country,
+  ta.theme_code,
+  ta.axis_name,
+  ap.position_label,
+  COUNT(*) as count
+FROM perspective_positions pp
+JOIN perspectives p ON pp.perspective_id = p.id
+JOIN abstractions a ON p.abstraction_id = a.id
+JOIN theme_axes ta ON pp.axis_id = ta.id
+JOIN axis_positions ap ON pp.position_id = ap.id
+WHERE pp.confidence IN ('high', 'medium') 
+  AND json_extract(a.original_metadata_json, '$.stateProvinceRegion') IS NOT NULL
+GROUP BY json_extract(a.original_metadata_json, '$.stateProvinceRegion'), json_extract(a.original_metadata_json, '$.country'), ta.id, ap.id;
 
 -- Position dominance (consensus finder)
 CREATE VIEW IF NOT EXISTS position_dominance AS

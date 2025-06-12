@@ -319,6 +319,7 @@ export interface TaxonomyOutput {
 import { GoogleGenAI } from '@google/genai';
 
 const MODEL = 'gemini-2.5-pro-preview-06-05';
+// const MODEL = 'gemini-2.5-flash-preview-05-20';
 
 export async function generateContent(ai: GoogleGenAI, prompt: string): Promise<string> {
   const config = { responseMimeType: 'text/plain' };
@@ -430,7 +431,7 @@ Submitter Types: [clean, deduplicated flat list]
 Market Segments: [clean, deduplicated flat list]
 Geographic Scopes: [clean, deduplicated flat list]
 Sentiment Types: [clean, deduplicated flat list]
-[Any other attribute types]: [clean, deduplicated flat list]`;
+[Each additional attribute type]: [clean, deduplicated flat list]`;
 
 // Prompt templates
 export const prompts = {

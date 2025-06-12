@@ -28,6 +28,7 @@ let debugMode = false;
 // Abstract command specific options
 let limitComments = 1000; // Default limit for abstract command
 let randomSelection = false;
+let retryFailed = false;
 let filters: Array<{key: string, value: string}> = [];
 
 // Parse remaining arguments
@@ -38,6 +39,8 @@ for (let i = 4; i < process.argv.length; i++) {
     debugMode = true;
   } else if (arg === '--random') {
     randomSelection = true;
+  } else if (arg === '--retry-failed') {
+    retryFailed = true;
   } else if (arg === '--limit' && i + 1 < process.argv.length) {
     const limitValue = parseInt(process.argv[i + 1]);
     if (!isNaN(limitValue)) {
@@ -66,21 +69,44 @@ Usage:
   bun run taxonomy-pipeline.ts abstract <comments-db-file> [--limit N] [--random] [--filter key=value] [--debug]
   bun run taxonomy-pipeline.ts setup-db [--debug]
   
-Generate Arguments:
-  batch-count: Number of independent batches to taxonomize (default: ${DEFAULT_BATCH_COUNT})
+Generate Command:
+  Creates a hierarchical taxonomy by processing comments in independent batches,
+  then merging the results. Requires taxonomy generation before abstraction.
   
-Abstract Arguments:
-  --limit N: Maximum number of comments to process (default: 1000)
-  --random: Randomly select comments from the filtered set
-  --filter key=value: Filter comments by JSON attribute (can use multiple times)
-                     Examples: --filter category=Individual --filter country=US
+  Arguments:
+    batch-count: Number of independent batches to taxonomize (default: ${DEFAULT_BATCH_COUNT})
+  
+Abstract Command:
+  Analyzes individual comments using existing taxonomy to extract themes and perspectives.
+  Stores results in abstractions database for further analysis.
+  
+  Note: Use the original comments database file (e.g., cms-rfi.sqlite), NOT the abstractions.db file.
+  
+  Arguments:
+    --limit N: Maximum number of comments to process (default: 1000)
+    --random: Randomly select comments from the filtered set
+    --retry-failed: Only process comments that previously failed processing
+    --filter key=value: Filter comments by JSON attribute (can use multiple times)
+                       Examples: --filter category=Individual --filter stateProvinceRegion=CA
+  
+Setup-DB Command:
+  Initializes the abstractions database with taxonomy reference tables.
+  Run after 'generate' and before 'abstract'.
   
 Global Arguments:
   --debug: Save all intermediate prompts, responses, and parsed values to ./progress/
   
+Workflow:
+  1. bun run taxonomy-pipeline.ts generate comments.db 3
+  2. bun run taxonomy-pipeline.ts setup-db
+  3. bun run taxonomy-pipeline.ts abstract comments.db --limit 500 --random
+  
 Examples:
   # Generate taxonomy from 2 batches
   bun run taxonomy-pipeline.ts generate comments.db 2
+  
+  # Setup database with taxonomy
+  bun run taxonomy-pipeline.ts setup-db
   
   # Abstract 500 random comments
   bun run taxonomy-pipeline.ts abstract comments.db --limit 500 --random
@@ -93,7 +119,11 @@ Examples:
 
 if ((command === 'generate' || command === 'abstract') && !inputPath) {
     console.error(`Error: Input database file is required for '${command}' command.`);
-    console.log(`Usage: bun run taxonomy-pipeline.ts ${command} <comments-db-file> [batch-count] [--debug]`);
+    if (command === 'generate') {
+        console.log(`Usage: bun run taxonomy-pipeline.ts generate <comments-db-file> [batch-count] [--debug]`);
+    } else {
+        console.log(`Usage: bun run taxonomy-pipeline.ts abstract <comments-db-file> [--limit N] [--random] [--filter key=value] [--debug]`);
+    }
     process.exit(1);
 }
 
@@ -106,122 +136,32 @@ async function debugLog(fileName: string, content: string) {
 }
 
 // Database initialization with all tables
-const initDB = () => {
+const initDB = async () => {
   const db = new Database('./output/abstractions.db');
-  
-  // Core tables
-  db.run(`
-    CREATE TABLE IF NOT EXISTS abstractions (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      filename TEXT NOT NULL,
-      content TEXT NOT NULL,
-      submitter_type TEXT,
-      submitter_type_confidence TEXT,
-      organization_name TEXT,
-      market_segment TEXT,
-      stakeholder_category TEXT,
-      geographic_scope TEXT,
-      technical_sophistication TEXT,
-      primary_themes TEXT,
-      processed_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-  
-  db.run(`
-    CREATE TABLE IF NOT EXISTS perspectives (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      abstraction_id INTEGER NOT NULL,
-      taxonomy_code TEXT NOT NULL,
-      perspective TEXT NOT NULL,
-      excerpt TEXT NOT NULL,
-      sentiment TEXT,
-      FOREIGN KEY (abstraction_id) REFERENCES abstractions(id)
-    )
-  `);
-  
-  db.run(`
-    CREATE TABLE IF NOT EXISTS taxonomy_ref (
-      code TEXT PRIMARY KEY,
-      description TEXT,
-      level INTEGER,
-      parent_code TEXT
-    )
-  `);
-  
-  db.run(`
-    CREATE TABLE IF NOT EXISTS observed_attributes (
-      attribute_type TEXT NOT NULL,
-      value TEXT NOT NULL,
-      PRIMARY KEY (attribute_type, value)
-    )
-  `);
-  
-  // Extended tables for position analysis
-  db.run(`
-    CREATE TABLE IF NOT EXISTS theme_axes (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      theme_code TEXT NOT NULL,
-      axis_name TEXT NOT NULL,
-      axis_question TEXT NOT NULL,
-      min_perspectives INTEGER DEFAULT 5,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (theme_code) REFERENCES taxonomy_ref(code)
-    )
-  `);
-  
-  db.run(`
-    CREATE TABLE IF NOT EXISTS axis_positions (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      axis_id INTEGER NOT NULL,
-      position_key TEXT NOT NULL,
-      position_label TEXT NOT NULL,
-      position_description TEXT,
-      example_count INTEGER DEFAULT 0,
-      FOREIGN KEY (axis_id) REFERENCES theme_axes(id)
-    )
-  `);
-  
-  db.run(`
-    CREATE TABLE IF NOT EXISTS perspective_positions (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      perspective_id INTEGER NOT NULL,
-      axis_id INTEGER NOT NULL,
-      position_id INTEGER NOT NULL,
-      confidence TEXT CHECK(confidence IN ('high', 'medium', 'low')),
-      reasoning TEXT,
-      FOREIGN KEY (perspective_id) REFERENCES perspectives(id),
-      FOREIGN KEY (axis_id) REFERENCES theme_axes(id),
-      FOREIGN KEY (position_id) REFERENCES axis_positions(id),
-      UNIQUE(perspective_id, axis_id)
-    )
-  `);
-  
-  // Create useful indexes
-  db.run(`CREATE INDEX IF NOT EXISTS idx_perspectives_taxonomy ON perspectives(taxonomy_code)`);
-  db.run(`CREATE INDEX IF NOT EXISTS idx_perspectives_abstraction ON perspectives(abstraction_id)`);
-  db.run(`CREATE INDEX IF NOT EXISTS idx_perspective_positions_axis ON perspective_positions(axis_id)`);
-  
+  const schema = await readFile('./database-schema.sql', 'utf-8');
+  db.exec(schema);
   return db;
 };
 
 // Shared JSON output format template
 const ABSTRACT_JSON_OUTPUT_FORMAT = `{
   "submitter": {
-    "type": "[from observed types]",
+    "type": "from supplied list of types",
     "confidence": "Explicit|High|Medium|Low",
     "organization": "name or null"
   },
   "attributes": {
-    "market_segment": "[from observed]",
-    "geographic_scope": "[from observed]",
-    "[other categories]": "[from additonal categories]"
+    "market_segment": "from supplied list; semicolon sepaerated for multiple",
+    "geographic_scope": "from supplied list; semicolon sepaerated",
+    "[other categories]": "from supplied list; semicolon sepaerated"
   },
-  "primary_themes": ["[theme_code]", "[theme_code]", "..."],
+  "brainstorming": "Use this slot to think about every perspective that occurs in the comment -- be thorough and granular; at this stage split don't lump.",
+  "primary_themes": ["a theme code", "another", "..."],
   "perspectives": [
     {
-      "taxonomy_code": "[theme_code]",
-      "perspective": "[pithy viewpoint description]",
-      "excerpts": "[direct quotes, semicolon-separated]"
+      "taxonomy_code": "a theme_code",
+      "perspective": "a pithy viewpoint description in <20 words",
+      "excerpts": ["direct quote 1", "direct quote 2", "..."]
     }
   ]
 }`;
@@ -234,11 +174,11 @@ THEME TAXONOMY:
 OBSERVED ATTRIBUTES:
 {ATTRIBUTES}
 
-COMMENT:
+<comment>
 {CONTENT}
+</comment>
 
-
-Think about every viewpoint the commenter has expressed; we call these "perspectives." For each perspective, extract:
+Think about every individual viewpoint the commenter has expressed; we call these "perspectives." Be thorough and find all perspectives expressed by the commenter, which could include multiple perspectives for a single theme! Be complete. For each perspective, extract:
 1. taxonomy code where the perspecitve best fits (use higher level codes if leaf nodes don't work), a brief articulation of the perspective, and any excerpt(s) that support it.
 2. Submitter identification using observed types (with confidence level)
 3. Attributes using the observed categories and values
@@ -452,22 +392,48 @@ async function generateTaxonomy(dbPath: string) {
 
 async function abstractComments(dbPath: string) {
   const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
-  const db = initDB();
+  const db = await initDB();
   
-  // Load taxonomy and attributes
-  let taxonomyData: TaxonomyOutput;
-  try {
-    const themes = await readFile('./output/taxonomy.md', 'utf-8');
-    const attributes = JSON.parse(await readFile('./output/observed_attributes.json', 'utf-8'));
-    taxonomyData = { themes, attributes };
-  } catch (error) {
-    console.error('Error: No taxonomy found. Run "generate" command first.');
+  // Load taxonomy and attributes from the database
+  const taxonomyRows = db.prepare('SELECT code, description, level, parent_code FROM taxonomy_ref ORDER BY code').all();
+  const attributeRows = db.prepare('SELECT attribute_type, value FROM observed_attributes').all();
+  
+  if (taxonomyRows.length === 0) {
+    console.error('Error: No taxonomy found in the database. Run "bun run setup-db" command first.');
     process.exit(1);
   }
   
-  // Process comments from DB using core library
-  const { comments: allComments, totalComments } = loadCommentsFromDb(dbPath);
-  console.log(`📊 Loaded ${allComments.length} submissions from ${totalComments} total comments`);
+  // Reconstruct the taxonomy and attributes objects
+  const themes = (taxonomyRows as any[]).map(row => {
+    const indent = '  '.repeat(row.level - 1);
+    return `${indent}${row.code} ${row.description}`;
+  }).join('\n');
+  
+  const attributes = (attributeRows as any[]).reduce((acc, row) => {
+    if (!acc[row.attribute_type]) {
+      acc[row.attribute_type] = [];
+    }
+    acc[row.attribute_type].push(row.value);
+    return acc;
+  }, {} as Record<string, string[]>);
+  
+  const taxonomyData: TaxonomyOutput = { themes, attributes };
+  
+  // Process comments from DB using core library - add error handling for wrong database
+  let allComments, totalComments;
+  try {
+    ({ comments: allComments, totalComments } = loadCommentsFromDb(dbPath));
+    console.log(`📊 Loaded ${allComments.length} submissions from ${totalComments} total comments`);
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('no such table: comments')) {
+      console.error(`Error: The database file '${dbPath}' does not contain a 'comments' table.`);
+      console.error(`This appears to be the wrong database file for the abstract command.`);
+      console.error(`Use the original comments database file (e.g., cms-rfi.sqlite), NOT the abstractions.db file.`);
+      console.error(`The abstractions.db file is where results are stored, not where comments are read from.`);
+      process.exit(1);
+    }
+    throw error; // Re-throw if it's a different error
+  }
   
   // Apply filters if specified
   let filteredComments = allComments;
@@ -477,9 +443,38 @@ async function abstractComments(dbPath: string) {
     filters.forEach(f => console.log(`   - ${f.key}=${f.value}`));
   }
   
+  // Progress tracking: filter by processing status
+  let statusFilteredComments = filteredComments;
+  if (retryFailed) {
+    // Only process previously failed comments, ordered by attempt count (lowest first)
+    const failedResults = db.prepare('SELECT filename, attempt_count FROM abstractions WHERE status = ? ORDER BY attempt_count ASC').all('failed') as Array<{filename: string, attempt_count: number}>;
+    const failedIds = failedResults.map(row => row.filename);
+    statusFilteredComments = filteredComments.filter(comment => failedIds.includes(comment.id));
+    
+    // Sort statusFilteredComments to match the attempt_count ordering from the database
+    const attemptCountMap = new Map(failedResults.map(row => [row.filename, row.attempt_count]));
+    statusFilteredComments.sort((a, b) => {
+      const attemptsA = attemptCountMap.get(a.id) || 0;
+      const attemptsB = attemptCountMap.get(b.id) || 0;
+      return attemptsA - attemptsB;
+    });
+    
+    console.log(`🔄 Retry mode: ${statusFilteredComments.length} failed comments available for retry (ordered by attempt count)`);
+    if (statusFilteredComments.length > 0) {
+      const minAttempts = attemptCountMap.get(statusFilteredComments[0].id) || 0;
+      const maxAttempts = attemptCountMap.get(statusFilteredComments[statusFilteredComments.length - 1].id) || 0;
+      console.log(`   Attempt counts range: ${minAttempts} to ${maxAttempts} (processing lowest first)`);
+    }
+  } else {
+    // Exclude already completed or in-progress comments
+    const processedIds = db.prepare('SELECT filename FROM abstractions WHERE status IN (?, ?)').all('completed', 'in_progress').map((row: any) => row.filename);
+    statusFilteredComments = filteredComments.filter(comment => !processedIds.includes(comment.id));
+    console.log(`📋 Progress tracking: ${statusFilteredComments.length} not-yet-processed comments available (${filteredComments.length - statusFilteredComments.length} already processed)`);
+  }
+  
   // Apply limit and random selection
-  const selectedComments = selectComments(filteredComments, limitComments, randomSelection);
-  console.log(`📝 Selected ${selectedComments.length} comments for processing${randomSelection ? ' (random selection)' : ''}`);
+  const selectedComments = selectComments(statusFilteredComments, limitComments, randomSelection);
+  console.log(`📝 Selected ${selectedComments.length} comments for processing${randomSelection ? ' (random selection)' : ''}${retryFailed ? ' (retry failed)' : ''}`);
   
   if (selectedComments.length === 0) {
     console.warn('No comments to process after filtering and selection.');
@@ -488,11 +483,27 @@ async function abstractComments(dbPath: string) {
 
   const insertAbstraction = db.prepare(`
     INSERT INTO abstractions (
-      filename, content, submitter_type, submitter_type_confidence,
-      organization_name, market_segment, stakeholder_category,
-      geographic_scope, technical_sophistication,
-      primary_themes
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      filename, content, status, attempt_count, last_attempt_at,
+      submitter_type, submitter_type_confidence, organization_name, 
+      attributes_json, primary_themes, original_metadata_json
+    ) VALUES (?, ?, ?, ?, datetime('now'), ?, ?, ?, ?, ?, ?)
+  `);
+  
+  const updateAbstractionSuccess = db.prepare(`
+    UPDATE abstractions SET 
+      status = 'completed',
+      submitter_type = ?, submitter_type_confidence = ?, organization_name = ?,
+      attributes_json = ?, primary_themes = ?, original_metadata_json = ?
+    WHERE filename = ?
+  `);
+  
+  const updateAbstractionFailure = db.prepare(`
+    UPDATE abstractions SET 
+      status = 'failed',
+      error_message = ?,
+      attempt_count = attempt_count + 1,
+      last_attempt_at = datetime('now')
+    WHERE filename = ?
   `);
   
   const insertPerspective = db.prepare(`
@@ -500,6 +511,9 @@ async function abstractComments(dbPath: string) {
       abstraction_id, taxonomy_code, perspective, excerpt, sentiment
     ) VALUES (?, ?, ?, ?, ?)
   `);
+  
+  const deleteAbstraction = db.prepare('DELETE FROM abstractions WHERE filename = ?');
+  const deletePerspectives = db.prepare('DELETE FROM perspectives WHERE abstraction_id IN (SELECT id FROM abstractions WHERE filename = ?)');
   
   let successCount = 0;
   let errorCount = 0;
@@ -516,51 +530,99 @@ async function abstractComments(dbPath: string) {
         continue;
       }
       
-      const response = await generateContent(ai, 
-        abstract_prompt
-          .replace('{TAXONOMY}', taxonomyData.themes)
-          .replace('{ATTRIBUTES}', formatAttributes(taxonomyData.attributes))
-          .replace('{CONTENT}', content)
+      // Get the current attempt count if this is a retry
+      const existingRecord = db.prepare('SELECT attempt_count FROM abstractions WHERE filename = ?').get(file) as {attempt_count: number} | undefined;
+      const currentAttemptCount = existingRecord ? existingRecord.attempt_count + 1 : 1;
+      
+      // Clear out any previous abstractions and perspectives for this specific comment
+      deletePerspectives.run(file);
+      deleteAbstraction.run(file);
+      
+      // Mark as in-progress with correct attempt count
+      const inProgressResult = insertAbstraction.run(
+        file, content, 'in_progress', currentAttemptCount, null, null, null, null, null, null
       );
+      const abstractionId = inProgressResult.lastInsertRowid;
+      
+      const prompt = abstract_prompt
+        .replace('{TAXONOMY}', taxonomyData.themes)
+        .replace('{ATTRIBUTES}', formatAttributes(taxonomyData.attributes))
+        .replace('{CONTENT}', content);
+      
+      await debugLog(`abstract_${idx + 1}_${file}_prompt.txt`, prompt);
+      
+      const response = await generateContent(ai, prompt);
+      
+      await debugLog(`abstract_${idx + 1}_${file}_response.txt`, response);
       
       let data;
       try {
-        data = JSON.parse(response);
+        const cleanedResponse = response.replace(/```json\n|```/g, '').trim();
+        data = JSON.parse(cleanedResponse);
+        await debugLog(`abstract_${idx + 1}_${file}_parsed.json`, JSON.stringify(data, null, 2));
       } catch (parseError) {
-        console.error(`JSON parse error for ${file}:`, parseError);
+        console.error(`⚠️  JSON parse error for ${file}:`, parseError);
         console.error('Response preview:', response.substring(0, 500));
+        
+        // Mark as failed due to JSON parse error
+        const errorMessage = parseError instanceof Error ? parseError.message : String(parseError);
+        updateAbstractionFailure.run(`JSON parse error: ${errorMessage}`, file);
+        console.log(`Continuing with next comment...`);
         errorCount++;
         continue;
       }
       
-      const result = insertAbstraction.run(
-        file,
-        content,
+      // Extract original metadata from regulations.gov
+      const originalMetadata = {
+        category: attributes.category || null,
+        organization: attributes.organization || null,
+        firstName: attributes.firstName || null,
+        lastName: attributes.lastName || null,
+        country: attributes.country || null,
+        stateProvinceRegion: attributes.stateProvinceRegion || null,
+        receiveDate: attributes.receiveDate || null,
+        postedDate: attributes.postedDate || null,
+        trackingNbr: attributes.trackingNbr || null,
+        documentType: attributes.documentType || null,
+        subtype: attributes.subtype || null
+      };
+
+      // Update with successful results
+      updateAbstractionSuccess.run(
         data.submitter.type,
         data.submitter.confidence,
         data.submitter.organization || null,
-        data.attributes.market_segment,
-        data.attributes.stakeholder_category,
-        data.attributes.geographic_scope,
-        data.attributes.technical_sophistication,
-        data.primary_themes.join(', ')
+        JSON.stringify(data.attributes),
+        data.primary_themes.join(', '),
+        JSON.stringify(originalMetadata),
+        file
       );
       
-      const abstractionId = result.lastInsertRowid;
-      
       for (const perspective of data.perspectives) {
+        // Handle excerpts as array or string
+        let excerpts = '';
+        if (Array.isArray(perspective.excerpts)) {
+          excerpts = perspective.excerpts.join('; ');
+        } else if (perspective.excerpts) {
+          excerpts = String(perspective.excerpts);
+        }
+        
         insertPerspective.run(
           abstractionId,
-          perspective.taxonomy_code,
-          perspective.perspective,
-          perspective.excerpt,
-          perspective.sentiment
+          String(perspective.taxonomy_code || ''),
+          String(perspective.perspective || ''),
+          excerpts,
+          perspective.sentiment ? String(perspective.sentiment) : null
         );
       }
       
       successCount++;
     } catch (error) {
       console.error(`Error processing ${file}:`, error);
+      
+      // Mark as failed due to general error
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      updateAbstractionFailure.run(`General error: ${errorMessage}`, file);
       errorCount++;
     }
   }
@@ -593,8 +655,37 @@ async function abstractComments(dbPath: string) {
   statsDb.close();
 }
 
+async function populateTaxonomyTables(db: Database, final: TaxonomyOutput) {
+  // Parse and populate taxonomy reference
+  const taxonomyEntries = parseTaxonomyForDB(final.themes);
+  const insertTaxonomy = db.prepare(
+    'INSERT OR REPLACE INTO taxonomy_ref (code, description, level, parent_code) VALUES (?, ?, ?, ?)'
+  );
+  
+  for (const entry of taxonomyEntries) {
+    insertTaxonomy.run(entry.code, entry.description, entry.level, entry.parent_code);
+  }
+  
+  // Populate observed attributes
+  const insertAttr = db.prepare(
+    'INSERT OR REPLACE INTO observed_attributes (attribute_type, value) VALUES (?, ?)'
+  );
+  
+  for (const [attrType, values] of Object.entries(final.attributes)) {
+    if (Array.isArray(values)) {
+      for (const value of values) {
+        insertAttr.run(attrType, value);
+      }
+    }
+  }
+  
+  console.log(`\n✅ Taxonomy populated in database!`);
+  console.log(`- Loaded ${taxonomyEntries.length} taxonomy entries`);
+  console.log(`- Loaded ${Object.keys(final.attributes).length} attribute types`);
+}
+
 async function setupDatabase() {
-  const db = initDB();
+  const db = await initDB();
   
   try {
     // Load taxonomy

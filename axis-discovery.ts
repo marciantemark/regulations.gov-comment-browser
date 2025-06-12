@@ -180,7 +180,7 @@ async function discoverAxes() {
         
         console.log(`  ✓ Discovered axis: "${axis.name}"`);
         console.log(`    Question: ${axis.question}`);
-        console.log(`    Positions: ${axis.positions.map(p => p.label).join(', ')}`);
+        console.log(`    Positions: ${axis.positions.map( (p: any) => p.label).join(', ')}`);
       }
       
       if (result.analysis_notes) {
