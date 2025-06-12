@@ -1,37 +1,68 @@
 import { GoogleGenAI } from '@google/genai';
-import { readdir, readFile, mkdir } from 'fs/promises';
-import { join } from 'path';
+import { readFile, mkdir } from 'fs/promises';
 import { Database } from 'bun:sqlite';
+import { 
+  loadCommentsFromDb, 
+  enrichComment, 
+  createWordLimitedBatches,
+  generateInitialTaxonomyPrompt,
+  generateContent,
+  parseGeneratorOutput,
+  formatOutput,
+  formatAttributes,
+  prompts,
+  type EnrichedComment,
+  type TaxonomyOutput
+} from './lib/comment-processing.js';
 
-const BATCH_SIZE = 5;
+const WORD_LIMIT = 20000; // 20k words per batch
+const DEFAULT_BATCH_COUNT = 3; // Default number of independent batches to taxonomize
 const MODEL = 'gemini-2.5-pro-preview-06-05';
 
 // Command parsing
 const command = process.argv[2];
 const inputPath = process.argv[3];
+let batchCount = DEFAULT_BATCH_COUNT;
+let debugMode = false;
+
+// Parse remaining arguments for batch count and debug flag
+for (let i = 4; i < process.argv.length; i++) {
+  const arg = process.argv[i];
+  if (arg === '--debug') {
+    debugMode = true;
+  } else if (!isNaN(parseInt(arg))) {
+    batchCount = parseInt(arg);
+  }
+}
 
 if (!command || !['generate', 'abstract', 'setup-db'].includes(command)) {
   console.log(`
 Taxonomy Pipeline - Core Commands
 
 Usage:
-  bun run taxonomy-pipeline.ts generate <input-directory>  # Generate taxonomy
-  bun run taxonomy-pipeline.ts abstract <input-directory>  # Abstract comments  
-  bun run taxonomy-pipeline.ts setup-db                    # Setup database with taxonomy
+  bun run taxonomy-pipeline.ts generate <comments-db-file> [batch-count] [--debug]  # Generate taxonomy
+  bun run taxonomy-pipeline.ts abstract <comments-db-file>                          # Abstract comments
+  bun run taxonomy-pipeline.ts setup-db                                             # Setup database with taxonomy
+  
+Arguments:
+  batch-count: Number of independent batches to taxonomize (default: ${DEFAULT_BATCH_COUNT})
+  --debug: Save all intermediate prompts, responses, and parsed values to ./progress/
   `);
   process.exit(1);
 }
 
-// Data structures
-interface TaxonomyOutput {
-  themes: string;
-  attributes: {
-    submitter_types: string[];
-    market_segments: string[];
-    geographic_scopes: string[];
-    sentiment_types: string[];
-    other_attributes: Record<string, string[]>;
-  };
+if ((command === 'generate' || command === 'abstract') && !inputPath) {
+    console.error(`Error: Input database file is required for '${command}' command.`);
+    console.log(`Usage: bun run taxonomy-pipeline.ts ${command} <comments-db-file> [batch-count] [--debug]`);
+    process.exit(1);
+}
+
+// Debug logging helper
+async function debugLog(fileName: string, content: string) {
+  if (debugMode) {
+    await mkdir('./progress', { recursive: true });
+    await Bun.write(`./progress/${fileName}`, content);
+  }
 }
 
 // Database initialization with all tables
@@ -134,108 +165,32 @@ const initDB = () => {
   return db;
 };
 
-const prompts = {
-  initial: `Analyze these documents and synthesize a hierarchical taxonomy of descriptive themes.
+// Shared JSON output format template
+const ABSTRACT_JSON_OUTPUT_FORMAT = `{
+  "submitter": {
+    "type": "[from observed types]",
+    "confidence": "Explicit|High|Medium|Low",
+    "organization": "name or null"
+  },
+  "attributes": {
+    "market_segment": "[from observed]",
+    "geographic_scope": "[from observed]",
+    "stakeholder_category": "[derived category]",
+    "technical_sophistication": "[High|Medium|Low]",
+    "regulatory_stance": "[from observed sentiments]"
+  },
+  "primary_themes": ["[theme_code]", "[theme_code]", "..."],
+  "perspectives": [
+    {
+      "taxonomy_code": "[theme_code]",
+      "perspective": "[viewpoint description]",
+      "excerpt": "[direct quote]",
+      "sentiment": "[from observed]"
+    }
+  ]
+}`;
 
-TAXONOMY STRUCTURE:
-- Create a multi-level hierarchy thinking in terms of storytelling narrative flow
-- Use numeric coding:
-  - Top level: 1, 2, 3, etc. (single digits only)
-  - Second level: 1.1, 1.2, 1.3, etc.
-  - Third level: 1.1.1, 1.1.2, 1.1.3, etc.
-  - Continue as deep as needed
-- If content doesn't fit established categories, attach it to the parent level
-
-PERSPECTIVE EMBEDDING:
-For each theme/sub-theme where perspectives are expressed:
-• Perspective: [Viewpoint expressed in viewpoint-neutral framing]
-  - Excerpt: "[Direct quote or close paraphrase]" (Organization/Author Name)
-  - Excerpt: "[Another supporting quote]" (Different Author)
-
-Documents:
-{CONTENT}
-
-OUTPUT FORMAT - Provide two clearly separated sections:
-
-=== THEME TAXONOMY ===
-[Your hierarchical numbered taxonomy with embedded perspectives]
-
-=== OBSERVED ATTRIBUTES ===
-Submitter Types: [comma-separated list]
-Market Segments: [comma-separated list]  
-Geographic Scopes: [comma-separated list]
-Sentiment Types: [comma-separated list]
-[Any other attribute types]: [comma-separated list]`,
-
-  refine: `Refine this taxonomy to be mutually exclusive and collectively exhaustive (MECE).
-
-Current taxonomy:
-{TAXONOMY}
-
-Requirements:
-1. Each theme/perspective should appear in exactly ONE location
-2. Verify nothing is lost - all perspectives must be preserved
-3. Use consistent depth and parallel construction for siblings
-4. Maintain the numeric coding system
-
-OUTPUT FORMAT - Provide two clearly separated sections:
-
-=== THEME TAXONOMY ===
-[Your refined MECE taxonomy]
-
-=== OBSERVED ATTRIBUTES ===
-[Keep the exact same attributes from input]`,
-
-  mergeThemes: `Merge these theme taxonomies into a unified structure.
-
-RULES:
-1. Combine similar themes, preserving ALL perspectives and excerpts
-2. Maintain numeric coding, renumbering as needed
-3. {PERSPECTIVE_RULE}
-
-Taxonomy 1:
-{TAXONOMY1}
-
-Taxonomy 2:
-{TAXONOMY2}
-
-Output ONLY the merged theme taxonomy (not attributes).`,
-
-  mergeAttributes: `Merge these observed attribute lists, removing duplicates.
-
-Attributes 1:
-{ATTRIBUTES1}
-
-Attributes 2:
-{ATTRIBUTES2}
-
-Output the consolidated attributes in this exact format:
-Submitter Types: [merged list]
-Market Segments: [merged list]
-Geographic Scopes: [merged list]
-Sentiment Types: [merged list]
-[Other types if any]: [merged list]`,
-
-  finalMerge: `Create a high-level synthesis of these theme taxonomies.
-
-CONSOLIDATION APPROACH:
-1. Major themes at level 1 (use single digits: 1, 2, 3, etc.)
-2. Sub-themes at level 2 (1.1, 1.2, etc.)  
-3. Further detail at level 3+ as needed
-4. At this consolidation level, preserve only representative perspectives that best illustrate each theme
-
-Add at the top:
-GUIDANCE FOR DATA ABSTRACTORS:
-- Code to the most specific level (e.g., use 2.1.3 not just 2.1)
-- Multiple codes may apply to a single comment
-- [Add specific guidance based on the taxonomy structure]
-
-Taxonomies to merge:
-{TAXONOMIES}
-
-Output the consolidated theme taxonomy with abstractor guidance.`,
-
-  abstract: `Analyze this comment using the provided taxonomy and attributes.
+const abstract_prompt = `Analyze this comment using the provided taxonomy and attributes.
 
 THEME TAXONOMY:
 {TAXONOMY}
@@ -254,134 +209,164 @@ Extract:
 5. Primary theme codes (top 3-5 by emphasis)
 
 Output as JSON:
-{
-  "submitter": {
-    "type": "[from observed types]",
-    "confidence": "Explicit|High|Medium|Low",
-    "organization": "name or null"
-  },
-  "attributes": {
-    "market_segment": "[from observed]",
-    "geographic_scope": "[from observed]",
-    "stakeholder_category": "Patient|Provider|Payer|Vendor|Regulator|Other",
-    "technical_sophistication": "High|Medium|Low",
-    "regulatory_stance": "[from observed sentiments]"
-  },
-  "primary_themes": ["1.2", "3.1.4", "..."],
-  "perspectives": [
-    {
-      "taxonomy_code": "2.1.3",
-      "perspective": "...",
-      "excerpt": "...",
-      "sentiment": "[from observed]"
-    }
-  ]
-}`
-};
+${ABSTRACT_JSON_OUTPUT_FORMAT}`;
 
-async function generateTaxonomy(dir: string) {
+async function generateTaxonomy(dbPath: string) {
   const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
-  const files = await readdir(dir);
-  const batches: string[][] = [];
   
+  if (debugMode) {
+    console.log('🐛 Debug mode enabled - saving all intermediate artifacts to ./progress/');
+    await mkdir('./progress', { recursive: true });
+  }
+  
+  // Load comments and attachments using core library
+  const { comments, attachments, totalComments } = loadCommentsFromDb(dbPath);
+  console.log(`📊 Filtered ${comments.length} submissions from ${totalComments} total comments`);
+
   await mkdir('./output', { recursive: true });
   
-  // Create batches
-  for (let i = 0; i < files.length; i += BATCH_SIZE) {
-    batches.push(files.slice(i, i + BATCH_SIZE));
+  // Enrich comments with metadata and PDF attachments
+  const enrichedComments = await Promise.all(
+    comments.map(c => enrichComment(c, attachments))
+  );
+  
+  const validComments = enrichedComments.filter(c => c !== null) as EnrichedComment[];
+  
+  console.log(`Total comments available: ${validComments.length}`);
+  console.log(`Creating ${batchCount} independent batches with ~${WORD_LIMIT} words each...`);
+  
+  // Create word-limited batches using core library
+  const allBatches = createWordLimitedBatches(validComments, WORD_LIMIT, true);
+  
+  if (allBatches.length < batchCount) {
+    console.warn(`⚠️  Warning: Only ${allBatches.length} batches available, but ${batchCount} requested. Using all available batches.`);
+  }
+  
+  const batchesToProcess = allBatches.slice(0, batchCount);
+  
+  console.log(`Processing ${batchesToProcess.length} batches`);
+  batchesToProcess.forEach((batch, idx) => {
+    const totalWords = batch.reduce((sum, c) => sum + c.wordCount, 0);
+    console.log(`  Batch ${idx + 1}: ${batch.length} comments, ~${totalWords} words`);
+  });
+
+  // Process each batch to create independent taxonomies (no refinement)
+  const taxonomies: TaxonomyOutput[] = [];
+  
+  for (let i = 0; i < batchesToProcess.length; i++) {
+    console.log(`\nProcessing batch ${i + 1}/${batchesToProcess.length} (${batchesToProcess[i].length} comments)...`);
+    
+    const prompt = generateInitialTaxonomyPrompt(batchesToProcess[i]);
+    await debugLog(`batch_${i + 1}_prompt.txt`, prompt);
+    
+    const response = await generateContent(ai, prompt);
+    await debugLog(`batch_${i + 1}_response.txt`, response);
+    
+    const taxonomy = parseGeneratorOutput(response);
+    await debugLog(`batch_${i + 1}_parsed.json`, JSON.stringify(taxonomy, null, 2));
+    
+    taxonomies.push(taxonomy);
+    await Bun.write(`./output/batch_${i + 1}_taxonomy.md`, formatOutput(taxonomy));
+    console.log(`✓ Taxonomy ${i + 1} created`);
   }
 
-  // Process each batch
-  const batchOutputs: TaxonomyOutput[] = [];
+  // Merge taxonomies pairwise until we have one final taxonomy
+  let currentTaxonomies = [...taxonomies];
+  let mergeLevel = 1;
   
-  for (const [idx, batch] of batches.entries()) {
-    console.log(`Processing batch ${idx + 1}/${batches.length}`);
+  while (currentTaxonomies.length > 1) {
+    console.log(`\nMerge level ${mergeLevel}: merging ${currentTaxonomies.length} taxonomies`);
+    const newTaxonomies: TaxonomyOutput[] = [];
     
-    const contents = await Promise.all(
-      batch.map(async f => {
-        const content = await readFile(join(dir, f), 'utf-8');
-        return `\n---FILE: ${f}---\n${content}`;
-      })
-    );
-    
-    // Generate initial taxonomy
-    let response = await generateContent(ai, prompts.initial.replace('{CONTENT}', contents.join('\n')));
-    
-    // Parse output
-    let output = parseGeneratorOutput(response);
-    
-    // Refine to MECE
-    response = await generateContent(ai, prompts.refine.replace('{TAXONOMY}', formatForRefinement(output)));
-    output = parseGeneratorOutput(response);
-    
-    batchOutputs.push(output);
-    
-    // Save intermediate
-    await Bun.write(`./output/batch_${idx + 1}_taxonomy.md`, formatOutput(output));
-  }
-
-  // Merge process
-  let currentOutputs = [...batchOutputs];
-  let level = 1;
-  
-  while (currentOutputs.length > 1) {
-    console.log(`Merge level ${level}, ${currentOutputs.length} taxonomies`);
-    const newOutputs: TaxonomyOutput[] = [];
-    
-    for (let i = 0; i < currentOutputs.length; i += 2) {
-      if (i + 1 < currentOutputs.length) {
-        // Merge themes
-        const perspectiveRule = level === 1 
-          ? "Preserve ALL perspectives and excerpts from both taxonomies"
-          : "Preserve representative perspectives that best illustrate each theme";
-          
-        const mergedThemes = await generateContent(ai, 
-          prompts.mergeThemes
-            .replace('{PERSPECTIVE_RULE}', perspectiveRule)
-            .replace('{TAXONOMY1}', currentOutputs[i].themes)
-            .replace('{TAXONOMY2}', currentOutputs[i + 1].themes)
-        );
+    for (let i = 0; i < currentTaxonomies.length; i += 2) {
+      if (i + 1 < currentTaxonomies.length) {
+        console.log(`Merging taxonomies ${i + 1} and ${i + 2}...`);
         
-        // Merge attributes
-        const mergedAttrs = await generateContent(ai,
-          prompts.mergeAttributes
-            .replace('{ATTRIBUTES1}', formatAttributes(currentOutputs[i].attributes))
-            .replace('{ATTRIBUTES2}', formatAttributes(currentOutputs[i + 1].attributes))
-        );
+        const mergePrompt = prompts.mergeThemes
+          .replace('{TAXONOMY1}', currentTaxonomies[i].themes)
+          .replace('{TAXONOMY2}', currentTaxonomies[i + 1].themes);
         
-        const merged: TaxonomyOutput = {
-          themes: mergedThemes,
-          attributes: parseAttributes(mergedAttrs)
-        };
+        await debugLog(`merge_L${mergeLevel}_${Math.floor(i/2) + 1}_prompt.txt`, mergePrompt);
         
-        newOutputs.push(merged);
-        await Bun.write(`./output/merge_L${level}_${Math.floor(i/2)}.md`, formatOutput(merged));
+        const mergedResponse = await generateContent(ai, mergePrompt);
+        await debugLog(`merge_L${mergeLevel}_${Math.floor(i/2) + 1}_response.txt`, mergedResponse);
+        
+        const mergedTaxonomy = parseGeneratorOutput(mergedResponse);
+        
+        // Merge attributes from both taxonomies (programmatically)
+        const mergedAttributes: Record<string, string[]> = {};
+        
+        // Get all unique keys from both taxonomies
+        const allKeys = new Set([
+          ...Object.keys(currentTaxonomies[i].attributes),
+          ...Object.keys(currentTaxonomies[i + 1].attributes)
+        ]);
+        
+        // Merge values for each key using set operations
+        for (const key of allKeys) {
+          const values1 = currentTaxonomies[i].attributes[key] || [];
+          const values2 = currentTaxonomies[i + 1].attributes[key] || [];
+          mergedAttributes[key] = [...new Set([...values1, ...values2])];
+        }
+        
+        mergedTaxonomy.attributes = mergedAttributes;
+        
+        await debugLog(`merge_L${mergeLevel}_${Math.floor(i/2) + 1}_parsed.json`, JSON.stringify(mergedTaxonomy, null, 2));
+        
+        newTaxonomies.push(mergedTaxonomy);
+        
+        await Bun.write(`./output/merge_L${mergeLevel}_${Math.floor(i/2) + 1}.md`, formatOutput(mergedTaxonomy));
       } else {
-        newOutputs.push(currentOutputs[i]);
+        // Odd one out, carry forward
+        newTaxonomies.push(currentTaxonomies[i]);
       }
     }
     
-    currentOutputs = newOutputs;
-    level++;
+    currentTaxonomies = newTaxonomies;
+    mergeLevel++;
   }
 
-  // Final consolidation if needed
-  if (level > 2) {
-    const finalThemes = await generateContent(ai,
-      prompts.finalMerge.replace('{TAXONOMIES}', currentOutputs[0].themes)
-    );
-    currentOutputs[0].themes = finalThemes;
-  }
+  // Final step: Refine attributes using AI
+  const preFinalTaxonomy = currentTaxonomies[0];
+  console.log(`\n🔧 Refining final attributes...`);
+  
+  const attributePrompt = prompts.refineAttributes.replace('{ATTRIBUTES}', formatAttributes(preFinalTaxonomy.attributes));
+  await debugLog('final_attribute_refinement_prompt.txt', attributePrompt);
+  
+  const refinedAttributesResponse = await generateContent(ai, attributePrompt);
+  await debugLog('final_attribute_refinement_response.txt', refinedAttributesResponse);
+  
+  // Parse the refined attributes response
+  const refinedAttributes = parseGeneratorOutput(`=== THEME TAXONOMY ===\n\n${refinedAttributesResponse}`);
+  await debugLog('final_attribute_refinement_parsed.json', JSON.stringify(refinedAttributes.attributes, null, 2));
+  
+  // Create final taxonomy with refined attributes
+  const final: TaxonomyOutput = {
+    themes: preFinalTaxonomy.themes,
+    attributes: refinedAttributes.attributes
+  };
 
   // Save final taxonomy
-  const final = currentOutputs[0];
   await Bun.write('./output/final_taxonomy.md', formatOutput(final));
   await Bun.write('./output/observed_attributes.json', JSON.stringify(final.attributes, null, 2));
+  
+  if (debugMode) {
+    await debugLog('final_taxonomy_complete.json', JSON.stringify(final, null, 2));
+  }
+  
+  console.log(`\n✅ Taxonomy generation complete!`);
+  console.log(`- Processed ${validComments.length} comments across ${batchesToProcess.length} initial batches`);
+  console.log(`- Performed ${mergeLevel - 1} levels of merging`);
+  console.log(`- Applied final attribute refinement`);
+  console.log(`- Final taxonomy saved to ./output/final_taxonomy.md`);
+  if (debugMode) {
+    console.log(`- Debug artifacts saved to ./progress/`);
+  }
   
   return final;
 }
 
-async function abstractComments(dir: string) {
+async function abstractComments(dbPath: string) {
   const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
   const db = initDB();
   
@@ -396,8 +381,10 @@ async function abstractComments(dir: string) {
     process.exit(1);
   }
   
-  // Process files
-  const files = await readdir(dir);
+  // Process comments from DB using core library
+  const { comments, totalComments } = loadCommentsFromDb(dbPath);
+  console.log(`📊 Processing ${comments.length} submissions from ${totalComments} total comments`);
+
   const insertAbstraction = db.prepare(`
     INSERT INTO abstractions (
       filename, content, submitter_type, submitter_type_confidence,
@@ -416,14 +403,20 @@ async function abstractComments(dir: string) {
   let successCount = 0;
   let errorCount = 0;
   
-  for (const [idx, file] of files.entries()) {
-    console.log(`Abstracting ${idx + 1}/${files.length}: ${file}`);
+  for (const [idx, comment] of comments.entries()) {
+    const file = comment.id; // Use comment ID as the filename identifier
+    console.log(`Abstracting ${idx + 1}/${comments.length}: ${file}`);
     
     try {
-      const content = await readFile(join(dir, file), 'utf-8');
+      const attributes = JSON.parse(comment.attributes_json);
+      const content = attributes.comment || '';
+      if (!content) {
+        console.warn(`Skipping comment ${file} due to empty content.`);
+        continue;
+      }
       
       const response = await generateContent(ai, 
-        prompts.abstract
+        abstract_prompt
           .replace('{TAXONOMY}', taxonomyData.themes)
           .replace('{ATTRIBUTES}', formatAttributes(taxonomyData.attributes))
           .replace('{CONTENT}', content)
@@ -542,104 +535,6 @@ async function setupDatabase() {
   db.close();
 }
 
-// Helper functions
-async function generateContent(ai: GoogleGenAI, prompt: string): Promise<string> {
-  const config = { responseMimeType: 'text/plain' };
-  const contents = [{
-    role: 'user' as const,
-    parts: [{ text: prompt }]
-  }];
-  
-  const response = await ai.models.generateContentStream({
-    model: MODEL,
-    config,
-    contents,
-  });
-  
-  let result = '';
-  for await (const chunk of response) {
-    result += chunk.text;
-  }
-  
-  return result;
-}
-
-function parseGeneratorOutput(response: string): TaxonomyOutput {
-  const parts = response.split(/=== OBSERVED ATTRIBUTES ===/i);
-  const themes = parts[0].replace(/=== THEME TAXONOMY ===/i, '').trim();
-  const attributes = parts[1] ? parseAttributes(parts[1]) : {
-    submitter_types: [],
-    market_segments: [],
-    geographic_scopes: [],
-    sentiment_types: [],
-    other_attributes: {}
-  };
-  
-  return { themes, attributes };
-}
-
-function parseAttributes(text: string): TaxonomyOutput['attributes'] {
-  const result: TaxonomyOutput['attributes'] = {
-    submitter_types: [],
-    market_segments: [],
-    geographic_scopes: [],
-    sentiment_types: [],
-    other_attributes: {}
-  };
-  
-  const lines = text.trim().split('\n');
-  for (const line of lines) {
-    const match = line.match(/^(.+?):\s*(.+)$/);
-    if (match) {
-      const [_, key, valuesStr] = match;
-      const values = valuesStr.split(',').map(v => v.trim()).filter(v => v);
-      
-      const normalizedKey = key.toLowerCase().replace(/\s+/g, '_');
-      if (normalizedKey === 'submitter_types') {
-        result.submitter_types = values;
-      } else if (normalizedKey === 'market_segments') {
-        result.market_segments = values;
-      } else if (normalizedKey === 'geographic_scopes') {
-        result.geographic_scopes = values;
-      } else if (normalizedKey === 'sentiment_types') {
-        result.sentiment_types = values;
-      } else {
-        result.other_attributes[key] = values;
-      }
-    }
-  }
-  
-  return result;
-}
-
-function formatAttributes(attrs: TaxonomyOutput['attributes']): string {
-  let result = '';
-  if (attrs.submitter_types.length) {
-    result += `Submitter Types: ${attrs.submitter_types.join(', ')}\n`;
-  }
-  if (attrs.market_segments.length) {
-    result += `Market Segments: ${attrs.market_segments.join(', ')}\n`;
-  }
-  if (attrs.geographic_scopes.length) {
-    result += `Geographic Scopes: ${attrs.geographic_scopes.join(', ')}\n`;
-  }
-  if (attrs.sentiment_types.length) {
-    result += `Sentiment Types: ${attrs.sentiment_types.join(', ')}\n`;
-  }
-  for (const [key, values] of Object.entries(attrs.other_attributes)) {
-    result += `${key}: ${values.join(', ')}\n`;
-  }
-  return result.trim();
-}
-
-function formatForRefinement(output: TaxonomyOutput): string {
-  return `${output.themes}\n\n=== OBSERVED ATTRIBUTES ===\n${formatAttributes(output.attributes)}`;
-}
-
-function formatOutput(output: TaxonomyOutput): string {
-  return `=== THEME TAXONOMY ===\n${output.themes}\n\n=== OBSERVED ATTRIBUTES ===\n${formatAttributes(output.attributes)}`;
-}
-
 function parseTaxonomyForDB(taxonomyText: string): Array<{
   code: string;
   description: string;
@@ -678,13 +573,13 @@ function parseTaxonomyForDB(taxonomyText: string): Array<{
 
 // Main execution
 if (command === 'generate') {
-  console.log(`Generating taxonomy from ${inputPath || './comments'}`);
-  generateTaxonomy(inputPath || './comments')
+  console.log(`Generating taxonomy from ${inputPath} using ${batchCount} independent batches${debugMode ? ' (debug mode)' : ''}`);
+  generateTaxonomy(inputPath)
     .then(() => console.log('\nTaxonomy generation complete!'))
     .catch(console.error);
 } else if (command === 'abstract') {
-  console.log(`Abstracting comments from ${inputPath || './comments'}`);
-  abstractComments(inputPath || './comments')
+  console.log(`Abstracting comments from ${inputPath}`);
+  abstractComments(inputPath)
     .catch(console.error);
 } else if (command === 'setup-db') {
   console.log('Setting up database with taxonomy...');
