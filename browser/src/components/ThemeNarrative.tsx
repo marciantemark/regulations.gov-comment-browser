@@ -1,11 +1,39 @@
 import React from 'react';
 import type { ThemeAnalysisRaw } from '../database/queries';
 import { Link } from 'react-router-dom';
+import clsx from 'clsx';
 
 export interface ThemeNarrativeProps {
   narrative: ThemeAnalysisRaw;
   perspectiveInfo?: Record<number, { abstractionId: number; title: string }>;
 }
+
+const Pill: React.FC<{label:string; color?:string}> = ({label, color='gray'}) => (
+  <span className={clsx('px-2 py-0.5 rounded-full text-xs font-medium border',
+    color==='indigo' ? 'bg-indigo-100 border-indigo-300 text-indigo-800' :
+    color==='red' ? 'bg-red-100 border-red-300 text-red-800' :
+    'bg-gray-100 border-gray-300 text-gray-800'
+  )}>{label}</span>
+);
+
+// Card that groups a relationship tuple with an inset label
+const RelationCard: React.FC<{type:'aligned'|'opposing'; children: React.ReactNode}> = ({type, children}) => {
+  const isAligned = type==='aligned';
+  const bg = isAligned ? 'bg-indigo-50' : 'bg-red-50';
+  const border = isAligned ? 'border-indigo-400' : 'border-red-400';
+  const text = isAligned ? 'text-indigo-700' : 'text-red-700';
+  const label = isAligned ? 'with' : 'vs';
+  return (
+    <div className="relative inline-block mr-2 mb-2">
+      <span className={clsx('absolute -top-2 left-3 px-1 text-[10px] uppercase tracking-wide rounded-sm', bg, border, text)}>
+        {label}
+      </span>
+      <div className={clsx('flex flex-nowrap items-center gap-2 rounded-lg px-3 py-1', bg, border, 'border-2')}>
+        {children}
+      </div>
+    </div>
+  );
+};
 
 const ThemeNarrative: React.FC<ThemeNarrativeProps> = ({ narrative, perspectiveInfo }) => {
   if (!narrative || !narrative.narrative_summary) return null;
@@ -83,6 +111,75 @@ const ThemeNarrative: React.FC<ThemeNarrativeProps> = ({ narrative, perspectiveI
               </li>
             ))}
           </ul>
+        </div>
+      )}
+
+      {/* Stakeholder dynamics */}
+      {narrative.stakeholder_dynamics && (
+        <div>
+          <h3 className="text-xl font-semibold mt-4 mb-2">Stakeholder Dynamics</h3>
+          <div className="grid md:grid-cols-3 gap-4 text-sm text-gray-800">
+            {Array.isArray((narrative.stakeholder_dynamics as any).aligned_groups) && (
+              <div className="bg-indigo-50 border border-indigo-200 p-4 rounded">
+                <div className="font-medium text-indigo-800 mb-1">Aligned Groups</div>
+                <ul className="list-disc ml-4">
+                  {(narrative.stakeholder_dynamics as any).aligned_groups.map((grp: any, idx: number) => {
+                    if (!Array.isArray(grp)) return <li key={idx}>{grp}</li>;
+                    return (
+                      <RelationCard key={idx} type="aligned">
+                        <span className="text-indigo-800 whitespace-nowrap">{grp.join('   ')}</span>
+                      </RelationCard>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
+
+            {Array.isArray((narrative.stakeholder_dynamics as any).opposing_groups) && (
+              <div className="bg-red-50 border border-red-200 p-4 rounded">
+                <div className="font-medium text-red-800 mb-1">Opposing Groups</div>
+                <ul className="list-disc ml-4">
+                  {(narrative.stakeholder_dynamics as any).opposing_groups.map((grp: any, idx: number) => {
+                    if (!Array.isArray(grp)) return <li key={idx}>{grp}</li>;
+                    return (
+                      <RelationCard key={idx} type="opposing">
+                        <span className="text-red-800 whitespace-nowrap">{grp.join('   ')}</span>
+                      </RelationCard>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
+
+            {Array.isArray((narrative.stakeholder_dynamics as any).bridge_builders) && (
+              <div className="bg-yellow-50 border border-yellow-200 p-4 rounded">
+                <div className="font-medium text-yellow-800 mb-1">Bridge Builders</div>
+                <ul className="list-disc ml-4">
+                  {(narrative.stakeholder_dynamics as any).bridge_builders.map((bb: string, idx: number) => (
+                    <li key={idx}>{bb}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Supporting stats */}
+      {narrative.supporting_stats && (
+        <div>
+          <h3 className="text-xl font-semibold mt-4 mb-2">Key Numbers</h3>
+          <div className="flex flex-wrap gap-6 text-gray-700 text-sm">
+            {typeof (narrative.supporting_stats as any).total_perspectives === 'number' && (
+              <div><span className="font-semibold text-gray-900">{(narrative.supporting_stats as any).total_perspectives.toLocaleString()}</span> perspectives</div>
+            )}
+            {typeof (narrative.supporting_stats as any).total_stakeholders === 'number' && (
+              <div><span className="font-semibold text-gray-900">{(narrative.supporting_stats as any).total_stakeholders.toLocaleString()}</span> stakeholder types</div>
+            )}
+            {typeof (narrative.supporting_stats as any).consensus_ratio === 'number' && (
+              <div>Consensus ratio: <span className="font-semibold text-gray-900">{((narrative.supporting_stats as any).consensus_ratio * 100).toFixed(0)}%</span></div>
+            )}
+          </div>
         </div>
       )}
     </section>
