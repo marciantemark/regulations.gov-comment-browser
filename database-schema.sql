@@ -52,47 +52,9 @@ CREATE TABLE IF NOT EXISTS observed_attributes (
   PRIMARY KEY (attribute_type, value)
 );
 
--- Axes of disagreement within themes
-CREATE TABLE IF NOT EXISTS theme_axes (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  theme_code TEXT NOT NULL,
-  axis_name TEXT NOT NULL,
-  axis_question TEXT NOT NULL,
-  min_perspectives INTEGER DEFAULT 5,
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (theme_code) REFERENCES taxonomy_ref(code)
-);
-
--- Possible positions on each axis
-CREATE TABLE IF NOT EXISTS axis_positions (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  axis_id INTEGER NOT NULL,
-  position_key TEXT NOT NULL,
-  position_label TEXT NOT NULL,
-  position_description TEXT,
-  example_count INTEGER DEFAULT 0,
-  FOREIGN KEY (axis_id) REFERENCES theme_axes(id) ON DELETE CASCADE
-);
-
--- How each perspective maps to positions
-CREATE TABLE IF NOT EXISTS perspective_positions (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  perspective_id INTEGER NOT NULL,
-  axis_id INTEGER NOT NULL,
-  position_id INTEGER NOT NULL,
-  confidence TEXT CHECK(confidence IN ('high', 'medium', 'low')),
-  reasoning TEXT,
-  FOREIGN KEY (perspective_id) REFERENCES perspectives(id) ON DELETE CASCADE,
-  FOREIGN KEY (axis_id) REFERENCES theme_axes(id) ON DELETE CASCADE,
-  FOREIGN KEY (position_id) REFERENCES axis_positions(id) ON DELETE CASCADE,
-  UNIQUE(perspective_id, axis_id)
-);
-
 -- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_perspectives_taxonomy ON perspectives(taxonomy_code);
 CREATE INDEX IF NOT EXISTS idx_perspectives_abstraction ON perspectives(abstraction_id);
-CREATE INDEX IF NOT EXISTS idx_perspective_positions_axis ON perspective_positions(axis_id);
-CREATE INDEX IF NOT EXISTS idx_perspective_positions_position ON perspective_positions(position_id);
 CREATE INDEX IF NOT EXISTS idx_abstractions_submitter ON abstractions(submitter_type);
 -- JSON-based indexes for original metadata
 CREATE INDEX IF NOT EXISTS idx_abstractions_original_category ON abstractions(json_extract(original_metadata_json, '$.category'));
@@ -117,90 +79,83 @@ FROM taxonomy_ref t
 LEFT JOIN perspectives p ON t.code = p.taxonomy_code
 GROUP BY t.code, t.description, t.level;
 
--- Debate summary
-CREATE VIEW IF NOT EXISTS debate_summary AS
-SELECT 
-  ta.theme_code,
-  t.description as theme_desc,
-  ta.axis_name,
-  ta.axis_question,
-  COUNT(DISTINCT pp.perspective_id) as total_perspectives,
-  COUNT(DISTINCT ap.id) as position_count,
-  MAX(ap.example_count) - MIN(ap.example_count) as balance_score
-FROM theme_axes ta
-JOIN taxonomy_ref t ON ta.theme_code = t.code
-JOIN axis_positions ap ON ta.id = ap.axis_id
-LEFT JOIN perspective_positions pp ON ap.id = pp.position_id
-GROUP BY ta.id;
+-- Theme-level narrative summaries for each taxonomy theme
+CREATE TABLE IF NOT EXISTS theme_narratives (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  theme_code TEXT NOT NULL UNIQUE,
+  narrative_summary TEXT NOT NULL,
+  consensus_points TEXT,          -- JSON array
+  debate_points TEXT,             -- JSON array
+  stakeholder_dynamics TEXT,      -- JSON object as TEXT
+  supporting_stats TEXT,          -- JSON object as TEXT
+  generated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  model_version TEXT DEFAULT 'v1',
+  FOREIGN KEY (theme_code) REFERENCES taxonomy_ref(code)
+);
 
--- Stakeholder alignment by position (LLM-generated submitter type)
-CREATE VIEW IF NOT EXISTS stakeholder_alignment AS
+-- Stances/positions defined per theme
+CREATE TABLE IF NOT EXISTS theme_stances (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  theme_code TEXT NOT NULL,
+  stance_key TEXT NOT NULL,
+  stance_label TEXT NOT NULL,
+  stance_description TEXT,
+  typical_arguments TEXT,  -- JSON array
+  example_quotes TEXT,     -- JSON array
+  generated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(theme_code, stance_key),
+  FOREIGN KEY (theme_code) REFERENCES taxonomy_ref(code)
+);
+
+-- Mapping of individual perspectives to stances
+CREATE TABLE IF NOT EXISTS perspective_stances (
+  perspective_id INTEGER NOT NULL,
+  theme_code TEXT NOT NULL,
+  stance_key TEXT NOT NULL,
+  confidence REAL DEFAULT 1.0,
+  PRIMARY KEY (perspective_id, stance_key),
+  FOREIGN KEY (perspective_id) REFERENCES perspectives(id) ON DELETE CASCADE,
+  FOREIGN KEY (theme_code, stance_key) REFERENCES theme_stances(theme_code, stance_key) ON DELETE CASCADE
+);
+
+-- Pre-calculated distribution of stances by stakeholder type
+CREATE VIEW IF NOT EXISTS stance_distribution AS
 SELECT 
+  ts.theme_code,
+  ts.stance_key,
+  ts.stance_label,
   a.submitter_type,
-  ta.theme_code,
-  ta.axis_name,
-  ap.position_label,
-  COUNT(*) as count,
-  ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER (
-    PARTITION BY a.submitter_type, ta.id
-  ), 1) as percent
-FROM perspective_positions pp
-JOIN perspectives p ON pp.perspective_id = p.id
+  COUNT(*) AS count,
+  GROUP_CONCAT(DISTINCT a.organization_name) AS organizations
+FROM theme_stances ts
+JOIN perspective_stances ps ON ts.theme_code = ps.theme_code AND ts.stance_key = ps.stance_key
+JOIN perspectives p ON ps.perspective_id = p.id
 JOIN abstractions a ON p.abstraction_id = a.id
-JOIN theme_axes ta ON pp.axis_id = ta.id
-JOIN axis_positions ap ON pp.position_id = ap.id
-WHERE pp.confidence IN ('high', 'medium')
-GROUP BY a.submitter_type, ta.id, ap.id;
+GROUP BY ts.theme_code, ts.stance_key, a.submitter_type;
 
--- Original stakeholder alignment by position (regulations.gov category)
-CREATE VIEW IF NOT EXISTS original_stakeholder_alignment AS
-SELECT 
-  json_extract(a.original_metadata_json, '$.category') as original_category,
-  ta.theme_code,
-  ta.axis_name,
-  ap.position_label,
-  COUNT(*) as count,
-  ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER (
-    PARTITION BY json_extract(a.original_metadata_json, '$.category'), ta.id
-  ), 1) as percent
-FROM perspective_positions pp
-JOIN perspectives p ON pp.perspective_id = p.id
-JOIN abstractions a ON p.abstraction_id = a.id
-JOIN theme_axes ta ON pp.axis_id = ta.id
-JOIN axis_positions ap ON pp.position_id = ap.id
-WHERE pp.confidence IN ('high', 'medium')
-GROUP BY json_extract(a.original_metadata_json, '$.category'), ta.id, ap.id;
+-- DROP defunct axis disagreement structures (if they exist)
+DROP TABLE IF EXISTS theme_axes;
+DROP TABLE IF EXISTS axis_positions;
+DROP TABLE IF EXISTS perspective_positions;
+DROP VIEW IF EXISTS debate_summary;
+DROP VIEW IF EXISTS stakeholder_alignment;
+DROP VIEW IF EXISTS original_stakeholder_alignment;
+DROP VIEW IF EXISTS geographic_alignment;
+DROP VIEW IF EXISTS position_dominance;
+DROP VIEW IF EXISTS stance_distribution;
 
--- Geographic analysis view
-CREATE VIEW IF NOT EXISTS geographic_alignment AS
-SELECT 
-  json_extract(a.original_metadata_json, '$.stateProvinceRegion') as state_province_region,
-  json_extract(a.original_metadata_json, '$.country') as country,
-  ta.theme_code,
-  ta.axis_name,
-  ap.position_label,
-  COUNT(*) as count
-FROM perspective_positions pp
-JOIN perspectives p ON pp.perspective_id = p.id
-JOIN abstractions a ON p.abstraction_id = a.id
-JOIN theme_axes ta ON pp.axis_id = ta.id
-JOIN axis_positions ap ON pp.position_id = ap.id
-WHERE pp.confidence IN ('high', 'medium') 
-  AND json_extract(a.original_metadata_json, '$.stateProvinceRegion') IS NOT NULL
-GROUP BY json_extract(a.original_metadata_json, '$.stateProvinceRegion'), json_extract(a.original_metadata_json, '$.country'), ta.id, ap.id;
+-- Raw JSON output for per-theme analysis (narrative + stances, etc.)
+CREATE TABLE IF NOT EXISTS theme_analysis_raw (
+  theme_code TEXT PRIMARY KEY,
+  analysis_json TEXT NOT NULL,
+  generated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
 
--- Position dominance (consensus finder)
-CREATE VIEW IF NOT EXISTS position_dominance AS
-SELECT 
-  ta.theme_code,
-  ta.axis_name,
-  ap.position_label,
-  COUNT(DISTINCT pp.perspective_id) as supporter_count,
-  COUNT(DISTINCT a.id) as org_count,
-  ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER (PARTITION BY ta.id), 1) as percent
-FROM perspective_positions pp
-JOIN axis_positions ap ON pp.position_id = ap.id
-JOIN theme_axes ta ON ap.axis_id = ta.id
-JOIN perspectives p ON pp.perspective_id = p.id
-JOIN abstractions a ON p.abstraction_id = a.id
-GROUP BY ta.id, ap.id;
+-- Convenience view exposing headline narrative fields
+CREATE VIEW IF NOT EXISTS theme_narrative_view AS
+SELECT
+  theme_code,
+  json_extract(analysis_json, '$.narrative_summary')                       AS narrative_summary,
+  json_extract(analysis_json, '$.supporting_stats.total_perspectives')    AS total_perspectives,
+  json_extract(analysis_json, '$.supporting_stats.total_stakeholders')    AS total_stakeholders
+FROM theme_analysis_raw;

@@ -14,16 +14,17 @@ import {
   type EnrichedComment,
   type TaxonomyOutput
 } from './lib/comment-processing.js';
+import { analyzeThemes } from './theme-analysis.js';
 
 const WORD_LIMIT = 20000; // 20k words per batch
 const DEFAULT_BATCH_COUNT = 3; // Default number of independent batches to taxonomize
-const MODEL = 'gemini-2.5-pro-preview-06-05';
 
 // Command parsing
 const command = process.argv[2];
 const inputPath = process.argv[3];
 let batchCount = DEFAULT_BATCH_COUNT;
 let debugMode = false;
+let themeCodes: string[] | null = null; // for analyze-themes
 
 // Abstract command specific options
 let limitComments = 1000; // Default limit for abstract command
@@ -31,8 +32,11 @@ let randomSelection = false;
 let retryFailed = false;
 let filters: Array<{key: string, value: string}> = [];
 
-// Parse remaining arguments
-for (let i = 4; i < process.argv.length; i++) {
+// Determine where flag parsing should begin
+const flagStartIndex = (command === 'generate' || command === 'abstract') ? 4 : 3;
+
+// Parse remaining arguments (flags)
+for (let i = flagStartIndex; i < process.argv.length; i++) {
   const arg = process.argv[i];
   
   if (arg === '--debug') {
@@ -57,10 +61,13 @@ for (let i = 4; i < process.argv.length; i++) {
   } else if (!isNaN(parseInt(arg)) && command === 'generate') {
     // Batch count only applies to generate command
     batchCount = parseInt(arg);
+  } else if (command === 'analyze-themes' && arg === '--themes' && i + 1 < process.argv.length) {
+    themeCodes = process.argv[i + 1].split(',').map(s => s.trim()).filter(Boolean);
+    i++;
   }
 }
 
-if (!command || !['generate', 'abstract', 'setup-db'].includes(command)) {
+if (!command || !['generate', 'abstract', 'setup-db', 'analyze-themes'].includes(command)) {
   console.log(`
 Taxonomy Pipeline - Core Commands
 
@@ -68,6 +75,7 @@ Usage:
   bun run taxonomy-pipeline.ts generate <comments-db-file> [batch-count] [--debug]
   bun run taxonomy-pipeline.ts abstract <comments-db-file> [--limit N] [--random] [--filter key=value] [--debug]
   bun run taxonomy-pipeline.ts setup-db [--debug]
+  bun run taxonomy-pipeline.ts analyze-themes [--themes code1,code2] [--debug]
   
 Generate Command:
   Creates a hierarchical taxonomy by processing comments in independent batches,
@@ -150,20 +158,18 @@ const ABSTRACT_JSON_OUTPUT_FORMAT = `{
     "confidence": "Explicit|High|Medium|Low",
     "organization": "name or null"
   },
-  "attributes": {
+  "attributes": { // ONLY if you see these explicitly mentioned / high confidence
     "market_segment": "from supplied list; semicolon sepaerated for multiple",
     "geographic_scope": "from supplied list; semicolon sepaerated",
     "[other categories]": "from supplied list; semicolon sepaerated"
   },
-  "brainstorming": "Use this slot to think about every perspective that occurs in the comment -- be thorough and granular; at this stage split don't lump.",
-  "primary_themes": ["a theme code", "another", "..."],
-  "perspectives": [
-    {
-      "taxonomy_code": "a theme_code",
-      "perspective": "a pithy viewpoint description in <20 words",
-      "excerpts": ["direct quote 1", "direct quote 2", "..."]
+  "brainstorming": "Use this slot to think about every theme that this comment touches upon -- be thorough and granular; at this stage split don't lump.",
+  "perspectives": {
+    "[theme code, e.g. '1.1']": {
+      "perspective": ["array of pithy viewpoint descriptions, each <10 words when possible"],
+      "excerpts": ["direct quote 1", "direct quote 2", "etc", "showing full context", "supporting the perspectives", "..."]
     }
-  ]
+  }
 }`;
 
 const abstract_prompt = `Analyze this comment using the provided taxonomy and attributes.
@@ -181,7 +187,7 @@ OBSERVED ATTRIBUTES:
 Think about every individual viewpoint the commenter has expressed; we call these "perspectives." Be thorough and find all perspectives expressed by the commenter, which could include multiple perspectives for a single theme! Be complete. For each perspective, extract:
 1. taxonomy code where the perspecitve best fits (use higher level codes if leaf nodes don't work), a brief articulation of the perspective, and any excerpt(s) that support it.
 2. Submitter identification using observed types (with confidence level)
-3. Attributes using the observed categories and values
+3. Attributes using the observed categories and values (only with high confidence)
 
 Output as JSON:
 ${ABSTRACT_JSON_OUTPUT_FORMAT}`;
@@ -518,17 +524,23 @@ async function abstractComments(dbPath: string) {
   let successCount = 0;
   let errorCount = 0;
   
+  // Load attachments from DB for PDF processing
+  const { attachments } = loadCommentsFromDb(dbPath);
+  
   for (const [idx, comment] of selectedComments.entries()) {
     const file = comment.id; // Use comment ID as the filename identifier
     console.log(`Abstracting ${idx + 1}/${selectedComments.length}: ${file}`);
     
     try {
-      const attributes = JSON.parse(comment.attributes_json);
-      const content = attributes.comment || '';
-      if (!content) {
+      // Use enrichComment to get full content including PDF attachments
+      const enrichedComment = await enrichComment(comment, attachments);
+      if (!enrichedComment) {
         console.warn(`Skipping comment ${file} due to empty content.`);
         continue;
       }
+      
+      const content = enrichedComment.content;
+      const attributes = JSON.parse(comment.attributes_json);
       
       // Get the current attempt count if this is a retry
       const existingRecord = db.prepare('SELECT attempt_count FROM abstractions WHERE filename = ?').get(file) as {attempt_count: number} | undefined;
@@ -557,7 +569,7 @@ async function abstractComments(dbPath: string) {
       
       let data;
       try {
-        const cleanedResponse = response.replace(/```json\n|```/g, '').trim();
+        const cleanedResponse = response.replace(/```[^\n]*\n?/g, '').trim();
         data = JSON.parse(cleanedResponse);
         await debugLog(`abstract_${idx + 1}_${file}_parsed.json`, JSON.stringify(data, null, 2));
       } catch (parseError) {
@@ -587,33 +599,40 @@ async function abstractComments(dbPath: string) {
         subtype: attributes.subtype || null
       };
 
+      // Extract primary themes from perspectives object
+      const primaryThemes = Object.keys(data.perspectives);
+      
       // Update with successful results
       updateAbstractionSuccess.run(
         data.submitter.type,
         data.submitter.confidence,
         data.submitter.organization || null,
         JSON.stringify(data.attributes),
-        data.primary_themes.join(', '),
+        primaryThemes.join(', '),
         JSON.stringify(originalMetadata),
         file
       );
       
-      for (const perspective of data.perspectives) {
-        // Handle excerpts as array or string
-        let excerpts = '';
-        if (Array.isArray(perspective.excerpts)) {
-          excerpts = perspective.excerpts.join('; ');
-        } else if (perspective.excerpts) {
-          excerpts = String(perspective.excerpts);
-        }
+      // Insert perspectives - new structure with theme codes as keys
+      for (const [themeCode, themeData] of Object.entries(data.perspectives) as [string, any][]) {
+        // Get arrays of perspectives and excerpts
+        const perspectives = Array.isArray(themeData.perspective) ? themeData.perspective : [themeData.perspective];
+        const excerpts = Array.isArray(themeData.excerpts) ? themeData.excerpts : [themeData.excerpts];
         
-        insertPerspective.run(
-          abstractionId,
-          String(perspective.taxonomy_code || ''),
-          String(perspective.perspective || ''),
-          excerpts,
-          perspective.sentiment ? String(perspective.sentiment) : null
-        );
+        // Create one row per perspective
+        for (let i = 0; i < perspectives.length; i++) {
+          const perspective = perspectives[i];
+          // Get corresponding excerpt or use all excerpts if there's only one perspective
+          const excerpt = perspectives.length === 1 ? excerpts.join('; ') : (excerpts[i] || '');
+          
+          insertPerspective.run(
+            abstractionId,
+            themeCode,
+            String(perspective || ''),
+            String(excerpt || ''),
+            null // sentiment is not in the new structure
+          );
+        }
       }
       
       successCount++;
@@ -736,8 +755,8 @@ function parseTaxonomyForDB(taxonomyText: string): Array<{
   const lines = taxonomyText.split('\n');
   
   for (const line of lines) {
-    // Match lines like "1. Theme Name" or "1.2.3 Theme Name"
-    const match = line.match(/^\s*(\d+(?:\.\d+)*)\s+(.+)$/);
+    // Match lines like "1. Theme Name" or "1.2.3 Theme Name" or "1.1. Theme Name"
+    const match = line.match(/^\s*(\d+(?:\.\d+)*)\.?\s+(.+)$/);
     if (match) {
       const [_, code, description] = match;
       const level = code.split('.').length;
@@ -778,5 +797,9 @@ if (command === 'generate') {
 } else if (command === 'setup-db') {
   console.log('Setting up database with taxonomy...');
   setupDatabase()
+    .catch(console.error);
+} else if (command === 'analyze-themes') {
+  console.log('Running theme-level narrative and stance analysis...');
+  analyzeThemes(themeCodes, 10, debugMode)
     .catch(console.error);
 }
