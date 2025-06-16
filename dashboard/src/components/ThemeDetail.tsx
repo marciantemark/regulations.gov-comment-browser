@@ -1,15 +1,17 @@
 import { Link, useParams } from 'react-router-dom'
-import { Download, Copy, ChevronRight } from 'lucide-react'
-import { useMemo } from 'react'
+import { Download, Copy, ChevronRight, FileText } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import useStore from '../store/useStore'
 import CommentCard from './CommentCard'
 import { exportToCSV } from '../utils/helpers'
 import Breadcrumbs from './Breadcrumbs'
 import ThemeSummaryView from './ThemeSummaryView'
+import CopyThemePromptModal from './CopyThemePromptModal'
 
 function ThemeDetail() {
   const { themeCode } = useParams<{ themeCode: string }>()
   const { themes, themeSummaries, getCommentsForTheme } = useStore()
+  const [showCopyModal, setShowCopyModal] = useState(false)
   
   const theme = themes.find(t => t.code === themeCode)
   const themeSummary = themeCode ? themeSummaries[themeCode] : undefined
@@ -93,6 +95,14 @@ function ThemeDetail() {
             </div>
             
             <div className="flex items-center space-x-2">
+              <button
+                onClick={() => setShowCopyModal(true)}
+                className="flex items-center space-x-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+                title="Copy theme and comments for LLM"
+              >
+                <FileText className="h-4 w-4" />
+                <span>Copy for LLM</span>
+              </button>
               <button
                 onClick={handleCopyIds}
                 className="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
@@ -203,6 +213,15 @@ function ThemeDetail() {
           <p className="text-gray-500 italic">No comments found addressing this theme</p>
         )}
       </div>
+      
+      {/* Copy Theme Prompt Modal */}
+      <CopyThemePromptModal
+        isOpen={showCopyModal}
+        onClose={() => setShowCopyModal(false)}
+        theme={theme}
+        comments={displayedComments}
+        summary={themeSummary}
+      />
     </div>
   )
 }

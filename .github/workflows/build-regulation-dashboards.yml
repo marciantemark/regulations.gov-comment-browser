@@ -25,20 +25,47 @@ jobs:
         bun install
         cd dashboard && bun install
         
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+        
+    - name: Download SQLite databases from Google Drive
+      run: |
+        # Install gdown for downloading from Google Drive
+        pip install --upgrade gdown
+        
+        # Run the download script
+        ./scripts/download-databases.sh
+        
+        # Verify databases were downloaded
+        if [ ! -d "dbs" ] || [ -z "$(ls -A dbs/*.sqlite 2>/dev/null)" ]; then
+          echo "::error::No SQLite databases found in dbs/ directory"
+          exit 1
+        fi
+        
     - name: Build data and dashboards for each regulation
       run: |
         # Create dist directory
         mkdir -p dist
         
-        # Find all SQLite databases (excluding WAL and SHM files)
-        for db_file in dbs/*.sqlite; do
-          # Skip if no files found
-          [ -e "$db_file" ] || continue
-          
-          # Skip WAL and SHM related files
-          if [[ "$db_file" == *.sqlite-* ]] || [[ "$db_file" == *.sqlite.sqlite ]]; then
-            continue
+                  # Check if any databases were downloaded
+          if [ ! -d "dbs" ] || [ -z "$(ls -A dbs/*.sqlite 2>/dev/null)" ]; then
+            echo "::error::No SQLite databases found in dbs/ directory"
+            echo "Contents of dbs/:"
+            ls -la dbs/ || echo "dbs/ directory not found"
+            exit 1
           fi
+          
+          # Find all SQLite databases (excluding WAL and SHM files)
+          for db_file in dbs/*.sqlite; do
+            # Skip if no files found
+            [ -e "$db_file" ] || continue
+            
+            # Skip WAL and SHM related files
+            if [[ "$db_file" == *.sqlite-* ]] || [[ "$db_file" == *.sqlite.sqlite ]]; then
+              continue
+            fi
           
           # Extract regulation ID from filename
           regulation_id=$(basename "$db_file" .sqlite)
