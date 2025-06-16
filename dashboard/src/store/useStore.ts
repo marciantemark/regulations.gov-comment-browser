@@ -43,13 +43,13 @@ const useStore = create<StoreState>((set, get) => ({
     
     try {
       const [meta, themes, themeSummaries, entities, comments, themeIndex, entityIndex] = await Promise.all([
-        fetch('/data/meta.json').then(r => r.json()),
-        fetch('/data/themes.json').then(r => r.json()),
-        fetch('/data/theme-summaries.json').then(r => r.json()),
-        fetch('/data/entities.json').then(r => r.json()),
-        fetch('/data/comments.json').then(r => r.json()),
-        fetch('/data/indexes/theme-comments.json').then(r => r.json()),
-        fetch('/data/indexes/entity-comments.json').then(r => r.json()),
+        fetch('./data/meta.json').then(r => r.json()),
+        fetch('./data/themes.json').then(r => r.json()),
+        fetch('./data/theme-summaries.json').then(r => r.json()),
+        fetch('./data/entities.json').then(r => r.json()),
+        fetch('./data/comments.json').then(r => r.json()),
+        fetch('./data/indexes/theme-comments.json').then(r => r.json()),
+        fetch('./data/indexes/entity-comments.json').then(r => r.json()),
       ])
       
       // Parse theme descriptions
