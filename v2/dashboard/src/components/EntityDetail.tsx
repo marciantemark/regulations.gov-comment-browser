@@ -1,5 +1,5 @@
 import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft, Tag, Download } from 'lucide-react'
+import { Tag, Download } from 'lucide-react'
 import useStore from '../store/useStore'
 import CommentCard from './CommentCard'
 import { exportToCSV } from '../utils/helpers'

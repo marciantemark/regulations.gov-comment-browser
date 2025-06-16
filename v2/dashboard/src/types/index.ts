@@ -16,14 +16,68 @@ export interface Theme {
   description: string
   label?: string  // Brief theme label (parsed from description)
   detailedDescription?: string  // Detailed description (parsed from description)
-  quotes_json?: string
-  quotes?: Array<{
-    quote: string
-    comment_id: string
-  }>
   comment_count: number
   direct_count: number
   touch_count: number
+}
+
+export interface ThemeSummary {
+  themeDescription: string
+  commentCount: number
+  wordCount: number
+  sections: {
+    executiveSummary?: string
+    consensusPoints?: Array<{
+      text: string
+      supportLevel?: string | null
+      evidence?: string[] | null
+      exceptions?: string | null
+      organizations?: string[] | null
+    }> | null
+    areasOfDebate?: Array<{
+      topic: string
+      description: string
+      positions: Array<{
+        label: string
+        stance: string
+        supportLevel?: string | null
+        keyArguments: string[]
+        organizations?: string[] | null
+      }>
+      middleGround?: string | null
+    }> | null
+    stakeholderPerspectives?: Array<{
+      stakeholderType: string
+      primaryConcerns: string
+      specificPoints: string[]
+      organizations?: string[] | null
+    }> | null
+    noteworthyInsights?: Array<{
+      insight: string
+      source?: string | null
+    }> | null
+    emergingPatterns?: Array<{
+      pattern: string
+      category?: string | null
+    }> | null
+    keyQuotations?: Array<{
+      quote: string
+      source: string
+      sourceType?: string | null
+    }> | null
+    analyticalNotes?: {
+      discourseQuality?: {
+        level: string
+        explanation: string
+      }
+      evidenceBase?: {
+        level: string
+        explanation: string
+      }
+      representationGaps?: string | null
+      complexityLevel?: string | null
+    } | null
+  }
 }
 
 export interface Entity {
@@ -85,6 +139,7 @@ export interface StoreState {
   // Core data
   meta: Meta | null
   themes: Theme[]
+  themeSummaries: Record<string, ThemeSummary>
   entities: EntityTaxonomy
   comments: Comment[]
   themeIndex: ThemeIndex

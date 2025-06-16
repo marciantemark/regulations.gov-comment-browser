@@ -5,13 +5,15 @@ import useStore from '../store/useStore'
 import CommentCard from './CommentCard'
 import { exportToCSV } from '../utils/helpers'
 import Breadcrumbs from './Breadcrumbs'
+import ThemeSummaryView from './ThemeSummaryView'
 
 function ThemeDetail() {
   const { themeCode } = useParams<{ themeCode: string }>()
-  const { themes, getCommentsForTheme } = useStore()
+  const { themes, themeSummaries, getCommentsForTheme } = useStore()
   
   const theme = themes.find(t => t.code === themeCode)
-  const { direct } = themeCode ? getCommentsForTheme(themeCode) : { direct: [], touches: [] }
+  const themeSummary = themeCode ? themeSummaries[themeCode] : undefined
+  const { direct } = themeCode ? getCommentsForTheme(themeCode) : { direct: [] }
   
   const displayedComments = direct
   
@@ -137,6 +139,14 @@ function ThemeDetail() {
         </div>
       )}
       
+      {/* Theme Summary Analysis */}
+      {themeSummary && (
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-6">Theme Analysis</h2>
+          <ThemeSummaryView summary={themeSummary} themeCode={theme.code} />
+        </div>
+      )}
+      
       {/* Sub-themes */}
       {(() => {
         const childThemes = themes.filter(t => t.parent_code === theme.code && t.direct_count > 0)
@@ -172,26 +182,6 @@ function ThemeDetail() {
           </div>
         ) : null
       })()}
-      
-      {/* Example Quotes */}
-      {theme.quotes && theme.quotes.length > 0 && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Example Quotes</h3>
-          <div className="space-y-3">
-            {theme.quotes.slice(0, 5).map((quote, i) => (
-              <blockquote key={i} className="border-l-4 border-blue-300 pl-4 italic text-gray-600">
-                "{quote.quote}"
-                <Link 
-                  to={`/comments/${quote.comment_id}`}
-                  className="block text-sm text-blue-600 hover:text-blue-800 mt-1 not-italic"
-                >
-                  — Comment #{quote.comment_id}
-                </Link>
-              </blockquote>
-            ))}
-          </div>
-        </div>
-      )}
       
       {/* Comments */}
       <div className="space-y-6">

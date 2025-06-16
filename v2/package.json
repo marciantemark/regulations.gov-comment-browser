@@ -1,0 +1,36 @@
+{
+  "name": "regulations-comment-analysis",
+  "version": "3.0.0",
+  "description": "Analysis pipeline for public comments from regulations.gov",
+  "type": "module",
+  "main": "src/cli.ts",
+  "scripts": {
+    "start": "bun run src/cli.ts",
+    "load": "bun run src/cli.ts load",
+    "condense": "bun run src/cli.ts condense",
+    "discover-themes": "bun run src/cli.ts discover-themes",
+    "score-themes": "bun run src/cli.ts score-themes",
+    "summarize-themes": "bun run src/cli.ts summarize-themes",
+    "discover-entities": "bun run src/cli.ts discover-entities",
+    "build-website": "bun run src/cli.ts build-website",
+    "pipeline": "bun run src/cli.ts pipeline",
+    "clean": "rm -rf dbs/* debug/*",
+    "typecheck": "bunx tsc --noEmit"
+  },
+  "dependencies": {
+    "@google/genai": "^1.4.0",
+    "commander": "^14.0.0",
+    "csv-parse": "^5.6.0",
+    "pdf-parse": "^1.1.1"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.2.16",
+    "@types/node": "^24.0.1",
+    "@types/pdf-parse": "^1.1.5",
+    "bun-types": "latest",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "bun": ">=1.0.0"
+  }
+}

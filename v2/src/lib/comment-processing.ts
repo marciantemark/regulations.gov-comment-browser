@@ -45,12 +45,12 @@ export function loadComments(db: Database, limit?: number): {
 // Load condensed comments
 export function loadCondensedComments(db: Database, limit?: number): EnrichedComment[] {
   const query = limit
-    ? `SELECT c.id, cc.condensed_text, c.attributes_json 
+    ? `SELECT c.id, cc.structured_sections, c.attributes_json 
        FROM comments c 
        JOIN condensed_comments cc ON c.id = cc.comment_id 
        WHERE cc.status = 'completed' 
        LIMIT ?`
-    : `SELECT c.id, cc.condensed_text, c.attributes_json 
+    : `SELECT c.id, cc.structured_sections, c.attributes_json 
        FROM comments c 
        JOIN condensed_comments cc ON c.id = cc.comment_id 
        WHERE cc.status = 'completed'`;
@@ -61,13 +61,23 @@ export function loadCondensedComments(db: Database, limit?: number): EnrichedCom
   
   return rows.map((row: any) => {
     const attrs = JSON.parse(row.attributes_json) as CommentAttributes;
-    const content = row.condensed_text;
+    const sections = JSON.parse(row.structured_sections || '{}');
+    
+    // Use detailedContent as the main content, or fall back to concatenating key sections
+    const content = sections.detailedContent || [
+      sections.oneSummary || '',
+      sections.commenterProfile || '',
+      sections.corePosition || '',
+      sections.keyRecommendations || '',
+      sections.mainConcerns || ''
+    ].filter(Boolean).join('\n\n');
     
     return {
       id: row.id,
       content,
       wordCount: countWords(content),
-      metadata: extractMetadata(attrs)
+      metadata: extractMetadata(attrs),
+      structuredSections: sections
     };
   });
 }
@@ -152,7 +162,10 @@ function extractMetadata(attrs: CommentAttributes) {
   }
   
   // Determine submitter type
-  let submitterType = attrs.category || "Individual";
+  let submitterType = attrs.category;
+  if (!submitterType) {
+    submitterType = attrs.organization ? "Organization" : "Individual";
+  }
   
   // Build location
   const locationParts: string[] = [];
@@ -177,11 +190,11 @@ export function parseThemeHierarchy(text: string): ParsedTheme[] {
   const lines = text.split("\n");
   
   for (const line of lines) {
-    // Match lines like "1. Theme" , "1.2 Subtheme" , allowing a trailing dot after the numeric code
-    const m = line.match(/^(\s*)(\d+(?:\.\d+)*)(?:\.)?\s+(.+)$/);
+    // Match lines like "1. Theme Label. Description text."
+    const m = line.match(/^(\s*)(\d+(?:\.\d+)*)(?:\.)?\s+([^.]+)\.\s*(.+)$/);
     if (!m) continue;
 
-    const [ , indent, codeRaw, description ] = m;
+    const [ , indent, codeRaw, label, description ] = m;
     const code = codeRaw; // without trailing dot
     const level = code.split(".").length;
     
@@ -193,42 +206,18 @@ export function parseThemeHierarchy(text: string): ParsedTheme[] {
       parent_code = parts.join(".");
     }
     
-    // Extract zero or more trailing quote+id pairs: "[quote] [comment-id]" separated by period
+    // Clean up description (remove trailing period if present)
     let desc = description.trim();
-    const quotes: Array<{ quote: string; comment_id: string }> = [];
-
-    // Split description into narrative part and quote segment
-    const firstQuotePos = desc.indexOf('"');
-    let quoteSegment = "";
-    if (firstQuotePos !== -1) {
-      quoteSegment = desc.substring(firstQuotePos);
-      desc = desc.substring(0, firstQuotePos).trim();
-      if (desc.endsWith('.')) desc = desc.slice(0, -1);
-    }
-
-    // Match either "text" [ID] or "text [ID]"
-    const quoteRegex = /"([^\"]+?)\s*(?:\[([^\]]+)\])?"/g;
-    const idRegex = /\[([A-Z0-9-]+)\]$/;
-    let qm: RegExpExecArray | null;
-    while ((qm = quoteRegex.exec(quoteSegment)) !== null) {
-      let q = qm[1].trim();
-      let id = qm[2];
-      if (!id) {
-        const mId = q.match(idRegex);
-        if (mId) {
-          id = mId[1];
-          q = q.replace(idRegex, '').trim();
-        }
-      }
-      if (id) quotes.push({ quote: q, comment_id: id });
-    }
+    if (desc.endsWith('.')) desc = desc.slice(0, -1);
+    
+    // Combine label and description for the full description field
+    const fullDescription = `${label.trim()}. ${desc}`;
 
     themes.push({
       code,
-      description: desc,
+      description: fullDescription,
       level,
-      parent_code,
-      quotes: quotes.length > 0 ? quotes : undefined
+      parent_code
     });
   }
   

@@ -1,11 +1,11 @@
 import { useState, useMemo, useEffect } from 'react'
-import { ChevronRight, ChevronDown, Search, Info } from 'lucide-react'
+import { ChevronRight, ChevronDown, Search, Info, FileText } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import useStore from '../store/useStore'
 import type { Theme } from '../types'
 
 function ThemeExplorer() {
-  const { themes } = useStore()
+  const { themes, themeSummaries } = useStore()
   const navigate = useNavigate()
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set())
   const [searchQuery, setSearchQuery] = useState('')
@@ -96,6 +96,7 @@ function ThemeExplorer() {
     const isExpanded = expandedNodes.has(theme.code)
     const isFiltered = searchQuery && !filteredThemes.includes(theme)
     const isDescriptionExpanded = expandedDescriptions.has(theme.code)
+    const hasSummary = !!themeSummaries[theme.code]
     
     if (isFiltered) return null
     
@@ -126,6 +127,11 @@ function ThemeExplorer() {
               <div className="flex-1 flex items-center">
                 <span className="font-medium text-gray-900">{theme.code}</span>
                 <span className="text-gray-600 ml-2">{theme.label || theme.description}</span>
+                {hasSummary && (
+                  <span className="ml-2 text-purple-600" title="Theme analysis available">
+                    <FileText className="h-3 w-3" />
+                  </span>
+                )}
                 {theme.detailedDescription && (
                   <button
                     onClick={(e) => toggleDescription(theme.code, e)}

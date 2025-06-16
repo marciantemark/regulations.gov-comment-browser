@@ -1,9 +1,9 @@
 import { useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { MessageSquare, BarChart3, Tag, Users, ArrowRight } from 'lucide-react'
+import { MessageSquare, BarChart3, Tag, Users, ArrowRight, FileText } from 'lucide-react'
 import useStore from '../store/useStore'
 import StatCard from './StatCard'
-import { getThemeBadgeColor } from '../utils/helpers'
+
 
 function OverviewPanel() {
   const { meta, themes, entities, comments } = useStore()
@@ -186,7 +186,7 @@ function OverviewPanel() {
       {/* Quick Actions */}
       <div className="bg-blue-50 rounded-lg p-6">
         <h3 className="text-lg font-semibold text-blue-900 mb-4">Quick Actions</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Link
             to="/themes"
             className="flex items-center justify-between p-4 bg-white rounded-lg hover:shadow-md transition-shadow"
@@ -194,6 +194,17 @@ function OverviewPanel() {
             <div className="flex items-center space-x-3">
               <BarChart3 className="h-5 w-5 text-blue-600" />
               <span className="font-medium">Explore All Themes</span>
+            </div>
+            <ArrowRight className="h-4 w-4 text-gray-400" />
+          </Link>
+          
+          <Link
+            to="/summaries"
+            className="flex items-center justify-between p-4 bg-white rounded-lg hover:shadow-md transition-shadow"
+          >
+            <div className="flex items-center space-x-3">
+              <FileText className="h-5 w-5 text-purple-600" />
+              <span className="font-medium">Theme Summaries</span>
             </div>
             <ArrowRight className="h-4 w-4 text-gray-400" />
           </Link>

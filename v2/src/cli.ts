@@ -4,8 +4,8 @@ import { loadCommentsCommand } from "./commands/load-comments";
 import { condenseCommand } from "./commands/condense";
 import { discoverThemesCommand } from "./commands/discover-themes";
 import { discoverEntitiesCommand } from "./commands/discover-entities";
-import { analyzeThemesCommand } from "./commands/analyze-themes";
 import { scoreThemesCommand } from "./commands/score-themes";
+import { summarizeThemesCommand } from "./commands/summarize-themes";
 import { buildWebsiteCommand } from "./website-build-script";
 import { pipelineCommand } from "./commands/pipeline";
 
@@ -19,8 +19,8 @@ program.addCommand(loadCommentsCommand);
 program.addCommand(condenseCommand);
 program.addCommand(discoverThemesCommand);
 program.addCommand(scoreThemesCommand);
+program.addCommand(summarizeThemesCommand);
 program.addCommand(discoverEntitiesCommand);
-program.addCommand(analyzeThemesCommand);
 program.addCommand(buildWebsiteCommand);
 program.addCommand(pipelineCommand);
 

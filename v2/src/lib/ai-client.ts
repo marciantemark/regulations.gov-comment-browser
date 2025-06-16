@@ -2,7 +2,14 @@ import { GoogleGenAI } from "@google/genai";
 import { debugSave } from "./debug";
 import { parseJsonResponse } from "./json-parser";
 
-const MODEL = "gemini-2.5-pro-preview-06-05";
+// const MODEL = "gemini-2.5-pro-preview-06-05";
+const MODEL = "gemini-2.5-flash-preview-05-20"
+const baseConfig = {
+      thinkingConfig: {
+        thinkingBudget: 24000,
+      },
+    };
+
 
 export class AIClient {
   private ai: GoogleGenAI;
@@ -19,7 +26,7 @@ export class AIClient {
       await debugSave(`${debugPrefix}_prompt.txt`, prompt);
     }
     
-    const config = { responseMimeType: "text/plain" };
+    const config = {...baseConfig, responseMimeType: "text/plain" };
     const contents = [{
       role: "user" as const,
       parts: [{ text: prompt }]

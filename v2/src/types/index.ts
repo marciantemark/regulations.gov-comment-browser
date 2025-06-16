@@ -45,6 +45,7 @@ export interface EnrichedComment {
     location?: string;
     date?: string;
   };
+  structuredSections?: any; // Optional structured sections from condensed comments
 }
 
 // Theme discovery parsed theme row
@@ -53,7 +54,6 @@ export interface ParsedTheme {
   description: string;
   level: number;
   parent_code: string | null;
-  quotes?: Array<{ quote: string; comment_id: string }>;
 }
 
 // Entity discovery types

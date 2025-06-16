@@ -79,10 +79,48 @@ async function discoverThemes(documentId: string, options: any) {
         return completedMap.get(batch.number)!;
       }
       
-      // Build prompt with comments
-      const commentBlocks = batch.items.map((c: any) => 
-        `<comment id="${c.id}">\n${c.content}\n</comment>`
-      ).join("\n\n");
+      // Build prompt with structured comment sections
+      const commentBlocks = batch.items.map((c: any) => {
+        const sections = c.structuredSections;
+        const metadata = c.metadata || {};
+        
+        if (!sections) {
+          return `<comment id="${c.id}">
+<submitter>${metadata.submitter || 'Anonymous'}</submitter>
+<submitter_type>${metadata.submitterType || 'Individual'}</submitter_type>
+<note>No structured content available</note>
+</comment>`;
+        }
+        
+        let content = `<comment id="${c.id}">
+<submitter>${metadata.submitter || 'Anonymous'}</submitter>
+<submitter_type>${metadata.submitterType || 'Individual'}</submitter_type>`;
+        
+        if (sections.commenterProfile) {
+          content += `
+<commenter_profile>${sections.commenterProfile}</commenter_profile>`;
+        }
+        
+        if (sections.corePosition) {
+          content += `
+<core_position>${sections.corePosition}</core_position>`;
+        }
+        
+        if (sections.keyRecommendations && sections.keyRecommendations !== "No specific recommendations provided") {
+          content += `
+<key_recommendations>${sections.keyRecommendations}</key_recommendations>`;
+        }
+        
+        if (sections.mainConcerns && sections.mainConcerns !== "No specific concerns raised") {
+          content += `
+<main_concerns>${sections.mainConcerns}</main_concerns>`;
+        }
+        
+        content += `
+</comment>`;
+        
+        return content;
+      }).join("\n\n");
       
       const prompt = THEME_DISCOVERY_PROMPT.replace("{COMMENTS}", commentBlocks);
       
@@ -230,8 +268,8 @@ function saveThemeHierarchy(db: Database, themesText: string) {
   const themes = parseThemeHierarchy(themesText);
   
   const insertTheme = db.prepare(`
-    INSERT INTO theme_hierarchy (code, description, level, parent_code, quotes_json)
-    VALUES (?, ?, ?, ?, ?)
+    INSERT INTO theme_hierarchy (code, description, level, parent_code)
+    VALUES (?, ?, ?, ?)
   `);
   
   withTransaction(db, () => {
@@ -240,8 +278,7 @@ function saveThemeHierarchy(db: Database, themesText: string) {
         theme.code,
         theme.description,
         theme.level,
-        theme.parent_code,
-        theme.quotes ? JSON.stringify(theme.quotes) : null
+        theme.parent_code
       );
     }
   });

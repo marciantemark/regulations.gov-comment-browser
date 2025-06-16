@@ -8,38 +8,48 @@ YOUR OUTPUT MUST BE A SINGLE BLOCK OF PLAINTEXT.
 Follow this format PRECISELY for every theme. EVERY THEME GETS ITS OWN LINE. EVERY LINE MUST START AT THE BEGINNING (NO INDENTATION).
 
 THE REQUIRED FORMAT IS:
-[Number]. [Label]. [Description]. "[Quote 1] [comment-id-1]". "[Quote 2] [comment-id-2]".
+[Number]. [Label]. [Description].
 
 A breakdown of the format:
 NUMBER: Use hierarchical numbering like 1, 1.1, or 1.1.1.
 LABEL: A concise theme name, ideally under 8 words, but anyway under 12.
-DESCRIPTION: A brief, one-sentence explanation of the theme's meaning.
-QUOTES: Include one or more direct quotations that perfectly illustrate the theme. Each quote must be in double quotes and followed immediately by its source ID in square brackets, for example "[comment-id-123]".
+DESCRIPTION: A brief, one-sentence explanation of the theme's meaning and scope.
 
 EXAMPLE OF CORRECT FORMATTING:
-1. Concerns about Timing. A theme discussing issues related to the proposed schedule. "The deadline is too soon for us to comply [comment-abc]".
-1.1. Requests for Extension. A sub-theme specifically asking for a longer implementation period. "We would need at least six more months [comment-xyz]". "Please consider extending the date [comment-ghi]".
-2. Suggestions for Communication. A theme about how the changes should be announced to the public. "A public webinar would be helpful for stakeholders [comment-def]".
+1. Concerns about XYZ. What will XYZ mean for ... etc.
+1.1. Requests for Foo. Addressing Foo would... etc.
+2. Suggestions for Bar. Bar could result in... etc.
+2.1. Public Webinar Requests. Description here... etc.
+
 `;
 
 /**
- * A prompt for discovering a MECE hierarchical taxonomy from a body of text.
- * It instructs the model to produce a detailed, quote-supported hierarchy in pure plaintext.
- * The {COMMENTS} placeholder is where the text/comment data should be injected.
+ * A prompt for discovering a MECE hierarchical taxonomy from structured comment sections.
+ * Focuses specifically on core positions, recommendations, and concerns to identify policy themes.
+ * The {COMMENTS} placeholder is where the structured comment data should be injected.
  */
-export const THEME_DISCOVERY_PROMPT = `As an expert policy analyst, your task is to derive a MECE (Mutually Exclusive, Collectively Exhaustive) hierarchical taxonomy from the public comments provided below.
+export const THEME_DISCOVERY_PROMPT = `As an expert policy analyst, your task is to derive a MECE (Mutually Exclusive, Collectively Exhaustive) hierarchical taxonomy from the structured public comments provided below.
 
-Analyze every comment to identify all distinct themes, arguments, concerns, and suggestions. Organize these into a logical hierarchy, with broad topics at the highest level and increasingly specific sub-themes at lower levels. The structure should be as deep and broad as necessary to capture the full range of input.
+You are analyzing the most substantive parts of each comment: their commenter profiles, core positions, key recommendations, and main concerns. These structured sections capture the essential policy arguments and positions taken by commenters.
+
+Your analysis should:
+1. IDENTIFY POLICY POSITIONS: Look for distinct policy stances, arguments, and viewpoints expressed in core positions
+2. CATEGORIZE RECOMMENDATIONS: Group similar policy suggestions, implementation approaches, and proposed changes
+3. ORGANIZE CONCERNS: Cluster related worries, objections, and potential problems raised by commenters
+4. CONSIDER COMMENTER CONTEXT: Use commenter profiles to understand the perspective and stakeholder group behind each position
+5. CREATE LOGICAL HIERARCHY: Organize themes from broad policy areas down to specific sub-issues
+
+Focus on substantive policy content rather than procedural comments or general statements. Each theme should capture a meaningful policy position, recommendation, or concern that appears across multiple comments or represents a significant stakeholder viewpoint.
 
 --- FORMATTING REQUIREMENTS ---
 ${TAXONOMY_OUTPUT_FORMAT_INSTRUCTIONS}
 --- END OF FORMATTING REQUIREMENTS ---
 
---- START OF COMMENTS ---
+--- START OF STRUCTURED COMMENTS ---
 {COMMENTS}
---- END OF COMMENTS ---
+--- END OF STRUCTURED COMMENTS ---
 
-You have now reviewed all the comments. Proceed with generating the complete, MECE hierarchical taxonomy, strictly following the formatting requirements provided above.
+You have now reviewed all the structured comment sections. Proceed with generating the complete, MECE hierarchical taxonomy of policy themes, strictly following the formatting requirements provided above.
 `;
 
 /**
@@ -51,8 +61,8 @@ export const THEME_MERGE_PROMPT = `You are a senior analyst tasked with synthesi
 
 Your process should be:
 1.  IDENTIFY OVERLAP: Find themes that are identical or highly similar across both taxonomies.
-2.  MERGE AND REFINE: When merging, select the clearest label. Combine all relevant quotes and sub-themes from the source themes into the new, unified theme.
-3.  INTEGRATE UNIQUE THEMES: Place themes that only appear in one taxonomy into the most logical position within the new structure, preserving their quotes.
+2.  MERGE AND REFINE: When merging, select the clearest label and combine the most comprehensive description from the source themes.
+3.  INTEGRATE UNIQUE THEMES: Place themes that only appear in one taxonomy into the most logical position within the new structure.
 4.  ASSESS AND REORGANIZE IF NEEDED: Review the combined structure for clarity and logic. If the hierarchy can be made more intuitive, you have the flexibility to reorganize. For example, you might promote a sub-theme to a top-level theme if it makes more sense. This step is about making smart refinements where they add value, not about changing the structure unnecessarily.
 
 --- INPUT TAXONOMY 1 ---

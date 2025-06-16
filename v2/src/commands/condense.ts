@@ -68,10 +68,9 @@ async function condenseComments(documentId: string, options: any) {
   
   // Prepare statements
   const insertCondensed = db.prepare(`
-    INSERT INTO condensed_comments (comment_id, condensed_text, structured_sections, status)
-    VALUES (?, ?, ?, 'completed')
+    INSERT INTO condensed_comments (comment_id, structured_sections, status)
+    VALUES (?, ?, 'completed')
     ON CONFLICT(comment_id) DO UPDATE SET 
-      condensed_text = excluded.condensed_text,
       structured_sections = excluded.structured_sections,
       status = 'completed',
       error_message = NULL,
@@ -79,8 +78,8 @@ async function condenseComments(documentId: string, options: any) {
   `);
   
   const updateFailed = db.prepare(`
-    INSERT INTO condensed_comments (comment_id, condensed_text, status, error_message, attempt_count)
-    VALUES (?, '', 'failed', ?, 1)
+    INSERT INTO condensed_comments (comment_id, structured_sections, status, error_message, attempt_count)
+    VALUES (?, '{}', 'failed', ?, 1)
     ON CONFLICT(comment_id) DO UPDATE SET 
       status = 'failed',
       error_message = excluded.error_message,
@@ -89,8 +88,8 @@ async function condenseComments(documentId: string, options: any) {
   `);
   
   const markProcessing = db.prepare(`
-    INSERT INTO condensed_comments (comment_id, condensed_text, status)
-    VALUES (?, '', 'processing')
+    INSERT INTO condensed_comments (comment_id, structured_sections, status)
+    VALUES (?, '{}', 'processing')
     ON CONFLICT(comment_id) DO UPDATE SET 
       status = 'processing',
       last_attempt_at = CURRENT_TIMESTAMP
@@ -140,10 +139,15 @@ async function condenseComments(documentId: string, options: any) {
       
       // Save result with structured sections
       withTransaction(db, () => {
+        // Add the full response as detailedContent to sections
+        const sectionsWithDetail = {
+          ...sections,
+          detailedContent: response
+        };
+        
         insertCondensed.run(
           comment.id, 
-          response,
-          JSON.stringify(sections)
+          JSON.stringify(sectionsWithDetail)
         );
       });
       

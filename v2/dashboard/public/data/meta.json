@@ -1,11 +1,12 @@
 {
   "documentId": "CMS-2025-0050-0031",
-  "generatedAt": "2025-06-16T15:39:50.281Z",
+  "generatedAt": "2025-06-16T17:25:03.565Z",
   "stats": {
     "totalComments": 284,
     "condensedComments": 60,
     "totalThemes": 149,
     "totalEntities": 388,
-    "scoredComments": 262
+    "scoredComments": 262,
+    "themeSummaries": 0
   }
 }

@@ -89,6 +89,116 @@ function runMigrations(db: Database) {
       console.log("✅ Added structured_sections column");
     }
   }
+  
+  // Migration 3: Remove condensed_text column (migrate data first if needed)
+  try {
+    // Check if we still have condensed_text column
+    const hasCondensedText = db.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='condensed_comments'").get() as any;
+    if (hasCondensedText && hasCondensedText.sql.includes('condensed_text')) {
+      console.log("🔄 Migrating away from condensed_text column...");
+      
+      // SQLite doesn't support DROP COLUMN directly, so we need to recreate the table
+      db.exec(`
+        -- Create new table without condensed_text
+        CREATE TABLE condensed_comments_new (
+          comment_id TEXT PRIMARY KEY,
+          structured_sections TEXT NOT NULL,
+          status TEXT DEFAULT 'pending' CHECK(status IN ('pending', 'processing', 'completed', 'failed')),
+          error_message TEXT,
+          attempt_count INTEGER DEFAULT 0,
+          last_attempt_at DATETIME,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (comment_id) REFERENCES comments(id)
+        );
+        
+        -- Copy data (structured_sections should already have the content)
+        INSERT INTO condensed_comments_new (comment_id, structured_sections, status, error_message, attempt_count, last_attempt_at, created_at)
+        SELECT comment_id, 
+               COALESCE(structured_sections, json_object('detailedContent', condensed_text)),
+               status, error_message, attempt_count, last_attempt_at, created_at
+        FROM condensed_comments;
+        
+        -- Drop old table and rename new one
+        DROP TABLE condensed_comments;
+        ALTER TABLE condensed_comments_new RENAME TO condensed_comments;
+        
+        -- Recreate indexes
+        CREATE INDEX IF NOT EXISTS idx_condensed_status ON condensed_comments(status);
+        CREATE INDEX IF NOT EXISTS idx_condensed_attempts ON condensed_comments(attempt_count);
+      `);
+      
+      console.log("✅ Removed condensed_text column");
+    }
+  } catch (e) {
+    console.warn("Migration 3 warning:", e);
+  }
+  
+  // Migration 4: Remove summary_text from theme_summaries table
+  try {
+    const hasThemeSummaries = db.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='theme_summaries'").get() as any;
+    if (hasThemeSummaries && hasThemeSummaries.sql.includes('summary_text')) {
+      console.log("🔄 Removing summary_text column from theme_summaries...");
+      
+      db.exec(`
+        -- Create new table without summary_text
+        CREATE TABLE theme_summaries_new (
+          theme_code TEXT PRIMARY KEY,
+          structured_sections TEXT NOT NULL,
+          comment_count INTEGER NOT NULL,
+          word_count INTEGER NOT NULL,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (theme_code) REFERENCES theme_hierarchy(code)
+        );
+        
+        -- Copy data (structured_sections should already have the content)
+        INSERT INTO theme_summaries_new (theme_code, structured_sections, comment_count, word_count, created_at)
+        SELECT theme_code, structured_sections, comment_count, word_count, created_at
+        FROM theme_summaries;
+        
+        -- Drop old table and rename new one
+        DROP TABLE theme_summaries;
+        ALTER TABLE theme_summaries_new RENAME TO theme_summaries;
+      `);
+      
+      // Also update theme_summary_batches
+      const hasBatches = db.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='theme_summary_batches'").get() as any;
+      if (hasBatches && hasBatches.sql.includes('summary_text')) {
+        db.exec(`
+          -- Create new batch table
+          CREATE TABLE theme_summary_batches_new (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            theme_code TEXT NOT NULL,
+            batch_number INTEGER NOT NULL,
+            word_count INTEGER NOT NULL,
+            comment_count INTEGER NOT NULL,
+            structured_sections TEXT NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (theme_code) REFERENCES theme_hierarchy(code)
+          );
+          
+          -- Drop old table (batch data is temporary anyway)
+          DROP TABLE theme_summary_batches;
+          ALTER TABLE theme_summary_batches_new RENAME TO theme_summary_batches;
+        `);
+      }
+      
+      console.log("✅ Removed summary_text columns");
+    }
+  } catch (e) {
+    console.warn("Migration 4 warning:", e);
+  }
+  
+  // Migration 5: Drop obsolete theme_analysis table
+  try {
+    const hasThemeAnalysis = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='theme_analysis'").get();
+    if (hasThemeAnalysis) {
+      console.log("🔄 Dropping obsolete theme_analysis table...");
+      db.exec("DROP TABLE theme_analysis");
+      console.log("✅ Dropped theme_analysis table");
+    }
+  } catch (e) {
+    console.warn("Migration 5 warning:", e);
+  }
 }
 
 export function initSchema(db: Database) {
@@ -116,7 +226,7 @@ export function initSchema(db: Database) {
     -- Condensed versions of comments
     CREATE TABLE IF NOT EXISTS condensed_comments (
       comment_id TEXT PRIMARY KEY,
-      condensed_text TEXT NOT NULL,
+      structured_sections TEXT NOT NULL,
       status TEXT DEFAULT 'pending' CHECK(status IN ('pending', 'processing', 'completed', 'failed')),
       error_message TEXT,
       attempt_count INTEGER DEFAULT 0,
@@ -185,13 +295,24 @@ export function initSchema(db: Database) {
       FOREIGN KEY (category, entity_label) REFERENCES entity_taxonomy(category, label)
     );
     
-    -- Theme analysis results (placeholder for future)
-    CREATE TABLE IF NOT EXISTS theme_analysis (
+    -- Theme summary analysis
+    CREATE TABLE IF NOT EXISTS theme_summaries (
       theme_code TEXT PRIMARY KEY,
-      narrative_summary TEXT,
-      consensus_points TEXT, -- JSON
-      debate_points TEXT, -- JSON
-      stakeholder_dynamics TEXT, -- JSON
+      structured_sections TEXT NOT NULL, -- JSON
+      comment_count INTEGER NOT NULL,
+      word_count INTEGER NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (theme_code) REFERENCES theme_hierarchy(code)
+    );
+    
+    -- Theme summary batches (for large themes)
+    CREATE TABLE IF NOT EXISTS theme_summary_batches (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      theme_code TEXT NOT NULL,
+      batch_number INTEGER NOT NULL,
+      word_count INTEGER NOT NULL,
+      comment_count INTEGER NOT NULL,
+      structured_sections TEXT NOT NULL, -- JSON
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (theme_code) REFERENCES theme_hierarchy(code)
     );

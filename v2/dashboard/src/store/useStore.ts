@@ -6,6 +6,7 @@ const useStore = create<StoreState>((set, get) => ({
   // Core data
   meta: null,
   themes: [],
+  themeSummaries: {},
   entities: {},
   comments: [],
   themeIndex: {},
@@ -41,9 +42,10 @@ const useStore = create<StoreState>((set, get) => ({
     set({ loading: true, error: null })
     
     try {
-      const [meta, themes, entities, comments, themeIndex, entityIndex] = await Promise.all([
+      const [meta, themes, themeSummaries, entities, comments, themeIndex, entityIndex] = await Promise.all([
         fetch('/data/meta.json').then(r => r.json()),
         fetch('/data/themes.json').then(r => r.json()),
+        fetch('/data/theme-summaries.json').then(r => r.json()),
         fetch('/data/entities.json').then(r => r.json()),
         fetch('/data/comments.json').then(r => r.json()),
         fetch('/data/indexes/theme-comments.json').then(r => r.json()),
@@ -63,6 +65,7 @@ const useStore = create<StoreState>((set, get) => ({
       set({
         meta,
         themes: parsedThemes,
+        themeSummaries,
         entities,
         comments,
         themeIndex,

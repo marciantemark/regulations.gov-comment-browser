@@ -56,7 +56,7 @@ async function scoreThemes(documentId: string, options: any) {
   
   if (options.retryFailed) {
     query = `
-      SELECT cc.comment_id, cc.condensed_text 
+      SELECT cc.comment_id, cc.structured_sections 
       FROM condensed_comments cc
       JOIN theme_scoring_status s ON cc.comment_id = s.comment_id
       WHERE cc.status = 'completed' AND s.status = 'failed'
@@ -64,7 +64,7 @@ async function scoreThemes(documentId: string, options: any) {
     `;
   } else {
     query = `
-      SELECT cc.comment_id, cc.condensed_text 
+      SELECT cc.comment_id, cc.structured_sections 
       FROM condensed_comments cc
       LEFT JOIN theme_scoring_status s ON cc.comment_id = s.comment_id
       WHERE cc.status = 'completed' 
@@ -78,7 +78,7 @@ async function scoreThemes(documentId: string, options: any) {
     params.push(options.limit);
   }
   
-  const comments = db.prepare(query).all(...params) as { comment_id: string; condensed_text: string }[];
+  const comments = db.prepare(query).all(...params) as { comment_id: string; structured_sections: string }[];
   console.log(`🎯 Found ${comments.length} comments to process`);
   
   if (comments.length === 0) {
@@ -123,7 +123,7 @@ async function scoreThemes(documentId: string, options: any) {
   const concurrency = options.concurrency || 5;
   
   // Process comments in parallel
-  async function processComment(comment: { comment_id: string; condensed_text: string }) {
+  async function processComment(comment: { comment_id: string; structured_sections: string }) {
     const localProcessed = ++processed;
     console.log(`\n[${localProcessed}/${comments.length}] Processing comment ${comment.comment_id}`);
     
@@ -131,11 +131,15 @@ async function scoreThemes(documentId: string, options: any) {
       // Mark as processing
       markProcessing.run(comment.comment_id);
       
+      // Parse structured sections and use detailedContent
+      const sections = JSON.parse(comment.structured_sections || '{}');
+      const commentText = sections.detailedContent || JSON.stringify(sections);
+      
       // Build prompt
       const prompt = THEME_SCORING_PROMPT
         .replace("{THEME_HIERARCHY}", hierarchyText)
         .replace("{THEME_COUNT}", themeCount.toString())
-        .replace("{COMMENT}", comment.condensed_text);
+        .replace("{COMMENT}", commentText);
       
       // Get scores from LLM
       const response = await ai.generateContent(

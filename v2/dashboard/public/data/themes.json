@@ -9,16 +9,6 @@
     "comment_count": 131,
     "direct_count": 131,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Despite policy progress from TEFCA, ONC certification, and FHIR APIs, the patient experience remains fragmented and the human workflow burden is largely unresolved",
-        "comment_id": "CMS-2025-0050-0238"
-      },
-      {
-        "quote": "The US healthcare system is built on a flawed foundation because its data are disparate",
-        "comment_id": "CMS-2025-0050-0062"
-      }
-    ],
     "children": [
       "1.1",
       "1.2",
@@ -38,16 +28,6 @@
     "comment_count": 91,
     "direct_count": 91,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "The current healthcare system suffers from fractured information, causing inefficiency and frustration for everyone involved",
-        "comment_id": "CMS-2025-0050-0069"
-      },
-      {
-        "quote": "Data Silos & Lack of Interoperability: Fragmented data across EHRs and practice management systems prevents a holistic view needed for innovative applications",
-        "comment_id": "CMS-2025-0050-0049"
-      }
-    ],
     "children": [
       "1.1.1",
       "1.1.2",
@@ -64,16 +44,6 @@
     "comment_count": 69,
     "direct_count": 69,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "The primary cause of waste and fraud is information getting lost between different, non-communicating EMR systems",
-        "comment_id": "CMS-2025-0050-0009"
-      },
-      {
-        "quote": "Currently, systems used by local doctors, local hospitals, and general healthcare organizations cannot communicate with each other",
-        "comment_id": "CMS-2025-0050-0100"
-      }
-    ],
     "children": []
   },
   {
@@ -86,16 +56,6 @@
     "comment_count": 55,
     "direct_count": 55,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "The current healthcare system forces every provider (Home Health, Hospice, Hospital, Clinic) to have their own separate EMR software",
-        "comment_id": "CMS-2025-0050-0024"
-      },
-      {
-        "quote": "Oral health is siloed from national health IT and care coordination strategies, despite its connection to systemic health",
-        "comment_id": "CMS-2025-0050-0137"
-      }
-    ],
     "children": []
   },
   {
@@ -108,16 +68,6 @@
     "comment_count": 28,
     "direct_count": 28,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Expresses consistent frustration as a patient with needing multiple logins for various clinics, rather than a single portal containing all personal health records",
-        "comment_id": "CMS-2025-0050-0088"
-      },
-      {
-        "quote": "Medicare recipients need a way to link patient portals from all of their providers, regardless of the healthcare system they use",
-        "comment_id": "CMS-2025-0050-0080"
-      }
-    ],
     "children": []
   },
   {
@@ -130,16 +80,6 @@
     "comment_count": 53,
     "direct_count": 53,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "To effectively manage the health of the US population and the complexities of the healthcare system, the data must be centralized",
-        "comment_id": "CMS-2025-0050-0062"
-      },
-      {
-        "quote": "The U.S. must re-architect health data as critical national infrastructure",
-        "comment_id": "CMS-2025-0050-0196"
-      }
-    ],
     "children": [
       "1.2.1",
       "1.2.2",
@@ -157,16 +97,6 @@
     "comment_count": 11,
     "direct_count": 11,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "All health systems should be required to use a single, government-sponsored electronic record software program",
-        "comment_id": "CMS-2025-0050-0010"
-      },
-      {
-        "quote": "CMS should provide one universal EMR for all provider types",
-        "comment_id": "CMS-2025-0050-0024"
-      }
-    ],
     "children": []
   },
   {
@@ -179,16 +109,6 @@
     "comment_count": 22,
     "direct_count": 22,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "The commenter proposes a single national database of personal health information",
-        "comment_id": "CMS-2025-0050-0062"
-      },
-      {
-        "quote": "Proposes a National Health Data Repository (NHDR): a secure, federally governed system of record that decouples core health data from vendor-defined platforms",
-        "comment_id": "CMS-2025-0050-0196"
-      }
-    ],
     "children": []
   },
   {
@@ -201,16 +121,6 @@
     "comment_count": 7,
     "direct_count": 7,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Goliath Engineering proposes a blockchain-based framework to address these gaps",
-        "comment_id": "CMS-2025-0050-0005"
-      },
-      {
-        "quote": "Proposes the creation of a 'block-chained HEALTHCARE INTERNET, powered by Artificial Intelligence!'",
-        "comment_id": "CMS-2025-0050-0115"
-      }
-    ],
     "children": []
   },
   {
@@ -223,16 +133,6 @@
     "comment_count": 42,
     "direct_count": 42,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Proposes a patient-centric healthcare system where the patient holds all their health data from every source in a private, personal 'vault.'",
-        "comment_id": "CMS-2025-0050-0069"
-      },
-      {
-        "quote": "A patient-controlled global medical record should be created to automatically preserve the original record, including all test results",
-        "comment_id": "CMS-2025-0050-0270"
-      }
-    ],
     "children": []
   },
   {
@@ -245,16 +145,6 @@
     "comment_count": 87,
     "direct_count": 87,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Our organization has developed specifications for all relevant FHIR APIs",
-        "comment_id": "CMS-2025-0050-0281"
-      },
-      {
-        "quote": "CMS should prioritize the adoption and enforcement of open, standardized protocols for EHR exchange",
-        "comment_id": "CMS-2025-0050-0131"
-      }
-    ],
     "children": [
       "1.3.1",
       "1.3.2",
@@ -276,16 +166,6 @@
     "comment_count": 68,
     "direct_count": 68,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "CMS can encourage open APIs by tying reimbursement incentives and certification eligibility to the use of FHIR-based, open standards",
-        "comment_id": "CMS-2025-0050-0099"
-      },
-      {
-        "quote": "Mandate and enforce robust, standardized APIs (like FHIR) for both clinical and administrative/operational data without prohibitive costs",
-        "comment_id": "CMS-2025-0050-0049"
-      }
-    ],
     "children": []
   },
   {
@@ -298,16 +178,6 @@
     "comment_count": 59,
     "direct_count": 59,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Seamless data interoperability through continued adherence to and expansion of FHIR (Fast Healthcare Interoperability Resources) standards for secure, real-time data exchange",
-        "comment_id": "CMS-2025-0050-0023"
-      },
-      {
-        "quote": "Phase out document-based exchange and require exchange via FHIR APIs as soon as possible",
-        "comment_id": "CMS-2025-0050-0243"
-      }
-    ],
     "children": []
   },
   {
@@ -320,16 +190,6 @@
     "comment_count": 25,
     "direct_count": 25,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Expand the U.S. Core Data for Interoperability (USCDI) to include more behavioral health assessments beyond PHQ-9 and GAD-7",
-        "comment_id": "CMS-2025-0050-0140"
-      },
-      {
-        "quote": "While the United States Core Data for Interoperability (USCDI) meets basic public health needs, the 'floor' for data availability must be raised",
-        "comment_id": "CMS-2025-0050-0139"
-      }
-    ],
     "children": []
   },
   {
@@ -342,16 +202,6 @@
     "comment_count": 18,
     "direct_count": 18,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Data quality can be improved by strengthening the standardization and interoperability of medical imaging data through broader adoption of the Digital Imaging and Communications in Medicine (DICOM) standard",
-        "comment_id": "CMS-2025-0050-0103"
-      },
-      {
-        "quote": "Patient Imaging Records are difficult to access and transfer",
-        "comment_id": "CMS-2025-0050-0245"
-      }
-    ],
     "children": []
   },
   {
@@ -364,16 +214,6 @@
     "comment_count": 12,
     "direct_count": 12,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Add continuous waveforms and ≥1 Hz vitals to the USCDI and TEFCA by CY 2027",
-        "comment_id": "CMS-2025-0050-0004"
-      },
-      {
-        "quote": "A single bedside monitor produces 26 million data points per patient-day, but none of this currently flows through CMS-mandated APIs",
-        "comment_id": "CMS-2025-0050-0004"
-      }
-    ],
     "children": []
   },
   {
@@ -386,16 +226,6 @@
     "comment_count": 24,
     "direct_count": 24,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "CMS should work with ASTP/ONC to integrate DICOM standards into the Certified Health IT program, requiring certified EHRs and Picture Archiving and Communication Systems (PACS) to support full DICOM functionality",
-        "comment_id": "CMS-2025-0050-0103"
-      },
-      {
-        "quote": "Promote the use of SNOMED CT’s Expression Constraint Language (ECL) and the Value Set Compose Language (VSCL) in healthcare applications",
-        "comment_id": "CMS-2025-0050-0050"
-      }
-    ],
     "children": []
   },
   {
@@ -408,16 +238,6 @@
     "comment_count": 41,
     "direct_count": 41,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "CMS should learn from the internet's open architecture and focus on defining the 'how' (protocols) rather than the 'what' (platforms)",
-        "comment_id": "CMS-2025-0050-0131"
-      },
-      {
-        "quote": "CMS should prioritize the adoption and enforcement of open, standardized protocols for EHR exchange, rather than endorsing specific platforms or vendors",
-        "comment_id": "CMS-2025-0050-0131"
-      }
-    ],
     "children": []
   },
   {
@@ -430,16 +250,6 @@
     "comment_count": 12,
     "direct_count": 12,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "A data streaming platform can serve as a central nervous system, connecting legacy systems, multi-cloud environments, and on-premises data centers",
-        "comment_id": "CMS-2025-0050-0235"
-      },
-      {
-        "quote": "Patient Admission, Discharge, and Transfer (ADT) workflows can be transformed from error-prone batch processes into fluid, real-time data exchanges",
-        "comment_id": "CMS-2025-0050-0235"
-      }
-    ],
     "children": []
   },
   {
@@ -452,16 +262,6 @@
     "comment_count": 46,
     "direct_count": 46,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "A federally organized, singular PHR system is the best way to meet the RFI's goals",
-        "comment_id": "CMS-2025-0050-0133"
-      },
-      {
-        "quote": "Continue investment in trusted exchange frameworks and Qualified Health Information Networks (QHINs)",
-        "comment_id": "CMS-2025-0050-0158"
-      }
-    ],
     "children": [
       "1.4.1",
       "1.4.2",
@@ -478,16 +278,6 @@
     "comment_count": 24,
     "direct_count": 24,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "HIEs should serve as FHIR incubators, spearheading V2-to-FHIR and CDA-to-FHIR pilots and test-bedding US Core and USCDI+ implementations",
-        "comment_id": "CMS-2025-0050-0050"
-      },
-      {
-        "quote": "HIEs are limited because dental providers rarely participate",
-        "comment_id": "CMS-2025-0050-0271"
-      }
-    ],
     "children": []
   },
   {
@@ -500,16 +290,6 @@
     "comment_count": 36,
     "direct_count": 36,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "TEFCA is a critical step toward a unified, national health information exchange, but it needs stronger alignment with CMS-led payment reforms",
-        "comment_id": "CMS-2025-0050-0286"
-      },
-      {
-        "quote": "The Cigna Group urges ASTP to implement the Payment and Healthcare Operations Exchange Purposes (XPs) in TEFCA as soon as possible",
-        "comment_id": "CMS-2025-0050-0243"
-      }
-    ],
     "children": []
   },
   {
@@ -522,16 +302,6 @@
     "comment_count": 24,
     "direct_count": 24,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "A nationwide provider directory with FHIR endpoints and digital identity would deliver significant value to payers",
-        "comment_id": "CMS-2025-0050-0046"
-      },
-      {
-        "quote": "TMA supports a centralized, public directory of FHIR endpoints, indexed by NPI",
-        "comment_id": "CMS-2025-0050-0237"
-      }
-    ],
     "children": []
   },
   {
@@ -544,16 +314,6 @@
     "comment_count": 53,
     "direct_count": 53,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "There must be accountability for the integrity of the data used in decision-making",
-        "comment_id": "CMS-2025-0050-0092"
-      },
-      {
-        "quote": "The accuracy of current data sets is often unclear, and the ability to aggregate and share them securely needs improvement",
-        "comment_id": "CMS-2025-0050-0283"
-      }
-    ],
     "children": [
       "1.5.1",
       "1.5.2",
@@ -570,16 +330,6 @@
     "comment_count": 34,
     "direct_count": 34,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Many patient records contain vast misinformation, errors, deliberate omissions, and fabricated information",
-        "comment_id": "CMS-2025-0050-0219"
-      },
-      {
-        "quote": "Some health organizations alter medical records, including test results and diagnoses, after a patient suffers a serious problem or dies",
-        "comment_id": "CMS-2025-0050-0270"
-      }
-    ],
     "children": []
   },
   {
@@ -592,16 +342,6 @@
     "comment_count": 28,
     "direct_count": 28,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "CMS should require structured metadata for every data point, identifying: Who/what generated the data...The context of generation...Technical specifications",
-        "comment_id": "CMS-2025-0050-0214"
-      },
-      {
-        "quote": "Require all exchanged clinical data to include standardized provenance metadata (source, timestamp, transformation history)",
-        "comment_id": "CMS-2025-0050-0236"
-      }
-    ],
     "children": []
   },
   {
@@ -614,16 +354,6 @@
     "comment_count": 9,
     "direct_count": 9,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Standardized methods are needed to correct erroneous information to prevent it from persisting and propagating across systems",
-        "comment_id": "CMS-2025-0050-0237"
-      },
-      {
-        "quote": "There must be a mechanism to completely remove incorrect data from all recipient systems",
-        "comment_id": "CMS-2025-0050-0237"
-      }
-    ],
     "children": []
   },
   {
@@ -636,16 +366,6 @@
     "comment_count": 82,
     "direct_count": 82,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Expand Blue Button 2.0 and DPC APIs to include SDOH, imaging metadata, and device telemetry data",
-        "comment_id": "CMS-2025-0050-0277"
-      },
-      {
-        "quote": "Expand the data scope to include images and dental records, incorporating standards like THOR",
-        "comment_id": "CMS-2025-0050-0271"
-      }
-    ],
     "children": [
       "1.6.1",
       "1.6.2",
@@ -667,16 +387,6 @@
     "comment_count": 36,
     "direct_count": 36,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Full access to all EHR data formats (including scanned documents, free-text notes, and sensor data) is crucial for comprehensive care",
-        "comment_id": "CMS-2025-0050-0003"
-      },
-      {
-        "quote": "The majority of clinically relevant information... is trapped in unstructured clinical notes and image files",
-        "comment_id": "CMS-2025-0050-0126"
-      }
-    ],
     "children": []
   },
   {
@@ -689,16 +399,6 @@
     "comment_count": 30,
     "direct_count": 30,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Social Determinants of Health (SDOH) should be treated as a strategic lever within value-based care (VBC), not a siloed, referral-driven initiative",
-        "comment_id": "CMS-2025-0050-0247"
-      },
-      {
-        "quote": "Expand data available via Blue Button and FHIR interfaces to include non-clinical domains such as food insecurity, housing instability, financial strain, and transportation",
-        "comment_id": "CMS-2025-0050-0247"
-      }
-    ],
     "children": []
   },
   {
@@ -711,16 +411,6 @@
     "comment_count": 6,
     "direct_count": 6,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Fully supports the interoperability of oral health data with physical health data",
-        "comment_id": "CMS-2025-0050-0193"
-      },
-      {
-        "quote": "It is necessary to create interoperability and data access that bridges the current silos between dentistry and other areas of healthcare",
-        "comment_id": "CMS-2025-0050-0205"
-      }
-    ],
     "children": []
   },
   {
@@ -733,16 +423,6 @@
     "comment_count": 17,
     "direct_count": 17,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Expand the U.S. Core Data for Interoperability (USCDI) to include more behavioral health assessments",
-        "comment_id": "CMS-2025-0050-0140"
-      },
-      {
-        "quote": "Provide clearer guidance for exchanging behavioral health information while upholding privacy protections under 42 CFR Part 2",
-        "comment_id": "CMS-2025-0050-0140"
-      }
-    ],
     "children": []
   },
   {
@@ -755,16 +435,6 @@
     "comment_count": 17,
     "direct_count": 17,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "The future health IT ecosystem must integrate public health perspectives",
-        "comment_id": "CMS-2025-0050-0139"
-      },
-      {
-        "quote": "Include non-CMS data from the CDC in the API",
-        "comment_id": "CMS-2025-0050-0245"
-      }
-    ],
     "children": []
   },
   {
@@ -777,16 +447,6 @@
     "comment_count": 11,
     "direct_count": 11,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Strongly recommends ONC and CMS work to expand provider API capabilities to include prescription drug and/or covered outpatient drug information",
-        "comment_id": "CMS-2025-0050-0151"
-      },
-      {
-        "quote": "Comprehensive prescription fill history and adherence data for medication reconciliation and predicting adverse events",
-        "comment_id": "CMS-2025-0050-0256"
-      }
-    ],
     "children": []
   },
   {
@@ -799,16 +459,6 @@
     "comment_count": 8,
     "direct_count": 8,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Scale genomics data sharing across API-enabled Certified EHR Technology (CEHRT)",
-        "comment_id": "CMS-2025-0050-0254"
-      },
-      {
-        "quote": "CMS, ONC, and NLM should sign a collaborative agreement with the Global Alliance for Genomics and Health (GA4GH)",
-        "comment_id": "CMS-2025-0050-0254"
-      }
-    ],
     "children": []
   },
   {
@@ -821,16 +471,6 @@
     "comment_count": 46,
     "direct_count": 46,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "CMS should develop guidance for health professionals on the appropriate collection and use of patient-generated health data",
-        "comment_id": "CMS-2025-0050-0240"
-      },
-      {
-        "quote": "A condition of the contract must be that the patient's health information is transmitted to a Medicare data bank",
-        "comment_id": "CMS-2025-0050-0059"
-      }
-    ],
     "children": []
   },
   {
@@ -843,16 +483,6 @@
     "comment_count": 133,
     "direct_count": 133,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Drive the development and adoption of digital health management and care navigation applications",
-        "comment_id": "CMS-2025-0050-0213"
-      },
-      {
-        "quote": "Digital health innovations like smart medication devices and monitoring platforms can address nonadherence",
-        "comment_id": "CMS-2025-0050-0064"
-      }
-    ],
     "children": [
       "2.1",
       "2.2",
@@ -871,16 +501,6 @@
     "comment_count": 109,
     "direct_count": 109,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "To spur developer interest (TD-1) and increase patient/provider trust (PC-5a)",
-        "comment_id": "CMS-2025-0050-0132"
-      },
-      {
-        "quote": "CMS should explicitly include PERS and monitoring services in its definition and review of digital health tools",
-        "comment_id": "CMS-2025-0050-0142"
-      }
-    ],
     "children": [
       "2.1.1",
       "2.1.2",
@@ -897,16 +517,6 @@
     "comment_count": 77,
     "direct_count": 77,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "CMS should launch an interoperability sandbox where developers can test applications against real-world data standards",
-        "comment_id": "CMS-2025-0050-0046"
-      },
-      {
-        "quote": "CMS should create clearer, more streamlined approval processes and regulatory pathways",
-        "comment_id": "CMS-2025-0050-0256"
-      }
-    ],
     "children": []
   },
   {
@@ -919,16 +529,6 @@
     "comment_count": 58,
     "direct_count": 58,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "CMS should act as a signaler of quality by maintaining a “Trusted CMS-Connected” registry for apps",
-        "comment_id": "CMS-2025-0050-0046"
-      },
-      {
-        "quote": "A national process is needed to evaluate and certify health apps for patient use",
-        "comment_id": "CMS-2025-0050-0236"
-      }
-    ],
     "children": []
   },
   {
@@ -941,16 +541,6 @@
     "comment_count": 60,
     "direct_count": 60,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Primary barriers to adoption include workflow disruption, poor EHR integration, and insufficient incentives",
-        "comment_id": "CMS-2025-0050-0087"
-      },
-      {
-        "quote": "Providers will not use tools that require separate logins or duplicative documentation",
-        "comment_id": "CMS-2025-0050-0160"
-      }
-    ],
     "children": []
   },
   {
@@ -963,16 +553,6 @@
     "comment_count": 87,
     "direct_count": 87,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Patients need integrated health apps",
-        "comment_id": "CMS-2025-0050-0087"
-      },
-      {
-        "quote": "Digital health apps, like Cair, that help patients manage dental records are needed because most care navigation tools ignore oral health",
-        "comment_id": "CMS-2025-0050-0271"
-      }
-    ],
     "children": [
       "2.2.1",
       "2.2.2",
@@ -990,16 +570,6 @@
     "comment_count": 76,
     "direct_count": 76,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "View all data (claims, notes, imaging, labs) in a single location",
-        "comment_id": "CMS-2025-0050-0087"
-      },
-      {
-        "quote": "Apps should provide a comprehensive view of health needs and actionable steps",
-        "comment_id": "CMS-2025-0050-0281"
-      }
-    ],
     "children": []
   },
   {
@@ -1012,16 +582,6 @@
     "comment_count": 34,
     "direct_count": 34,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "The most impactful apps would function as 'virtual care navigators,' offering real-time, longitudinal access to clinical, behavioral, and benefit data in a single, AI-powered interface",
-        "comment_id": "CMS-2025-0050-0046"
-      },
-      {
-        "quote": "A digital assistant should...Track and alert on trends in key clinical metrics",
-        "comment_id": "CMS-2025-0050-0050"
-      }
-    ],
     "children": []
   },
   {
@@ -1034,16 +594,6 @@
     "comment_count": 32,
     "direct_count": 32,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "A critical opportunity exists to better support family caregivers",
-        "comment_id": "CMS-2025-0050-0089"
-      },
-      {
-        "quote": "A 'Caregiver Dashboard' To allow authorized loved ones to view a beneficiary’s care journey and receive alerts",
-        "comment_id": "CMS-2025-0050-0155"
-      }
-    ],
     "children": []
   },
   {
@@ -1056,16 +606,6 @@
     "comment_count": 63,
     "direct_count": 63,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "The commenter recommends using the 'Counterpart Assistant' created by Clover Health",
-        "comment_id": "CMS-2025-0050-0012"
-      },
-      {
-        "quote": "Recommends the 'Addison Care' system from Electronic Caregiver (ECG)",
-        "comment_id": "CMS-2025-0050-0078"
-      }
-    ],
     "children": []
   },
   {
@@ -1078,16 +618,6 @@
     "comment_count": 86,
     "direct_count": 86,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "AI in healthcare is necessary to improve availability, cost, and accessibility for the general population",
-        "comment_id": "CMS-2025-0050-0074"
-      },
-      {
-        "quote": "The future health technology ecosystem must instead support the sharing of data and knowledge needed to treat the numerous small, nationally-distributed patient clusters",
-        "comment_id": "CMS-2025-0050-0283"
-      }
-    ],
     "children": [
       "2.3.1",
       "2.3.2",
@@ -1105,16 +635,6 @@
     "comment_count": 71,
     "direct_count": 71,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Clinical AI has the potential to improve documentation integrity, care quality, and operational efficiency",
-        "comment_id": "CMS-2025-0050-0021"
-      },
-      {
-        "quote": "Recommends using AI to perform automated clinical record reviews",
-        "comment_id": "CMS-2025-0050-0018"
-      }
-    ],
     "children": []
   },
   {
@@ -1127,16 +647,6 @@
     "comment_count": 41,
     "direct_count": 41,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "AI systems must be used with caution due to several risks",
-        "comment_id": "CMS-2025-0050-0021"
-      },
-      {
-        "quote": "CMS must explicitly address: When explainable AI (XAI) is mandatory...How premarket approval and post-market surveillance of AI systems will be conducted",
-        "comment_id": "CMS-2025-0050-0214"
-      }
-    ],
     "children": []
   },
   {
@@ -1149,16 +659,6 @@
     "comment_count": 78,
     "direct_count": 78,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "The platform uses AI-powered, empathic digital avatars to simulate real-world conversations and improve patient-provider communication",
-        "comment_id": "CMS-2025-0050-0178"
-      },
-      {
-        "quote": "Proposes to provide its 'Qualifications' product and ICD-10 code extraction model directly to the CMS RADV audit team",
-        "comment_id": "CMS-2025-0050-0097"
-      }
-    ],
     "children": []
   },
   {
@@ -1171,16 +671,6 @@
     "comment_count": 41,
     "direct_count": 41,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "AI voice agents can handle inbound calls to HHS/DSS offices to answer high-volume questions about application status, eligibility, documents, and timelines",
-        "comment_id": "CMS-2025-0050-0191"
-      },
-      {
-        "quote": "The AI platform integrates with Electronic Health Records (EHRs), payer systems, and contact center CRMs",
-        "comment_id": "CMS-2025-0050-0068"
-      }
-    ],
     "children": []
   },
   {
@@ -1193,16 +683,6 @@
     "comment_count": 46,
     "direct_count": 46,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "The future of medicine lies with electronic medical devices and wearables",
-        "comment_id": "CMS-2025-0050-0040"
-      },
-      {
-        "quote": "Remote Therapeutic Monitoring (RTM) is a promising framework for medication adherence",
-        "comment_id": "CMS-2025-0050-0064"
-      }
-    ],
     "children": [
       "2.4.1",
       "2.4.2",
@@ -1219,16 +699,6 @@
     "comment_count": 27,
     "direct_count": 27,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Patients and caregivers benefit from digital tools like remote patient monitoring (RPM) that provide real-time, actionable health insights",
-        "comment_id": "CMS-2025-0050-0286"
-      },
-      {
-        "quote": "Examples include: remote patient monitoring (RPM), telehealth platforms, wearable devices, and AI-driven decision-support tools",
-        "comment_id": "CMS-2025-0050-0023"
-      }
-    ],
     "children": []
   },
   {
@@ -1241,16 +711,6 @@
     "comment_count": 31,
     "direct_count": 31,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Continuous glucose monitors (CGMs) should be made widely available to Medicare patients with diabetes",
-        "comment_id": "CMS-2025-0050-0035"
-      },
-      {
-        "quote": "CMS should explicitly include PERS [Personal Emergency Response Services] and monitoring services in its definition and review of digital health tools",
-        "comment_id": "CMS-2025-0050-0142"
-      }
-    ],
     "children": []
   },
   {
@@ -1263,16 +723,6 @@
     "comment_count": 15,
     "direct_count": 15,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Higher reimbursement for Remote Patient Monitoring (RPM) and Remote Therapeutic Monitoring (RTM) codes is necessary",
-        "comment_id": "CMS-2025-0050-0040"
-      },
-      {
-        "quote": "Average Medicare reimbursement for RM has decreased 7-28% since 2019, making these services unsustainable for providers",
-        "comment_id": "CMS-2025-0050-0272"
-      }
-    ],
     "children": []
   },
   {
@@ -1285,16 +735,6 @@
     "comment_count": 12,
     "direct_count": 12,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Digital therapeutics (DTx) represent a vital, evidence-based solution for maternal mental health (MMH) that can be seamlessly integrated into the continuum of care",
-        "comment_id": "CMS-2025-0050-0130"
-      },
-      {
-        "quote": "Widespread adoption of these technologies could save over $1 trillion annually while improving health outcomes and access",
-        "comment_id": "CMS-2025-0050-0063"
-      }
-    ],
     "children": [
       "2.5.1"
     ]
@@ -1309,16 +749,6 @@
     "comment_count": 13,
     "direct_count": 13,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Proposes 'Digital Step Therapy' as a modern framework for payers to adopt PDTs in a cost-effective, evidence-based manner",
-        "comment_id": "CMS-2025-0050-0063"
-      },
-      {
-        "quote": "Under this model, patients would start with an FDA-cleared digital therapeutic as a first-line treatment before escalating to more costly interventions",
-        "comment_id": "CMS-2025-0050-0063"
-      }
-    ],
     "children": []
   },
   {
@@ -1331,16 +761,6 @@
     "comment_count": 152,
     "direct_count": 152,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "CMS should lead the industry by reframing this layer not as 'tech' or 'admin,' but as billable, clinical infrastructure",
-        "comment_id": "CMS-2025-0050-0056"
-      },
-      {
-        "quote": "Previous health IT regulations have failed because they layer new compliance requirements on a fragmented digital foundation",
-        "comment_id": "CMS-2025-0050-0095"
-      }
-    ],
     "children": [
       "3.1",
       "3.2",
@@ -1361,16 +781,6 @@
     "comment_count": 90,
     "direct_count": 90,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Current reimbursement models have not kept pace with innovation in the digital health sector",
-        "comment_id": "CMS-2025-0050-0055"
-      },
-      {
-        "quote": "To meet the realities of modern healthcare, CMS should create a reimbursement pathway for 'Distributed Clinical Logic' (DCL)",
-        "comment_id": "CMS-2025-0050-0056"
-      }
-    ],
     "children": [
       "3.1.1",
       "3.1.2",
@@ -1388,16 +798,6 @@
     "comment_count": 62,
     "direct_count": 62,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Promising technologies like remote monitoring, AI-driven diagnostics, and digital therapeutics face significant adoption barriers due to unclear or inconsistent reimbursement pathways",
-        "comment_id": "CMS-2025-0050-0055"
-      },
-      {
-        "quote": "Lack of clear reimbursement pathways and coverage policies for wearables is a significant barrier to provider adoption and patient access",
-        "comment_id": "CMS-2025-0050-0003"
-      }
-    ],
     "children": []
   },
   {
@@ -1410,16 +810,6 @@
     "comment_count": 71,
     "direct_count": 71,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "CMS should offer enhanced shared savings, infrastructure payments, and performance bonuses to APMs that integrate certified digital health tools",
-        "comment_id": "CMS-2025-0050-0046"
-      },
-      {
-        "quote": "A portion of ACO shared savings bonuses should be tied to interoperability engagement (e.g., FHIR adoption, PIQI compliance)",
-        "comment_id": "CMS-2025-0050-0050"
-      }
-    ],
     "children": []
   },
   {
@@ -1432,16 +822,6 @@
     "comment_count": 31,
     "direct_count": 31,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "The term 'value-based care' (VBC) is too generic",
-        "comment_id": "CMS-2025-0050-0042"
-      },
-      {
-        "quote": "Current value-based care reimbursement structures place undue risk on providers, who have insufficient control over patient adherence and outcomes",
-        "comment_id": "CMS-2025-0050-0122"
-      }
-    ],
     "children": []
   },
   {
@@ -1454,16 +834,6 @@
     "comment_count": 29,
     "direct_count": 29,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "The 90-day episode of care for spinal fusion should be extended to a minimum of 180 days",
-        "comment_id": "CMS-2025-0050-0215"
-      },
-      {
-        "quote": "CMS currently restricts MDPP [Medicare Diabetes Prevention Program] to in-person programs, unlike the CDC which recognizes virtual suppliers",
-        "comment_id": "CMS-2025-0050-0272"
-      }
-    ],
     "children": []
   },
   {
@@ -1476,16 +846,6 @@
     "comment_count": 43,
     "direct_count": 43,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "The ACC continues to hear from members about the 'weaponization of EHRs and contracts as a competitive weapon.'",
-        "comment_id": "CMS-2025-0050-0151"
-      },
-      {
-        "quote": "Payer delays in sharing MA claims and health data, sometimes by as much as six months, are a significant barrier to effective plan optimization",
-        "comment_id": "CMS-2025-0050-0008"
-      }
-    ],
     "children": [
       "3.2.1",
       "3.2.2",
@@ -1504,16 +864,6 @@
     "comment_count": 27,
     "direct_count": 27,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "The commenter, a patient with Parkinson's and related memory problems, nearly lost his disability benefits due to an inability to access his medical records from two providers",
-        "comment_id": "CMS-2025-0050-0188"
-      },
-      {
-        "quote": "Some OEMs charge up to $8,000/bed/year for 'unlock keys' and use warranty threats to create contractual lock-in",
-        "comment_id": "CMS-2025-0050-0004"
-      }
-    ],
     "children": []
   },
   {
@@ -1526,16 +876,6 @@
     "comment_count": 20,
     "direct_count": 20,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Information blocking (via fees, complex requirements) is a consequence of trying to derive value from flawed 'big data.'",
-        "comment_id": "CMS-2025-0050-0153"
-      },
-      {
-        "quote": "Declare that OEM clauses voiding warranties or demanding 'unlock-fees' for raw data access are *per se* information blocking",
-        "comment_id": "CMS-2025-0050-0004"
-      }
-    ],
     "children": []
   },
   {
@@ -1548,16 +888,6 @@
     "comment_count": 27,
     "direct_count": 27,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "HHS must demonstrate that the HHS Office of Inspector General (OIG) will enforce information blocking regulations",
-        "comment_id": "CMS-2025-0050-0243"
-      },
-      {
-        "quote": "Implement stricter enforcement with escalating penalties",
-        "comment_id": "CMS-2025-0050-0097"
-      }
-    ],
     "children": []
   },
   {
@@ -1570,16 +900,6 @@
     "comment_count": 12,
     "direct_count": 12,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Add a new exception allowing clinicians to hold sensitive test results (e.g., cancer diagnosis, genetic markers) for three business days before releasing them to the patient portal",
-        "comment_id": "CMS-2025-0050-0236"
-      },
-      {
-        "quote": "ONC should remove or revise the information blocking exceptions, which are currently exploited by EMR companies as anti-competitive shields",
-        "comment_id": "CMS-2025-0050-0280"
-      }
-    ],
     "children": []
   },
   {
@@ -1592,16 +912,6 @@
     "comment_count": 8,
     "direct_count": 8,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "The Office of the National Coordinator (ONC) is known as 'the place where complaints go to die,' as they are rarely investigated",
-        "comment_id": "CMS-2025-0050-0280"
-      },
-      {
-        "quote": "His wife filed two complaints on the ONC/ASTP information blocking website...They never received confirmation of the submissions, nor any follow-up or resolution",
-        "comment_id": "CMS-2025-0050-0188"
-      }
-    ],
     "children": []
   },
   {
@@ -1614,16 +924,6 @@
     "comment_count": 31,
     "direct_count": 31,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "An AI-enabled fraud surveillance infrastructure can reduce improper payments and protect trust fund solvency",
-        "comment_id": "CMS-2025-0050-0109"
-      },
-      {
-        "quote": "The problem with Medicare marketing is not the technology; it is the process",
-        "comment_id": "CMS-2025-0050-0114"
-      }
-    ],
     "children": [
       "3.3.1",
       "3.3.2",
@@ -1640,16 +940,6 @@
     "comment_count": 27,
     "direct_count": 27,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "CMS could use AI to complete audits for fraud, waste, and abuse, performing desk audits before needing to go on-site",
-        "comment_id": "CMS-2025-0050-0024"
-      },
-      {
-        "quote": "The system prevents fraud at the point of transaction, avoiding costly 'pay and chase' recovery",
-        "comment_id": "CMS-2025-0050-0005"
-      }
-    ],
     "children": []
   },
   {
@@ -1662,16 +952,6 @@
     "comment_count": 5,
     "direct_count": 5,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Medicare beneficiaries are stressed by unsolicited robocalls from third-party insurance companies",
-        "comment_id": "CMS-2025-0050-0071"
-      },
-      {
-        "quote": "The primary issues are: Call centers that constantly cold-call seniors about their Medicare coverage...Year-round Special Election Periods (SEPs) that enable beneficiaries to change plans at any time",
-        "comment_id": "CMS-2025-0050-0114"
-      }
-    ],
     "children": []
   },
   {
@@ -1684,16 +964,6 @@
     "comment_count": 2,
     "direct_count": 2,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Recommends that CMS remove Pharmacy Benefit Managers (PBMs) from all contact with the agency if they... are not transparent [and] do not function in a fiduciary model",
-        "comment_id": "CMS-2025-0050-0117"
-      },
-      {
-        "quote": "The market concentration of national pharmacy claims processing within a single entity [PBM]",
-        "comment_id": "CMS-2025-0050-0134"
-      }
-    ],
     "children": []
   },
   {
@@ -1706,16 +976,6 @@
     "comment_count": 69,
     "direct_count": 69,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Physicians spend 15.5 hours weekly on paperwork",
-        "comment_id": "CMS-2025-0050-0095"
-      },
-      {
-        "quote": "Reducing administrative burdens in RCM is critical to address physician burnout and support IPPs",
-        "comment_id": "CMS-2025-0050-0122"
-      }
-    ],
     "children": [
       "3.4.1",
       "3.4.2",
@@ -1733,16 +993,6 @@
     "comment_count": 14,
     "direct_count": 14,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "The government should reduce its regulatory burden on healthcare providers",
-        "comment_id": "CMS-2025-0050-0020"
-      },
-      {
-        "quote": "Excessive regulation negatively impacts the healthcare system in several ways: It stifles patient care...It stifles innovation",
-        "comment_id": "CMS-2025-0050-0020"
-      }
-    ],
     "children": []
   },
   {
@@ -1755,16 +1005,6 @@
     "comment_count": 34,
     "direct_count": 34,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Annual updates to quality measurement reporting are challenging for practices to review, implement, and optimize",
-        "comment_id": "CMS-2025-0050-0159"
-      },
-      {
-        "quote": "Despite Certified EHR Technology (CEHRT) requirements, many EHR vendors fail to provide timely, usable, and affordable Quality Reporting Document Architecture (QRDA I) files",
-        "comment_id": "CMS-2025-0050-0136"
-      }
-    ],
     "children": []
   },
   {
@@ -1777,16 +1017,6 @@
     "comment_count": 23,
     "direct_count": 23,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Voices strong concern and opposition to the ever-growing use of prior authorization requirements",
-        "comment_id": "CMS-2025-0050-0151"
-      },
-      {
-        "quote": "AAN members cite prior authorization burdens as a top administrative concern that leads to care delays and serious adverse events",
-        "comment_id": "CMS-2025-0050-0159"
-      }
-    ],
     "children": []
   },
   {
@@ -1799,16 +1029,6 @@
     "comment_count": 25,
     "direct_count": 25,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "The paperwork/charting burden for care providers has exponentially increased with each new platform implementation",
-        "comment_id": "CMS-2025-0050-0157"
-      },
-      {
-        "quote": "For home health, CMS should reduce the OASIS assessment to include only meaningful data and eliminate duplication",
-        "comment_id": "CMS-2025-0050-0058"
-      }
-    ],
     "children": []
   },
   {
@@ -1821,16 +1041,6 @@
     "comment_count": 42,
     "direct_count": 42,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "The requirement to enroll in Medicare A and B at age 65 should be eliminated for those who are still working and have primary private insurance",
-        "comment_id": "CMS-2025-0050-0002"
-      },
-      {
-        "quote": "Proposes a new food pyramid and educating seniors on using food and natural herbs as preventative medicine",
-        "comment_id": "CMS-2025-0050-0044"
-      }
-    ],
     "children": [
       "3.5.1",
       "3.5.2",
@@ -1849,16 +1059,6 @@
     "comment_count": 13,
     "direct_count": 13,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "The lifelong late enrollment penalty is a significant financial burden on seniors and the disabled",
-        "comment_id": "CMS-2025-0050-0002"
-      },
-      {
-        "quote": "Unlike the Affordable Care Act Marketplace, Medicare is a Closed System—And That’s Hurting Beneficiaries",
-        "comment_id": "CMS-2025-0050-0102"
-      }
-    ],
     "children": []
   },
   {
@@ -1871,16 +1071,6 @@
     "comment_count": 8,
     "direct_count": 8,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Medicare Advantage plans are not working as intended and often deny entitled care",
-        "comment_id": "CMS-2025-0050-0002"
-      },
-      {
-        "quote": "The push for privatization and technology-driven changes via Medicare Advantage plans is a bad idea",
-        "comment_id": "CMS-2025-0050-0098"
-      }
-    ],
     "children": []
   },
   {
@@ -1893,16 +1083,6 @@
     "comment_count": 6,
     "direct_count": 6,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Many Medicare beneficiaries have difficulty using the Medicare.gov website to select their primary care physician",
-        "comment_id": "CMS-2025-0050-0067"
-      },
-      {
-        "quote": "The Medicare.gov plan finder tool needs to be updated to clearly indicate which drugs are covered under Part B",
-        "comment_id": "CMS-2025-0050-0011"
-      }
-    ],
     "children": []
   },
   {
@@ -1915,16 +1095,6 @@
     "comment_count": 1,
     "direct_count": 1,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "CMS and the Workers' Compensation industry must make it a top priority to resolve issues where beneficiaries are denied medical treatment due to open WC claims",
-        "comment_id": "CMS-2025-0050-0032"
-      },
-      {
-        "quote": "In a recent, specific case, a Medicare beneficiary was removed from an organ donation waitlist due to an open WC claim",
-        "comment_id": "CMS-2025-0050-0032"
-      }
-    ],
     "children": []
   },
   {
@@ -1937,16 +1107,6 @@
     "comment_count": 5,
     "direct_count": 5,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Urges CMS to prioritize bold, actionable policy to reduce administrative waste and improve the beneficiary experience in Medicaid and Medicare renewals",
-        "comment_id": "CMS-2025-0050-0076"
-      },
-      {
-        "quote": "CMS should encourage and fund solutions that...Auto-populate renewal forms with existing eligibility data from programs like SNAP, TANF, and SSA",
-        "comment_id": "CMS-2025-0050-0076"
-      }
-    ],
     "children": []
   },
   {
@@ -1959,16 +1119,6 @@
     "comment_count": 47,
     "direct_count": 47,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Federal agencies and the private sector use many varying definitions of 'digital health.'",
-        "comment_id": "CMS-2025-0050-0017"
-      },
-      {
-        "quote": "HHS should strengthen coordination on health data interoperability across all its agencies and with other federal departments",
-        "comment_id": "CMS-2025-0050-0243"
-      }
-    ],
     "children": []
   },
   {
@@ -1981,16 +1131,6 @@
     "comment_count": 5,
     "direct_count": 5,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "The regulation affects numerous stakeholders within a complex healthcare ecosystem",
-        "comment_id": "CMS-2025-0050-0112"
-      },
-      {
-        "quote": "Requests that CMS extend the public comment deadline",
-        "comment_id": "CMS-2025-0050-0112"
-      }
-    ],
     "children": [
       "3.7.1"
     ]
@@ -2005,12 +1145,6 @@
     "comment_count": 2,
     "direct_count": 2,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Requests that the agency share a recording of the Q&A session associated with the Request for Information (RFI)",
-        "comment_id": "CMS-2025-0050-0053"
-      }
-    ],
     "children": []
   },
   {
@@ -2023,16 +1157,6 @@
     "comment_count": 192,
     "direct_count": 192,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "The benefits of digital health will not be realized if they don't reach vulnerable populations",
-        "comment_id": "CMS-2025-0050-0055"
-      },
-      {
-        "quote": "Prioritize input from Medicare beneficiaries and caregivers",
-        "comment_id": "CMS-2025-0050-0279"
-      }
-    ],
     "children": [
       "4.1",
       "4.2",
@@ -2051,16 +1175,6 @@
     "comment_count": 70,
     "direct_count": 70,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Digital health technology must be designed for everyone, including low-income individuals who may lack high-speed internet, smartphones, or advanced tech skills",
-        "comment_id": "CMS-2025-0050-0047"
-      },
-      {
-        "quote": "A 2020 study found 26.3% of Medicare beneficiaries lacked access to either a computer with high-speed internet or a smartphone with a data plan",
-        "comment_id": "CMS-2025-0050-0279"
-      }
-    ],
     "children": [
       "4.1.1",
       "4.1.2",
@@ -2077,16 +1191,6 @@
     "comment_count": 26,
     "direct_count": 26,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Over 20 million Americans, particularly those with lower incomes, older adults, and those in rural areas, lack access to high-speed internet",
-        "comment_id": "CMS-2025-0050-0017"
-      },
-      {
-        "quote": "Many people in rural areas lack access to PCs and do not have cell coverage, making digital health apps impractical",
-        "comment_id": "CMS-2025-0050-0058"
-      }
-    ],
     "children": []
   },
   {
@@ -2099,16 +1203,6 @@
     "comment_count": 51,
     "direct_count": 51,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "People will not use digital health technologies effectively if they do not understand what they are, how they are used, and how they can support their health",
-        "comment_id": "CMS-2025-0050-0017"
-      },
-      {
-        "quote": "CMS should offer short classes at local libraries to assist beneficiaries",
-        "comment_id": "CMS-2025-0050-0128"
-      }
-    ],
     "children": []
   },
   {
@@ -2121,16 +1215,6 @@
     "comment_count": 63,
     "direct_count": 63,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "The system should be simple and intuitive, like a 'Jitterbug phone and not like the iPhone'",
-        "comment_id": "CMS-2025-0050-0002"
-      },
-      {
-        "quote": "To make digital health products accessible, especially for users with limited digital experience, CMS should prioritize simple, intuitive design",
-        "comment_id": "CMS-2025-0050-0155"
-      }
-    ],
     "children": []
   },
   {
@@ -2143,16 +1227,6 @@
     "comment_count": 116,
     "direct_count": 116,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "The patient's chart and data belong to the patient",
-        "comment_id": "CMS-2025-0050-0280"
-      },
-      {
-        "quote": "Data sharing between public and private insurance will not happen unless patients are given legal rights that grant them control and authority over how their data is used",
-        "comment_id": "CMS-2025-0050-0101"
-      }
-    ],
     "children": [
       "4.2.1",
       "4.2.2",
@@ -2170,16 +1244,6 @@
     "comment_count": 57,
     "direct_count": 57,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "As a caregiver... I have found it very difficult to gather and share her medical records",
-        "comment_id": "CMS-2025-0050-0072"
-      },
-      {
-        "quote": "Patients are currently blocked from participating in their own record-keeping",
-        "comment_id": "CMS-2025-0050-0219"
-      }
-    ],
     "children": []
   },
   {
@@ -2192,16 +1256,6 @@
     "comment_count": 95,
     "direct_count": 95,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Patients, not vendors or health systems, should 'own' their data and grant access",
-        "comment_id": "CMS-2025-0050-0107"
-      },
-      {
-        "quote": "Patients should be given control to keep their own records private",
-        "comment_id": "CMS-2025-0050-0135"
-      }
-    ],
     "children": []
   },
   {
@@ -2214,16 +1268,6 @@
     "comment_count": 14,
     "direct_count": 14,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Strongly supports regulatory action to require healthcare systems to provide patients with transparent, real-time access to audit logs",
-        "comment_id": "CMS-2025-0050-0041"
-      },
-      {
-        "quote": "Individuals must have the right to audit who has accessed their health information",
-        "comment_id": "CMS-2025-0050-0061"
-      }
-    ],
     "children": []
   },
   {
@@ -2236,16 +1280,6 @@
     "comment_count": 4,
     "direct_count": 4,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Cites a recent experience where a provider charged a $10 fee to put MRI films on a disc",
-        "comment_id": "CMS-2025-0050-0070"
-      },
-      {
-        "quote": "Recommends that providers be required to provide a copy of a patient's films for free",
-        "comment_id": "CMS-2025-0050-0070"
-      }
-    ],
     "children": []
   },
   {
@@ -2258,16 +1292,6 @@
     "comment_count": 91,
     "direct_count": 91,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "As the Baby Boomer generation ages, chronic conditions will become more prevalent",
-        "comment_id": "CMS-2025-0050-0019"
-      },
-      {
-        "quote": "HHS should prioritize investment and standards development in nutrition, sleep, and mental health to enable digital health companies to deliver whole-person care",
-        "comment_id": "CMS-2025-0050-0054"
-      }
-    ],
     "children": [
       "4.3.1",
       "4.3.2",
@@ -2288,16 +1312,6 @@
     "comment_count": 47,
     "direct_count": 47,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "The idea that elderly patients will want and use technology-based services to manage their healthcare is ridiculous",
-        "comment_id": "CMS-2025-0050-0098"
-      },
-      {
-        "quote": "Many seniors face challenges adopting digital health tools due to limited digital literacy, cognitive impairments, and physical disabilities",
-        "comment_id": "CMS-2025-0050-0019"
-      }
-    ],
     "children": []
   },
   {
@@ -2310,16 +1324,6 @@
     "comment_count": 21,
     "direct_count": 21,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Traveling to medical appointments is difficult for the commenter, who has Cerebral Palsy and uses a wheelchair",
-        "comment_id": "CMS-2025-0050-0006"
-      },
-      {
-        "quote": "As a senior and disabled Medicare patient, telehealth has been instrumental in my healthcare",
-        "comment_id": "CMS-2025-0050-0036"
-      }
-    ],
     "children": []
   },
   {
@@ -2332,16 +1336,6 @@
     "comment_count": 36,
     "direct_count": 36,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "The primary obstacles are cost and lack of reliable internet",
-        "comment_id": "CMS-2025-0050-0066"
-      },
-      {
-        "quote": "Rural and small home-based care providers experience unique challenges",
-        "comment_id": "CMS-2025-0050-0274"
-      }
-    ],
     "children": []
   },
   {
@@ -2354,16 +1348,6 @@
     "comment_count": 4,
     "direct_count": 4,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Improving continuity of care at reentry through technology can reduce inefficiency, support public safety, save costs, and improve health management",
-        "comment_id": "CMS-2025-0050-0241"
-      },
-      {
-        "quote": "Health information from incarceration is historically siloed from community health data",
-        "comment_id": "CMS-2025-0050-0241"
-      }
-    ],
     "children": []
   },
   {
@@ -2376,16 +1360,6 @@
     "comment_count": 47,
     "direct_count": 47,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "The most complex 35% of Medicare patients account for approximately 80% of program expenditures",
-        "comment_id": "CMS-2025-0050-0283"
-      },
-      {
-        "quote": "A single, unified portal would be most valuable for...Managing multiple chronic conditions",
-        "comment_id": "CMS-2025-0050-0046"
-      }
-    ],
     "children": []
   },
   {
@@ -2398,16 +1372,6 @@
     "comment_count": 5,
     "direct_count": 5,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "The commenter urges CMS and ONC to explicitly prioritize maternal health in its digital health strategy",
-        "comment_id": "CMS-2025-0050-0227"
-      },
-      {
-        "quote": "Digital therapeutics (DTx) represent a vital, evidence-based solution for maternal mental health (MMH)",
-        "comment_id": "CMS-2025-0050-0130"
-      }
-    ],
     "children": []
   },
   {
@@ -2420,16 +1384,6 @@
     "comment_count": 12,
     "direct_count": 12,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "There is a severe lack of adequate support for children with autism in public schools",
-        "comment_id": "CMS-2025-0050-0047"
-      },
-      {
-        "quote": "Sepsis claims more children's lives than all childhood cancers combined, yet there is no federal sepsis performance measure for children",
-        "comment_id": "CMS-2025-0050-0196"
-      }
-    ],
     "children": []
   },
   {
@@ -2442,16 +1396,6 @@
     "comment_count": 39,
     "direct_count": 39,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "The increasing prevalence of diabetes requires specialized care, but there is a shortage of endocrinologists and diabetes nurse educators",
-        "comment_id": "CMS-2025-0050-0019"
-      },
-      {
-        "quote": "This technology is needed to help fill the void created by the growing shortage of healthcare workers",
-        "comment_id": "CMS-2025-0050-0040"
-      }
-    ],
     "children": [
       "4.4.1",
       "4.4.2",
@@ -2468,16 +1412,6 @@
     "comment_count": 28,
     "direct_count": 28,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "The greatest barrier to the success of FHIR-enabled interoperability is educational, not technical",
-        "comment_id": "CMS-2025-0050-0149"
-      },
-      {
-        "quote": "FHIR and CDA education should flow from the parent organizations...down to frontline staff",
-        "comment_id": "CMS-2025-0050-0265"
-      }
-    ],
     "children": []
   },
   {
@@ -2490,16 +1424,6 @@
     "comment_count": 3,
     "direct_count": 3,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "PAs are sometimes omitted from payer provider directories and must be explicitly included",
-        "comment_id": "CMS-2025-0050-0240"
-      },
-      {
-        "quote": "PAs should be identified in provider directories under the specialty in which they practice",
-        "comment_id": "CMS-2025-0050-0240"
-      }
-    ],
     "children": []
   },
   {
@@ -2512,16 +1436,6 @@
     "comment_count": 5,
     "direct_count": 5,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "A national 'Health Extension Service' should be created, modeled after the successful agriculture extension service",
-        "comment_id": "CMS-2025-0050-0084"
-      },
-      {
-        "quote": "This is a 'shovel-ready' opportunity that CMS can lead",
-        "comment_id": "CMS-2025-0050-0084"
-      }
-    ],
     "children": []
   },
   {
@@ -2534,16 +1448,6 @@
     "comment_count": 34,
     "direct_count": 34,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Supports a focus on disease prevention in Medicare",
-        "comment_id": "CMS-2025-0050-0044"
-      },
-      {
-        "quote": "Current health platforms are too focused on pharmaceutical care and do not support holistic or dietary needs",
-        "comment_id": "CMS-2025-0050-0047"
-      }
-    ],
     "children": [
       "4.5.1",
       "4.5.2",
@@ -2560,16 +1464,6 @@
     "comment_count": 39,
     "direct_count": 39,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "A healthy lifestyle is the recognized bedrock for managing nearly every serious chronic medical condition",
-        "comment_id": "CMS-2025-0050-0059"
-      },
-      {
-        "quote": "Focusing on health promotion and disease prevention will serve to limit the high cost of tertiary prevention",
-        "comment_id": "CMS-2025-0050-0037"
-      }
-    ],
     "children": []
   },
   {
@@ -2582,16 +1476,6 @@
     "comment_count": 11,
     "direct_count": 11,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Recommends focusing on nutrition and natural medicine",
-        "comment_id": "CMS-2025-0050-0044"
-      },
-      {
-        "quote": "CMS and ONC are strongly encouraged to recognize diet quality assessment as a vital, underutilized element of clinical care",
-        "comment_id": "CMS-2025-0050-0152"
-      }
-    ],
     "children": []
   },
   {
@@ -2604,16 +1488,6 @@
     "comment_count": 19,
     "direct_count": 19,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "To effectively manage chronic disease, patients must be connected to programs and services that exist outside the traditional healthcare system",
-        "comment_id": "CMS-2025-0050-0127"
-      },
-      {
-        "quote": "The system should define and support e-referrals to these non-clinical community organizations",
-        "comment_id": "CMS-2025-0050-0127"
-      }
-    ],
     "children": []
   },
   {
@@ -2626,16 +1500,6 @@
     "comment_count": 108,
     "direct_count": 108,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Assurance of patient confidentiality should override the needs of health regulators",
-        "comment_id": "CMS-2025-0050-0037"
-      },
-      {
-        "quote": "A slow implementation is necessary due to significant trust issues with: new technology... new methodologies... the government itself",
-        "comment_id": "CMS-2025-0050-0060"
-      }
-    ],
     "children": [
       "5.1",
       "5.2",
@@ -2653,16 +1517,6 @@
     "comment_count": 56,
     "direct_count": 56,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Opposes all medical mandates required to access society",
-        "comment_id": "CMS-2025-0050-0194"
-      },
-      {
-        "quote": "The commenter wants 'absolutely nothing' from the 'Health Technology Ecosystem' and states, 'I will not comply.'",
-        "comment_id": "CMS-2025-0050-0239"
-      }
-    ],
     "children": [
       "5.1.1",
       "5.1.2",
@@ -2679,16 +1533,6 @@
     "comment_count": 51,
     "direct_count": 51,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "There should be absolutely no digital ID requirement for any person to access healthcare in America, ever",
-        "comment_id": "CMS-2025-0050-0168"
-      },
-      {
-        "quote": "Rejects any form of digital ID for any purpose",
-        "comment_id": "CMS-2025-0050-0192"
-      }
-    ],
     "children": []
   },
   {
@@ -2701,16 +1545,6 @@
     "comment_count": 41,
     "direct_count": 41,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "No one should ever be forced to provide biometric data to access healthcare in America",
-        "comment_id": "CMS-2025-0050-0200"
-      },
-      {
-        "quote": "No one should be compelled to provide biometric data to access healthcare",
-        "comment_id": "CMS-2025-0050-0174"
-      }
-    ],
     "children": []
   },
   {
@@ -2723,16 +1557,6 @@
     "comment_count": 35,
     "direct_count": 35,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Under no circumstances should wearable technology ever be mandated on any human for any healthcare purpose",
-        "comment_id": "CMS-2025-0050-0168"
-      },
-      {
-        "quote": "Wearable technology should never be mandated for any healthcare purpose",
-        "comment_id": "CMS-2025-0050-0164"
-      }
-    ],
     "children": []
   },
   {
@@ -2745,16 +1569,6 @@
     "comment_count": 98,
     "direct_count": 98,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "My primary concern with health technology is patient privacy and parental rights",
-        "comment_id": "CMS-2025-0050-0176"
-      },
-      {
-        "quote": "Personally identifiable health information must remain private and should never be shared with any party without the individual's explicit consent",
-        "comment_id": "CMS-2025-0050-0061"
-      }
-    ],
     "children": [
       "5.2.1",
       "5.2.2",
@@ -2772,16 +1586,6 @@
     "comment_count": 71,
     "direct_count": 71,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Stop the practice of allowing providers to share patient information without explicit, direct consent",
-        "comment_id": "CMS-2025-0050-0222"
-      },
-      {
-        "quote": "Informed consent must always be the standard",
-        "comment_id": "CMS-2025-0050-0176"
-      }
-    ],
     "children": []
   },
   {
@@ -2794,16 +1598,6 @@
     "comment_count": 12,
     "direct_count": 12,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Everyone should have a 'right to be forgotten'",
-        "comment_id": "CMS-2025-0050-0164"
-      },
-      {
-        "quote": "If AI or other technological tools are used to gather patient data, the individual must have the right to decide if that data is stored or deleted",
-        "comment_id": "CMS-2025-0050-0202"
-      }
-    ],
     "children": []
   },
   {
@@ -2816,16 +1610,6 @@
     "comment_count": 20,
     "direct_count": 20,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "This position is based on historical precedent where private data aggregation and advertising/marketing companies have used and abused consumer data without the consumer's knowledge or consent",
-        "comment_id": "CMS-2025-0050-0185"
-      },
-      {
-        "quote": "If a patient pays a co-pay with a Visa card, the doctor's office should not share any information with Visa, Experian, TransUnion, or similar entities",
-        "comment_id": "CMS-2025-0050-0061"
-      }
-    ],
     "children": []
   },
   {
@@ -2838,16 +1622,6 @@
     "comment_count": 21,
     "direct_count": 21,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Creating a seamless government data trove by streamlining healthcare, ID, and IRS records is a problem for freedom and privacy",
-        "comment_id": "CMS-2025-0050-0171"
-      },
-      {
-        "quote": "Fears that certain administrations will use this information to target their political 'opponents.'",
-        "comment_id": "CMS-2025-0050-0171"
-      }
-    ],
     "children": []
   },
   {
@@ -2860,16 +1634,6 @@
     "comment_count": 36,
     "direct_count": 36,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Technology used for digital health must be scrutinized and hardened to make hacking nearly impossible",
-        "comment_id": "CMS-2025-0050-0061"
-      },
-      {
-        "quote": "High-profile privacy violations and hacking incidents make consumers and providers reluctant to use digital health tools",
-        "comment_id": "CMS-2025-0050-0017"
-      }
-    ],
     "children": [
       "5.3.1",
       "5.3.2",
@@ -2886,16 +1650,6 @@
     "comment_count": 18,
     "direct_count": 18,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Data theft is not the result of sophisticated hacking on the 'dark web,' but rather of 'careless, lazy, selfish' healthcare facilities letting their guard down",
-        "comment_id": "CMS-2025-0050-0116"
-      },
-      {
-        "quote": "The Change Healthcare (Feb 2024): A ransomware attack affected 190 million patients, disrupted U.S. pharmacies for months",
-        "comment_id": "CMS-2025-0050-0134"
-      }
-    ],
     "children": []
   },
   {
@@ -2908,16 +1662,6 @@
     "comment_count": 36,
     "direct_count": 36,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Adherence to cybersecurity best practices is essential throughout the development and use of digital health apps",
-        "comment_id": "CMS-2025-0050-0017"
-      },
-      {
-        "quote": "The U.S. healthcare system is fragile due to its dependence on interconnected IT systems",
-        "comment_id": "CMS-2025-0050-0134"
-      }
-    ],
     "children": []
   },
   {
@@ -2930,16 +1674,6 @@
     "comment_count": 10,
     "direct_count": 10,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "The system maintains HIPAA compliance and implements a zero-trust architecture",
-        "comment_id": "CMS-2025-0050-0007"
-      },
-      {
-        "quote": "A zero-trust data layer with a dynamic AI Gateway enforces PII detection, RBAC, audit logging, and compliance",
-        "comment_id": "CMS-2025-0050-0057"
-      }
-    ],
     "children": []
   },
   {
@@ -2952,16 +1686,6 @@
     "comment_count": 74,
     "direct_count": 74,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "A slow implementation is necessary due to significant trust issues with: new technology, new methodologies, the government itself",
-        "comment_id": "CMS-2025-0050-0060"
-      },
-      {
-        "quote": "Trust must be developed between CMS, providers, payers, and public health entities",
-        "comment_id": "CMS-2025-0050-0139"
-      }
-    ],
     "children": [
       "5.4.1",
       "5.4.2",
@@ -2979,16 +1703,6 @@
     "comment_count": 49,
     "direct_count": 49,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "The commenter is uncomfortable with their personal medical files being digitized and stored outside their doctor's office",
-        "comment_id": "CMS-2025-0050-0229"
-      },
-      {
-        "quote": "This RFI is a 'dog and pony show' because CMS is already building the digital infrastructure",
-        "comment_id": "CMS-2025-0050-0267"
-      }
-    ],
     "children": []
   },
   {
@@ -3001,16 +1715,6 @@
     "comment_count": 23,
     "direct_count": 23,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "AI should be used to assist clinicians, not replace medical judgment",
-        "comment_id": "CMS-2025-0050-0159"
-      },
-      {
-        "quote": "Reliance on AI without human clinical oversight could undermine professional judgment and introduce unintended bias",
-        "comment_id": "CMS-2025-0050-0021"
-      }
-    ],
     "children": []
   },
   {
@@ -3023,16 +1727,6 @@
     "comment_count": 1,
     "direct_count": 1,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "The mental health industry organizes, manages, and assumes business risks to innovate and expand its reach",
-        "comment_id": "CMS-2025-0050-0022"
-      },
-      {
-        "quote": "Psychiatrists are never required to cure anyone",
-        "comment_id": "CMS-2025-0050-0022"
-      }
-    ],
     "children": []
   },
   {
@@ -3045,16 +1739,6 @@
     "comment_count": 3,
     "direct_count": 3,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Non-American citizens should not be granted access to protected health information (PHI)",
-        "comment_id": "CMS-2025-0050-0082"
-      },
-      {
-        "quote": "Over 90% of CHCC’s medical staff are foreign nationals/non-American citizens",
-        "comment_id": "CMS-2025-0050-0082"
-      }
-    ],
     "children": []
   },
   {
@@ -3067,16 +1751,6 @@
     "comment_count": 77,
     "direct_count": 77,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Telehealth and telemedicine services should remain available to the public",
-        "comment_id": "CMS-2025-0050-0033"
-      },
-      {
-        "quote": "The CMS TEAM (Transforming Episode Accountability Model) should be mandated, not voluntary",
-        "comment_id": "CMS-2025-0050-0282"
-      }
-    ],
     "children": [
       "6.1",
       "6.2",
@@ -3093,16 +1767,6 @@
     "comment_count": 26,
     "direct_count": 26,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Requests that telehealth coverage be continued after September",
-        "comment_id": "CMS-2025-0050-0006"
-      },
-      {
-        "quote": "I hope CMS and the government will continue to support and further expand telehealth appointments for Medicare patients",
-        "comment_id": "CMS-2025-0050-0036"
-      }
-    ],
     "children": [
       "6.1.1",
       "6.1.2",
@@ -3119,16 +1783,6 @@
     "comment_count": 9,
     "direct_count": 9,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "The Medicare Telehealth benefit, which is set to expire on September 30, 2025, should be made a permanent benefit for seniors and disabled Americans",
-        "comment_id": "CMS-2025-0050-0052"
-      },
-      {
-        "quote": "It helps reduce exposure to other sick patients in doctor's office waiting rooms",
-        "comment_id": "CMS-2025-0050-0033"
-      }
-    ],
     "children": []
   },
   {
@@ -3141,16 +1795,6 @@
     "comment_count": 4,
     "direct_count": 4,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Disagrees with the emphasis CMS places on telehealth, arguing it leads to insufficient care rather than enhancing it",
-        "comment_id": "CMS-2025-0050-0038"
-      },
-      {
-        "quote": "If the commenter had followed the telehealth provider's advice, they would have taken unnecessary antibiotics",
-        "comment_id": "CMS-2025-0050-0038"
-      }
-    ],
     "children": []
   },
   {
@@ -3163,16 +1807,6 @@
     "comment_count": 3,
     "direct_count": 3,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Permanently Allow Telehealth Providers to Use Practice Address (Not Personal) for Billing and Enrollment",
-        "comment_id": "CMS-2025-0050-0272"
-      },
-      {
-        "quote": "Make Direct Virtual Supervision via Telehealth Permanent For All Scenarios",
-        "comment_id": "CMS-2025-0050-0272"
-      }
-    ],
     "children": []
   },
   {
@@ -3185,16 +1819,6 @@
     "comment_count": 33,
     "direct_count": 33,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Current federal regulations are designed for episodic, fee-for-service care, not the variable, relationship-driven environment of SNFs",
-        "comment_id": "CMS-2025-0050-0030"
-      },
-      {
-        "quote": "Adoption of interoperable health information technology (HIT) in post-acute care...lags far behind acute and ambulatory sectors",
-        "comment_id": "CMS-2025-0050-0274"
-      }
-    ],
     "children": [
       "6.2.1",
       "6.2.2",
@@ -3211,16 +1835,6 @@
     "comment_count": 9,
     "direct_count": 9,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Include SNFs in future funding for EHR upgrades, real-time data sharing tools, and care coordination platforms",
-        "comment_id": "CMS-2025-0050-0030"
-      },
-      {
-        "quote": "Invite SNF leaders, frontline clinicians, and other post-acute partners to join CMS advisory and pilot program design teams",
-        "comment_id": "CMS-2025-0050-0030"
-      }
-    ],
     "children": []
   },
   {
@@ -3233,16 +1847,6 @@
     "comment_count": 17,
     "direct_count": 17,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Effective, real-time data exchange is critical for coordinated, high-quality patient care, but home-based providers lack the financial and technical resources",
-        "comment_id": "CMS-2025-0050-0274"
-      },
-      {
-        "quote": "Home health agencies were excluded from federal investments under the 2009 Health Information Technology for Economic and Clinical Health (HITECH) Act",
-        "comment_id": "CMS-2025-0050-0274"
-      }
-    ],
     "children": []
   },
   {
@@ -3255,16 +1859,6 @@
     "comment_count": 2,
     "direct_count": 2,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Hospital-at-Home (HaH) has the potential to improve patient outcomes, enhance patient experience, and reduce costs",
-        "comment_id": "CMS-2025-0050-0141"
-      },
-      {
-        "quote": "Proposes leveraging this existing working group to organize a one-day symposium titled 'Hospital-at-Home: Challenges and Solutions.'",
-        "comment_id": "CMS-2025-0050-0141"
-      }
-    ],
     "children": []
   },
   {
@@ -3277,16 +1871,6 @@
     "comment_count": 43,
     "direct_count": 43,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "The clinical effectiveness of many neurology-relevant wearables (for stroke, migraine, epilepsy, etc.) has not been widely studied or demonstrated",
-        "comment_id": "CMS-2025-0050-0159"
-      },
-      {
-        "quote": "The AAAAI urges CMS and ASTP to take action to address the inaccurate and persistent labeling of penicillin allergy in the electronic health record (EHR)",
-        "comment_id": "CMS-2025-0050-0138"
-      }
-    ],
     "children": [
       "6.3.1",
       "6.3.2",
@@ -3306,16 +1890,6 @@
     "comment_count": 1,
     "direct_count": 1,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "While about 10% of the U.S. population reports a penicillin allergy, over 90% of these individuals are not truly allergic",
-        "comment_id": "CMS-2025-0050-0138"
-      },
-      {
-        "quote": "EHRs should shift from static allergy labels to a dynamic, understandable, and actionable 'alert-based' model",
-        "comment_id": "CMS-2025-0050-0138"
-      }
-    ],
     "children": []
   },
   {
@@ -3328,16 +1902,6 @@
     "comment_count": 8,
     "direct_count": 8,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Concerned about the open API disclosure of highly sensitive patient data, such as genetic test results for incurable neurodegenerative diseases (e.g., Huntington's)",
-        "comment_id": "CMS-2025-0050-0159"
-      },
-      {
-        "quote": "Expand the exception to permit organization-wide policies that delay the release of results for terminal or other highly sensitive tests",
-        "comment_id": "CMS-2025-0050-0159"
-      }
-    ],
     "children": []
   },
   {
@@ -3350,16 +1914,6 @@
     "comment_count": 2,
     "direct_count": 2,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "It is critical for registries to supplement their clinical data with federal claims data to assess the impact of interventions over extended periods",
-        "comment_id": "CMS-2025-0050-0103"
-      },
-      {
-        "quote": "A key barrier to access is the Virtual Research Data Center (VRDC) [which] is slow, complex, and prohibitively expensive",
-        "comment_id": "CMS-2025-0050-0103"
-      }
-    ],
     "children": []
   },
   {
@@ -3372,16 +1926,6 @@
     "comment_count": 1,
     "direct_count": 1,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "The 90-day episode of care for spinal fusion should be extended to a minimum of 180 days",
-        "comment_id": "CMS-2025-0050-0215"
-      },
-      {
-        "quote": "Fusion failure risk is highest between 3-5 months post-operation, a period completely missed by a 90-day window",
-        "comment_id": "CMS-2025-0050-0215"
-      }
-    ],
     "children": []
   },
   {
@@ -3394,16 +1938,6 @@
     "comment_count": 11,
     "direct_count": 11,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "The American Diabetes Association (ADA) recommends CGM for anyone managing diabetes, regardless of insulin use",
-        "comment_id": "CMS-2025-0050-0162"
-      },
-      {
-        "quote": "Develop and implement CGM-derived quality measures for patient hypoglycemia and hyperglycemia in the ambulatory setting",
-        "comment_id": "CMS-2025-0050-0162"
-      }
-    ],
     "children": []
   },
   {
@@ -3416,16 +1950,6 @@
     "comment_count": 1,
     "direct_count": 1,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "There is a lethal misalignment in sepsis definitions: CMS uses SEP-1...while commercial payers use the more restrictive Sepsis-3 definition to deny claims",
-        "comment_id": "CMS-2025-0050-0196"
-      },
-      {
-        "quote": "Mandate a 'One Truth Standard' for sepsis, aligned with SEP-1, across all certified APIs, CDS tools, and payer systems",
-        "comment_id": "CMS-2025-0050-0196"
-      }
-    ],
     "children": []
   },
   {
@@ -3438,16 +1962,6 @@
     "comment_count": 35,
     "direct_count": 35,
     "touch_count": 0,
-    "quotes": [
-      {
-        "quote": "Supports the Health Technology Ecosystem RFI, stating that modernizing digital health infrastructure and data interoperability is essential for improving healthcare access, efficiency, and patient outcomes",
-        "comment_id": "CMS-2025-0050-0146"
-      },
-      {
-        "quote": "Appreciates the continual updates provided by the agency on the system and other systematic instructions/compliance",
-        "comment_id": "CMS-2025-0050-0105"
-      }
-    ],
     "children": []
   }
 ]

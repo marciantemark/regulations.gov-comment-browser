@@ -31,14 +31,18 @@ async function buildWebsite(documentId: string, options: any) {
   const themes = getThemeHierarchy(db);
   await writeJson(join(outputDir, "themes.json"), themes);
   
-  // 3. Export entity taxonomy with counts
+  // 3. Export theme summaries
+  const themeSummaries = getThemeSummaries(db);
+  await writeJson(join(outputDir, "theme-summaries.json"), themeSummaries);
+  
+  // 4. Export entity taxonomy with counts
   const entities = getEntityTaxonomy(db);
   await writeJson(join(outputDir, "entities.json"), entities);
   
-  // 4. Export all comments as single file
+  // 5. Export all comments as single file
   await exportAllComments(db, outputDir, documentId);
   
-  // 5. Generate indexes for efficient lookups
+  // 6. Generate indexes for efficient lookups
   await generateIndexes(db, outputDir);
   
   console.log(`✅ Website data built in ${outputDir}`);
@@ -52,6 +56,7 @@ function getStats(db: any) {
     totalThemes: db.prepare("SELECT COUNT(*) as count FROM theme_hierarchy").get().count,
     totalEntities: db.prepare("SELECT COUNT(*) as count FROM entity_taxonomy").get().count,
     scoredComments: db.prepare("SELECT COUNT(DISTINCT comment_id) as count FROM comment_themes").get().count,
+    themeSummaries: db.prepare("SELECT COUNT(*) as count FROM theme_summaries").get().count,
   };
 }
 
@@ -68,12 +73,40 @@ function getThemeHierarchy(db: any) {
     ORDER BY t.code
   `).all();
   
-  // Parse quotes JSON and build hierarchy
+  // Build hierarchy without quotes
   return themes.map((t: any) => ({
     ...t,
-    quotes: t.quotes_json ? JSON.parse(t.quotes_json) : [],
     children: themes.filter((child: any) => child.parent_code === t.code).map((c: any) => c.code)
   }));
+}
+
+function getThemeSummaries(db: any) {
+  const summaries = db.prepare(`
+    SELECT 
+      ts.theme_code,
+      ts.structured_sections,
+      ts.comment_count,
+      ts.word_count,
+      th.description as theme_description
+    FROM theme_summaries ts
+    JOIN theme_hierarchy th ON ts.theme_code = th.code
+    ORDER BY ts.theme_code
+  `).all();
+  
+  // Parse structured sections and create a map
+  const summaryMap: any = {};
+  for (const summary of summaries) {
+    const sections = JSON.parse(summary.structured_sections);
+    
+    summaryMap[summary.theme_code] = {
+      themeDescription: summary.theme_description,
+      commentCount: summary.comment_count,
+      wordCount: summary.word_count,
+      sections: sections
+    };
+  }
+  
+  return summaryMap;
 }
 
 function getEntityTaxonomy(db: any) {
@@ -163,7 +196,7 @@ async function exportAllComments(db: any, outputDir: string, documentId: string)
       id: c.id,
       documentId,
       submitter: attrs.organization || `${attrs.firstName || ''} ${attrs.lastName || ''}`.trim() || 'Anonymous',
-      submitterType: attrs.category || 'Individual',
+      submitterType: attrs.category || (attrs.organization ? 'Organization' : 'Individual'),
       date: attrs.postedDate || attrs.receiveDate,
       location: [attrs.city, attrs.stateProvinceRegion, attrs.country].filter(Boolean).join(', '),
       structuredSections,

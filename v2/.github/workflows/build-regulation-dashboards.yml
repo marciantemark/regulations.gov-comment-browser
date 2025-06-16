@@ -1,0 +1,81 @@
+name: Build Regulation Dashboards
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Bun
+      uses: oven-sh/setup-bun@v1
+      with:
+        bun-version: latest
+        
+    - name: Install dependencies
+      run: |
+        bun install
+        cd dashboard && bun install
+        
+    - name: Build data and dashboards for each regulation
+      run: |
+        # Create dist directory
+        mkdir -p dist
+        
+        # Find all SQLite databases (excluding WAL and SHM files)
+        for db_file in dbs/*.sqlite; do
+          # Skip if no files found
+          [ -e "$db_file" ] || continue
+          
+          # Skip WAL and SHM related files
+          if [[ "$db_file" == *.sqlite-* ]] || [[ "$db_file" == *.sqlite.sqlite ]]; then
+            continue
+          fi
+          
+          # Extract regulation ID from filename
+          regulation_id=$(basename "$db_file" .sqlite)
+          
+          echo "Building dashboard for $regulation_id..."
+          
+          # Generate data files for this regulation
+          bun run src/cli.ts build-website "$regulation_id" --output "temp-data"
+          
+          # Copy data to dashboard public directory
+          rm -rf dashboard/public/data
+          cp -r temp-data dashboard/public/data
+          
+          # Build the dashboard
+          cd dashboard
+          bun run build
+          cd ..
+          
+          # Copy built dashboard to dist directory
+          mkdir -p "dist/$regulation_id"
+          cp -r dashboard/dist/* "dist/$regulation_id/"
+          
+          # Clean up temp data
+          rm -rf temp-data
+        done
+        
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: regulation-dashboards
+        path: dist/
+        retention-days: 30
+        
+    - name: Deploy to GitHub Pages (optional)
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./dist
+        cname: your-domain.com  # Optional: add your custom domain 
