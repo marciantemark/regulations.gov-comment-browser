@@ -1,0 +1,3262 @@
+{
+  "Clinical Conditions & Specialties": [
+    {
+      "label": "Mental Health",
+      "definition": "A state of mental well-being that enables people to cope with the stresses of life, realize their abilities, learn well and work well, and contribute to their community.",
+      "terms": [
+        "Mental health",
+        "mental health"
+      ],
+      "mentionCount": 19
+    },
+    {
+      "label": "Diabetes",
+      "definition": "A chronic health condition that affects how your body turns food into energy.",
+      "terms": [
+        "diabetes",
+        "Diabetes",
+        "Type 1 Diabetes"
+      ],
+      "mentionCount": 18
+    },
+    {
+      "label": "Behavioral Health",
+      "definition": "The connection between behaviors and the health and well-being of the body, mind and spirit.",
+      "terms": [
+        "behavioral health"
+      ],
+      "mentionCount": 11
+    },
+    {
+      "label": "Cancer",
+      "definition": "A disease in which some of the body's cells grow uncontrollably and spread to other parts of the body.",
+      "terms": [
+        "cancer"
+      ],
+      "mentionCount": 8
+    },
+    {
+      "label": "Depression",
+      "definition": "A common and serious medical illness that negatively affects how you feel, the way you think and how you act.",
+      "terms": [
+        "Depression"
+      ],
+      "mentionCount": 8
+    },
+    {
+      "label": "Dementia",
+      "definition": "A general term for loss of memory, language, problem-solving and other thinking abilities that are severe enough to interfere with daily life.",
+      "terms": [
+        "dementia"
+      ],
+      "mentionCount": 7
+    },
+    {
+      "label": "Hypertension",
+      "definition": "A condition in which the force of the blood against the artery walls is too high.",
+      "terms": [
+        "hypertension"
+      ],
+      "mentionCount": 5
+    },
+    {
+      "label": "Autism",
+      "definition": "A developmental disorder of variable severity that is characterized by difficulty in social interaction and communication and by restricted or repetitive patterns of thought and behavior.",
+      "terms": [
+        "autism"
+      ],
+      "mentionCount": 4
+    },
+    {
+      "label": "COPD",
+      "definition": "Chronic Obstructive Pulmonary Disease, a chronic inflammatory lung disease that causes obstructed airflow from the lungs.",
+      "terms": [
+        "COPD"
+      ],
+      "mentionCount": 4
+    },
+    {
+      "label": "Heart Failure",
+      "definition": "A chronic condition in which the heart doesn't pump blood as well as it should.",
+      "terms": [
+        "Heart Failure",
+        "congestive heart failure (CHF)"
+      ],
+      "mentionCount": 4
+    },
+    {
+      "label": "Oral Health",
+      "definition": "A state of being free from chronic mouth and facial pain, oral and throat cancer, oral infection and sores, periodontal (gum) disease, tooth decay, tooth loss, and other diseases and disorders that limit an individual's capacity in biting, chewing, smiling, speaking, and psychosocial wellbeing.",
+      "terms": [
+        "Oral health"
+      ],
+      "mentionCount": 4
+    },
+    {
+      "label": "Cardiovascular Disease",
+      "definition": "A class of diseases that involve the heart or blood vessels.",
+      "terms": [
+        "Cardiovascular disease"
+      ],
+      "mentionCount": 2
+    },
+    {
+      "label": "Neurology",
+      "definition": "The branch of medicine concerned with the study and treatment of disorders of the nervous system.",
+      "terms": [
+        "neurology"
+      ],
+      "mentionCount": 2
+    },
+    {
+      "label": "Sepsis",
+      "definition": "A life-threatening medical emergency that happens when an existing infection triggers a chain reaction throughout your body.",
+      "terms": [
+        "sepsis"
+      ],
+      "mentionCount": 2
+    },
+    {
+      "label": "Substance Use Disorder",
+      "definition": "A disease that affects a person's brain and behavior and leads to an inability to control the use of a legal or illegal drug or medicine.",
+      "terms": [
+        "Substance Use Disorder"
+      ],
+      "mentionCount": 2
+    },
+    {
+      "label": "Cerebral Palsy",
+      "definition": "A group of disorders that affect a person's ability to move and maintain balance and posture.",
+      "terms": [
+        "Cerebral Palsy"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Heart Disease",
+      "definition": "A range of conditions that affect the heart.",
+      "terms": [
+        "Heart Disease"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Penicillin Allergy",
+      "definition": "An abnormal reaction of your immune system to the antibiotic drug penicillin.",
+      "terms": [
+        "penicillin allergy"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Spinal Fusion",
+      "definition": "A surgical procedure used to correct problems with the small bones of the spine.",
+      "terms": [
+        "Spinal Fusion"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Atrial Fibrillation",
+      "definition": "An irregular and often very rapid heart rhythm that can lead to blood clots in the heart.",
+      "terms": [
+        "atrial fibrillation (Afib)"
+      ],
+      "mentionCount": 0
+    },
+    {
+      "label": "Chronic Kidney Disease",
+      "definition": "A condition characterized by a gradual loss of kidney function over time.",
+      "terms": [
+        "Chronic Kidney Disease (CKD)"
+      ],
+      "mentionCount": 0
+    },
+    {
+      "label": "Opioid Use Disorder",
+      "definition": "A problematic pattern of opioid use that leads to clinically significant impairment or distress.",
+      "terms": [
+        "Opioid Use Disorder (OUD)"
+      ],
+      "mentionCount": 0
+    }
+  ],
+  "Data & Technical Standards": [
+    {
+      "label": "FHIR",
+      "definition": "Fast Healthcare Interoperability Resources, a standard for exchanging healthcare information electronically.",
+      "terms": [
+        "FHIR",
+        "Fast Healthcare Interoperability Resources",
+        "HL7 FHIR"
+      ],
+      "mentionCount": 72
+    },
+    {
+      "label": "APIs",
+      "definition": "Application Programming Interfaces, which are software intermediaries that allow two applications to talk to each other.",
+      "terms": [
+        "APIs",
+        "Application Programming Interfaces (APIs)"
+      ],
+      "mentionCount": 68
+    },
+    {
+      "label": "USCDI",
+      "definition": "The United States Core Data for Interoperability, a standardized set of health data classes and constituent data elements for nationwide, interoperable health information exchange.",
+      "terms": [
+        "USCDI",
+        "United States Core Data for Interoperability (USCDI)"
+      ],
+      "mentionCount": 27
+    },
+    {
+      "label": "HL7",
+      "definition": "Health Level Seven International, a not-for-profit, ANSI-accredited standards developing organization dedicated to providing a comprehensive framework and related standards for the exchange, integration, sharing, and retrieval of electronic health information.",
+      "terms": [
+        "HL7"
+      ],
+      "mentionCount": 23
+    },
+    {
+      "label": "Bulk FHIR",
+      "definition": "A FHIR specification for exporting large amounts of data from a FHIR server.",
+      "terms": [
+        "Bulk FHIR",
+        "Bulk-FHIR"
+      ],
+      "mentionCount": 17
+    },
+    {
+      "label": "SMART on FHIR",
+      "definition": "A set of open specifications to integrate apps with electronic health records, portals, and other health IT systems.",
+      "terms": [
+        "SMART on FHIR"
+      ],
+      "mentionCount": 13
+    },
+    {
+      "label": "OpenID Connect",
+      "definition": "An authentication protocol that is an extension of OAuth 2.0.",
+      "terms": [
+        "OpenID Connect",
+        "OIDC"
+      ],
+      "mentionCount": 9
+    },
+    {
+      "label": "C-CDA",
+      "definition": "Consolidated Clinical Document Architecture, an XML-based markup standard for creating electronic clinical documents.",
+      "terms": [
+        "C-CDA",
+        "CCDA"
+      ],
+      "mentionCount": 8
+    },
+    {
+      "label": "CDS Hooks",
+      "definition": "A specification from HL7 for invoking external clinical decision support services from within a clinical workflow.",
+      "terms": [
+        "CDS Hooks"
+      ],
+      "mentionCount": 8
+    },
+    {
+      "label": "SNOMED CT",
+      "definition": "Systematized Nomenclature of Medicine – Clinical Terms, a globally recognized, comprehensive, and scientifically validated healthcare terminology.",
+      "terms": [
+        "SNOMED CT",
+        "SNOMED"
+      ],
+      "mentionCount": 8
+    },
+    {
+      "label": "DICOM",
+      "definition": "Digital Imaging and Communications in Medicine, the international standard for medical images and related information.",
+      "terms": [
+        "DICOM",
+        "Digital Imaging and Communications in Medicine (DICOM)"
+      ],
+      "mentionCount": 7
+    },
+    {
+      "label": "LOINC",
+      "definition": "Logical Observation Identifiers Names and Codes, a database and universal standard for identifying medical laboratory observations.",
+      "terms": [
+        "LOINC"
+      ],
+      "mentionCount": 5
+    },
+    {
+      "label": "REST",
+      "definition": "Representational State Transfer, a software architectural style for creating web services.",
+      "terms": [
+        "REST"
+      ],
+      "mentionCount": 5
+    },
+    {
+      "label": "IPS",
+      "definition": "See International Patient Summary.",
+      "terms": [
+        "IPS"
+      ],
+      "mentionCount": 4
+    },
+    {
+      "label": "IHE Profiles",
+      "definition": "Integrating the Healthcare Enterprise profiles, which provide a common framework for passing information between computer systems in healthcare.",
+      "terms": [
+        "IHE Profiles",
+        "IHE XCA/XDS.b"
+      ],
+      "mentionCount": 3
+    },
+    {
+      "label": "Direct Messaging",
+      "definition": "A standard for securely exchanging health information between health care entities.",
+      "terms": [
+        "Direct Messaging",
+        "Direct Secure Messaging"
+      ],
+      "mentionCount": 2
+    },
+    {
+      "label": "ECL",
+      "definition": "Expression Constraint Language, a formal language for defining sets of SNOMED CT concepts.",
+      "terms": [
+        "ECL",
+        "Expression Constraint Language (ECL)"
+      ],
+      "mentionCount": 2
+    },
+    {
+      "label": "SNODENT",
+      "definition": "Systematized Nomenclature of Dentistry, an official subset of SNOMED CT for dentistry.",
+      "terms": [
+        "SNODENT"
+      ],
+      "mentionCount": 2
+    },
+    {
+      "label": "UDAP",
+      "definition": "Unified Data Access Profiles, a security standard for scalable registration, authentication, and authorization in healthcare.",
+      "terms": [
+        "UDAP"
+      ],
+      "mentionCount": 2
+    },
+    {
+      "label": "openEHR",
+      "definition": "An open standard specification in health informatics that describes the management and storage, retrieval and exchange of health data in electronic health records.",
+      "terms": [
+        "openEHR"
+      ],
+      "mentionCount": 2
+    },
+    {
+      "label": "GA4GH",
+      "definition": "Global Alliance for Genomics and Health, an international, nonprofit alliance formed to accelerate the potential of research and medicine to advance human health.",
+      "terms": [
+        "GA4GH",
+        "Global Alliance for Genomics and Health (GA4GH)"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "ICNP",
+      "definition": "The International Classification for Nursing Practice, a standardized terminology for nursing.",
+      "terms": [
+        "ICNP"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "IDMP",
+      "definition": "Identification of Medicinal Products, a set of five ISO standards developed in response to a worldwide demand for internationally harmonized specifications for medicinal products.",
+      "terms": [
+        "IDMP"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "IEEE 11073 SDC",
+      "definition": "An IEEE standard for Service-oriented Device Connectivity, designed for interoperable and secure communication for medical devices.",
+      "terms": [
+        "IEEE 11073 SDC"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "QRDA I",
+      "definition": "Quality Reporting Document Architecture Category I, a standard for reporting individual patient-level quality data.",
+      "terms": [
+        "QRDA I"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "TCP/IP",
+      "definition": "Transmission Control Protocol/Internet Protocol, the foundational protocol suite of the internet.",
+      "terms": [
+        "TCP/IP"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "THOR",
+      "definition": "Transferrable Holistic Oral Record, an ANSI/DSI standard for patient-controlled dental data interoperability.",
+      "terms": [
+        "THOR",
+        "Transferrable Holistic Oral Record"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "UMLS",
+      "definition": "Unified Medical Language System, a set of files and software from the National Library of Medicine that brings together many health and biomedical vocabularies.",
+      "terms": [
+        "UMLS",
+        "Unified Medical Language System (UMLS)"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "DS4P",
+      "definition": "Data Segmentation for Privacy, an HL7 standard for protecting sensitive information in electronic health records.",
+      "terms": [
+        "Data Segmentation for Privacy (DS4P)"
+      ],
+      "mentionCount": 0
+    },
+    {
+      "label": "International Patient Summary",
+      "definition": "A standardized set of basic patient health data for use in unscheduled, cross-border care scenarios.",
+      "terms": [
+        "International Patient Summary (IPS)"
+      ],
+      "mentionCount": 0
+    },
+    {
+      "label": "JSON",
+      "definition": "JavaScript Object Notation, a lightweight data-interchange format.",
+      "terms": [
+        "JSON"
+      ],
+      "mentionCount": 0
+    }
+  ],
+  "Data Types & Health Information": [
+    {
+      "label": "Electronic Health Record",
+      "definition": "A digital version of a patient's paper chart.",
+      "terms": [
+        "Electronic Health Record",
+        "EHRs",
+        "EHR",
+        "electronic health record",
+        "Electronic Medical Record",
+        "EMR"
+      ],
+      "mentionCount": 97
+    },
+    {
+      "label": "Biometric Data",
+      "definition": "Body measurements and calculations related to human characteristics.",
+      "terms": [
+        "biometric data",
+        "Biometric data",
+        "Biometrics"
+      ],
+      "mentionCount": 46
+    },
+    {
+      "label": "Digital Identity",
+      "definition": "Information on an entity used by computer systems to represent an external agent.",
+      "terms": [
+        "digital identity",
+        "Digital Identity"
+      ],
+      "mentionCount": 30
+    },
+    {
+      "label": "Claims Data",
+      "definition": "Information submitted by a provider to a health insurance company to get paid for services.",
+      "terms": [
+        "claims data",
+        "Claims data"
+      ],
+      "mentionCount": 19
+    },
+    {
+      "label": "Real-World Data",
+      "definition": "Data relating to patient health status and/or the delivery of health care routinely collected from a variety of sources.",
+      "terms": [
+        "Real-World Data",
+        "RWD"
+      ],
+      "mentionCount": 11
+    },
+    {
+      "label": "Electronic Health Information",
+      "definition": "Individually identifiable health information that is transmitted by or maintained in electronic media.",
+      "terms": [
+        "Electronic Health Information",
+        "EHI"
+      ],
+      "mentionCount": 10
+    },
+    {
+      "label": "Unstructured Data",
+      "definition": "Information that either does not have a pre-defined data model or is not organized in a pre-defined manner.",
+      "terms": [
+        "unstructured data",
+        "Unstructured Data"
+      ],
+      "mentionCount": 10
+    },
+    {
+      "label": "Clinical Notes",
+      "definition": "The written or dictated observations made by a healthcare professional about a patient's health status, treatments, and care plan.",
+      "terms": [
+        "Clinical notes",
+        "clinical notes"
+      ],
+      "mentionCount": 9
+    },
+    {
+      "label": "Personal Health Record",
+      "definition": "An electronic application through which patients can maintain and manage their health information in a private, secure, and confidential environment.",
+      "terms": [
+        "Personal Health Record",
+        "PHRs"
+      ],
+      "mentionCount": 9
+    },
+    {
+      "label": "Protected Health Information",
+      "definition": "Any information in a medical record that can be used to identify an individual, and that was created, used, or disclosed in the course of providing a health care service.",
+      "terms": [
+        "Protected Health Information",
+        "PHI"
+      ],
+      "mentionCount": 9
+    },
+    {
+      "label": "Radiology Images",
+      "definition": "Medical images obtained through various technologies such as X-ray, MRI, CT scan.",
+      "terms": [
+        "Radiology Images",
+        "radiology images"
+      ],
+      "mentionCount": 3
+    },
+    {
+      "label": "Wearable Data",
+      "definition": "Data collected from wearable electronic devices that can be worn as accessories, embedded in clothing, implanted in the user's body, or even tattooed on the skin.",
+      "terms": [
+        "wearable data"
+      ],
+      "mentionCount": 3
+    },
+    {
+      "label": "Patient-Generated Health Data",
+      "definition": "Health-related data created, recorded, or gathered by or from patients (or family members or other caregivers) to help address a health concern.",
+      "terms": [
+        "patient-generated health data (PGHD)"
+      ],
+      "mentionCount": 0
+    }
+  ],
+  "Federal Agencies & Bodies": [
+    {
+      "label": "CMS",
+      "definition": "The Centers for Medicare & Medicaid Services, the federal agency that administers Medicare and other health programs.",
+      "terms": [
+        "CMS",
+        "Centers for Medicare & Medicaid Services (CMS)"
+      ],
+      "mentionCount": 139
+    },
+    {
+      "label": "ONC",
+      "definition": "The Office of the National Coordinator for Health Information Technology, a staff division of HHS.",
+      "terms": [
+        "ONC",
+        "Office of the National Coordinator for Health Information Technology (ONC)"
+      ],
+      "mentionCount": 52
+    },
+    {
+      "label": "HHS",
+      "definition": "The U.S. Department of Health and Human Services.",
+      "terms": [
+        "HHS",
+        "Department of Health and Human Services (HHS)"
+      ],
+      "mentionCount": 27
+    },
+    {
+      "label": "ASTP",
+      "definition": "The Assistant Secretary for Technology Policy, an office within HHS.",
+      "terms": [
+        "ASTP",
+        "Assistant Secretary for Technology Policy (ASTP)"
+      ],
+      "mentionCount": 25
+    },
+    {
+      "label": "FDA",
+      "definition": "The U.S. Food and Drug Administration, a federal agency responsible for protecting public health.",
+      "terms": [
+        "FDA"
+      ],
+      "mentionCount": 14
+    },
+    {
+      "label": "NIST",
+      "definition": "The National Institute of Standards and Technology, a physical sciences laboratory and non-regulatory agency of the U.S. Department of Commerce.",
+      "terms": [
+        "NIST",
+        "National Institute of Standards and Technology (NIST)"
+      ],
+      "mentionCount": 14
+    },
+    {
+      "label": "VA",
+      "definition": "The U.S. Department of Veterans Affairs, which provides healthcare services to eligible military veterans.",
+      "terms": [
+        "VA",
+        "Veterans Administration (VA)",
+        "Department of Veterans Affairs (VA)"
+      ],
+      "mentionCount": 14
+    },
+    {
+      "label": "CDC",
+      "definition": "The Centers for Disease Control and Prevention, a national public health agency.",
+      "terms": [
+        "CDC"
+      ],
+      "mentionCount": 8
+    },
+    {
+      "label": "CMMI",
+      "definition": "The Center for Medicare and Medicaid Innovation, a division of CMS that tests new payment and service delivery models.",
+      "terms": [
+        "CMMI",
+        "CMS Innovation Center"
+      ],
+      "mentionCount": 8
+    },
+    {
+      "label": "OIG",
+      "definition": "The Office of Inspector General for the U.S. Department of Health and Human Services.",
+      "terms": [
+        "OIG",
+        "HHS Office of Inspector General (OIG)"
+      ],
+      "mentionCount": 7
+    },
+    {
+      "label": "AHRQ",
+      "definition": "The Agency for Healthcare Research and Quality, a federal agency focused on health services research.",
+      "terms": [
+        "AHRQ",
+        "Agency for Healthcare Quality and Research (AHRQ)"
+      ],
+      "mentionCount": 5
+    },
+    {
+      "label": "Social Security",
+      "definition": "The U.S. Social Security Administration (SSA), an independent agency of the U.S. federal government that administers Social Security.",
+      "terms": [
+        "Social Security",
+        "SSA"
+      ],
+      "mentionCount": 5
+    },
+    {
+      "label": "MACs",
+      "definition": "Medicare Administrative Contractors, private health care insurers that have been awarded a geographic jurisdiction to process Medicare Part A and Part B medical claims.",
+      "terms": [
+        "MACs",
+        "Medicare Administrative Contractor (MAC)",
+        "Medicare Administrative Contractors (MACs)"
+      ],
+      "mentionCount": 4
+    },
+    {
+      "label": "NIH",
+      "definition": "The National Institutes of Health, the primary agency of the U.S. government responsible for biomedical and public health research.",
+      "terms": [
+        "NIH",
+        "National Institutes of Health (NIH)"
+      ],
+      "mentionCount": 4
+    },
+    {
+      "label": "DOD",
+      "definition": "The U.S. Department of Defense.",
+      "terms": [
+        "DOD",
+        "DoD"
+      ],
+      "mentionCount": 3
+    },
+    {
+      "label": "FTC",
+      "definition": "The Federal Trade Commission, a U.S. federal agency that enforces antitrust law and promotes consumer protection.",
+      "terms": [
+        "FTC"
+      ],
+      "mentionCount": 3
+    },
+    {
+      "label": "NLM",
+      "definition": "The National Library of Medicine, a division of the NIH.",
+      "terms": [
+        "NLM",
+        "National Library of Medicine (NLM)"
+      ],
+      "mentionCount": 3
+    },
+    {
+      "label": "HRSA",
+      "definition": "The Health Resources and Services Administration, an agency of HHS for improving health care to people who are geographically isolated, economically or medically vulnerable.",
+      "terms": [
+        "HRSA",
+        "Health Resources and Services Administration (HRSA)"
+      ],
+      "mentionCount": 2
+    },
+    {
+      "label": "IHS",
+      "definition": "The Indian Health Service, an operating division within HHS.",
+      "terms": [
+        "IHS"
+      ],
+      "mentionCount": 2
+    },
+    {
+      "label": "Department of Labor",
+      "definition": "A U.S. federal executive department responsible for occupational safety, wage and hour standards, unemployment insurance benefits, and more.",
+      "terms": [
+        "Department of Labor"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "FEMA",
+      "definition": "The Federal Emergency Management Agency.",
+      "terms": [
+        "FEMA"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "OPM",
+      "definition": "The U.S. Office of Personnel Management.",
+      "terms": [
+        "OPM"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "SAMHSA",
+      "definition": "The Substance Abuse and Mental Health Services Administration, an agency within HHS.",
+      "terms": [
+        "SAMHSA"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "NCHS",
+      "definition": "The National Center for Health Statistics.",
+      "terms": [
+        "NCHS"
+      ],
+      "mentionCount": 0
+    }
+  ],
+  "Government Programs, Policies & Initiatives": [
+    {
+      "label": "Medicare",
+      "definition": "The federal health insurance program for people who are 65 or older, certain younger people with disabilities, and people with End-Stage Renal Disease.",
+      "terms": [
+        "Medicare"
+      ],
+      "mentionCount": 101
+    },
+    {
+      "label": "Medicaid",
+      "definition": "A joint federal and state program that helps with medical costs for some people with limited income and resources.",
+      "terms": [
+        "Medicaid"
+      ],
+      "mentionCount": 42
+    },
+    {
+      "label": "Blue Button 2.0",
+      "definition": "A CMS API that enables Medicare beneficiaries to connect their claims data to third-party applications and services.",
+      "terms": [
+        "Blue Button 2.0",
+        "Blue Button",
+        "Medicare Blue Button",
+        "CMS Blue Button 2.0"
+      ],
+      "mentionCount": 35
+    },
+    {
+      "label": "Medicare Advantage",
+      "definition": "A type of Medicare health plan offered by a private company that contracts with Medicare to provide Part A and B benefits.",
+      "terms": [
+        "Medicare Advantage",
+        "Medicare Advantage (MA)",
+        "MA"
+      ],
+      "mentionCount": 30
+    },
+    {
+      "label": "Alternative Payment Models",
+      "definition": "Payment approaches that reward providers for delivering high-quality and cost-efficient care.",
+      "terms": [
+        "Alternative Payment Models (APMs)",
+        "Alternative Payment Models",
+        "APMs"
+      ],
+      "mentionCount": 23
+    },
+    {
+      "label": "MIPS",
+      "definition": "The Merit-based Incentive Payment System, a program that determines Medicare payment adjustments.",
+      "terms": [
+        "MIPS"
+      ],
+      "mentionCount": 9
+    },
+    {
+      "label": "Medicare Shared Savings Program",
+      "definition": "A CMS program that facilitates coordination and cooperation among providers to improve the quality of care for Medicare Fee-for-Service beneficiaries and reduce unnecessary costs.",
+      "terms": [
+        "Medicare Shared Savings Program",
+        "MSSP"
+      ],
+      "mentionCount": 9
+    },
+    {
+      "label": "Fee-for-Service",
+      "definition": "A payment model where services are unbundled and paid for separately.",
+      "terms": [
+        "Fee-for-Service",
+        "fee-for-service"
+      ],
+      "mentionCount": 8
+    },
+    {
+      "label": "ACO REACH",
+      "definition": "An alternative payment model that promotes health equity and high-quality, coordinated care in traditional Medicare.",
+      "terms": [
+        "ACO REACH"
+      ],
+      "mentionCount": 6
+    },
+    {
+      "label": "Medicare Part D",
+      "definition": "Medicare coverage for prescription drugs.",
+      "terms": [
+        "Part D"
+      ],
+      "mentionCount": 5
+    },
+    {
+      "label": "Star Ratings",
+      "definition": "A rating system used by CMS to measure the quality of Medicare Advantage and Part D plans.",
+      "terms": [
+        "Star Ratings"
+      ],
+      "mentionCount": 5
+    },
+    {
+      "label": "CHIP",
+      "definition": "The Children's Health Insurance Program, which provides low-cost health coverage to children in families who earn too much money to qualify for Medicaid.",
+      "terms": [
+        "CHIP"
+      ],
+      "mentionCount": 4
+    },
+    {
+      "label": "Medicare Part A",
+      "definition": "Medicare coverage for hospital insurance.",
+      "terms": [
+        "Medicare A",
+        "Part A"
+      ],
+      "mentionCount": 3
+    },
+    {
+      "label": "Health IT Extension Program",
+      "definition": "A proposed national program to provide local assistance to medical practices and patients in adopting new healthcare technologies.",
+      "terms": [
+        "Health IT Extension Program"
+      ],
+      "mentionCount": 2
+    },
+    {
+      "label": "Meaningful Use",
+      "definition": "A former CMS program, now Promoting Interoperability, that provided incentives for using certified EHR technology.",
+      "terms": [
+        "Meaningful Use"
+      ],
+      "mentionCount": 2
+    },
+    {
+      "label": "Medicare Part B",
+      "definition": "Medicare coverage for medical insurance.",
+      "terms": [
+        "Medicare B",
+        "Part B"
+      ],
+      "mentionCount": 2
+    },
+    {
+      "label": "Medigap",
+      "definition": "Medicare Supplement Insurance sold by private companies to help pay some of the health care costs that Original Medicare doesn't cover.",
+      "terms": [
+        "Medigap",
+        "Medicare Supplement Policies (Medigap)"
+      ],
+      "mentionCount": 2
+    },
+    {
+      "label": "NCDs",
+      "definition": "National Coverage Determinations, which describe whether Medicare pays for specific medical items, services, or procedures.",
+      "terms": [
+        "NCDs",
+        "National Coverage Determinations (NCDs)"
+      ],
+      "mentionCount": 2
+    },
+    {
+      "label": "Promoting Interoperability",
+      "definition": "A CMS program that encourages eligible hospitals and critical access hospitals to continue to adopt, implement, upgrade, and demonstrate meaningful use of certified electronic health record technology (CEHRT).",
+      "terms": [
+        "Promoting Interoperability"
+      ],
+      "mentionCount": 2
+    },
+    {
+      "label": "Acute Hospital Care at Home Program",
+      "definition": "A CMS program that provides hospitals with flexibility to care for patients in their homes.",
+      "terms": [
+        "Acute Hospital Care at Home Program"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "D-SNP",
+      "definition": "Dual Eligible Special Needs Plans, a type of Medicare Advantage plan for people who have both Medicare and Medicaid.",
+      "terms": [
+        "D-SNP"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Home Health Value Based Purchasing Program",
+      "definition": "A CMS model designed to incentivize better quality of care with greater efficiency among home health agencies.",
+      "terms": [
+        "Home Health Value Based Purchasing (HHVBP) Program"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Hospital IQR Program",
+      "definition": "The Hospital Inpatient Quality Reporting Program, a pay-for-reporting quality program.",
+      "terms": [
+        "Hospital IQR Program"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "MyMedicare",
+      "definition": "A free, secure online service for managing personal information in Original Medicare.",
+      "terms": [
+        "MyMedicare"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Operation Warp Speed",
+      "definition": "A public-private partnership initiated by the U.S. government to facilitate and accelerate the development, manufacturing, and distribution of COVID-19 vaccines, therapeutics, and diagnostics.",
+      "terms": [
+        "Operation Warp Speed"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Patients Over Paperwork",
+      "definition": "A CMS initiative to reduce administrative and regulatory burden.",
+      "terms": [
+        "Patients Over Paperwork"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "RADV Audits",
+      "definition": "Risk Adjustment Data Validation audits, which CMS uses to verify the accuracy of diagnosis data submitted by Medicare Advantage organizations.",
+      "terms": [
+        "Risk Adjustment Data Validation (RADV) audits",
+        "RADV audits"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "TEAM Model",
+      "definition": "Transforming Episode Accountability Model, a CMS bundled payment model for certain surgical procedures.",
+      "terms": [
+        "TEAM model"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Annual Wellness Visit",
+      "definition": "A yearly appointment with a primary care provider to create or update a personalized prevention plan.",
+      "terms": [
+        "Annual Wellness Visit (AWV)"
+      ],
+      "mentionCount": 0
+    },
+    {
+      "label": "Electronic Submission of Medical Data",
+      "definition": "A CMS program for electronically submitting medical documentation.",
+      "terms": [
+        "Electronic Submission of Medical Data (esMD)"
+      ],
+      "mentionCount": 0
+    },
+    {
+      "label": "Initial Preventive Physical Examination",
+      "definition": "A one-time \"Welcome to Medicare\" preventive visit.",
+      "terms": [
+        "Initial Preventive Physical Examination (IPPE)"
+      ],
+      "mentionCount": 0
+    },
+    {
+      "label": "Make America Healthy Again",
+      "definition": "A public health initiative.",
+      "terms": [
+        "Make America Healthy Again (MAHA)"
+      ],
+      "mentionCount": 0
+    },
+    {
+      "label": "Medicare Diabetes Prevention Program",
+      "definition": "A health behavior change program for people with prediabetes to prevent or delay the onset of type 2 diabetes.",
+      "terms": [
+        "Medicare Diabetes Prevention Program (MDPP)"
+      ],
+      "mentionCount": 0
+    },
+    {
+      "label": "National Directory of Healthcare Providers and Services",
+      "definition": "A proposed centralized directory of healthcare providers and services.",
+      "terms": [
+        "National Directory of Healthcare Providers and Services (NDH)"
+      ],
+      "mentionCount": 0
+    },
+    {
+      "label": "Special Election Periods",
+      "definition": "Periods outside of the normal enrollment periods when an individual can sign up for a Medicare plan.",
+      "terms": [
+        "Special Election Periods (SEPs)"
+      ],
+      "mentionCount": 0
+    },
+    {
+      "label": "Transitional Coverage of Emerging Technologies",
+      "definition": "A Medicare program to facilitate beneficiary access to new medical technologies.",
+      "terms": [
+        "Transitional Coverage of Emerging Technologies (TCET)"
+      ],
+      "mentionCount": 0
+    }
+  ],
+  "Healthcare Concepts & Models": [
+    {
+      "label": "Artificial Intelligence",
+      "definition": "The theory and development of computer systems able to perform tasks that normally require human intelligence.",
+      "terms": [
+        "AI",
+        "Artificial Intelligence",
+        "Artificial intelligence (AI)"
+      ],
+      "mentionCount": 124
+    },
+    {
+      "label": "Interoperability",
+      "definition": "The ability of different information systems, devices and applications to access, exchange, integrate and cooperatively use data in a coordinated manner.",
+      "terms": [
+        "Interoperability",
+        "interoperability"
+      ],
+      "mentionCount": 98
+    },
+    {
+      "label": "Digital Health",
+      "definition": "The use of information and communications technologies in medicine and other health professions to manage illnesses and health risks and to promote wellness.",
+      "terms": [
+        "digital health",
+        "Digital Health"
+      ],
+      "mentionCount": 86
+    },
+    {
+      "label": "Value-Based Care",
+      "definition": "A healthcare delivery model in which providers are paid based on patient health outcomes.",
+      "terms": [
+        "value-based care",
+        "Value-Based Care (VBC)",
+        "VBC"
+      ],
+      "mentionCount": 61
+    },
+    {
+      "label": "Care Coordination",
+      "definition": "The deliberate organization of patient care activities between two or more participants involved in a patient's care to facilitate the appropriate delivery of health care services.",
+      "terms": [
+        "Care Coordination"
+      ],
+      "mentionCount": 39
+    },
+    {
+      "label": "Informed Consent",
+      "definition": "A process for getting permission before conducting a healthcare intervention on a person, or for disclosing personal information.",
+      "terms": [
+        "Informed Consent",
+        "informed consent"
+      ],
+      "mentionCount": 37
+    },
+    {
+      "label": "Telehealth",
+      "definition": "The use of digital information and communication technologies, such as computers and mobile devices, to access health care services remotely and manage your health care.",
+      "terms": [
+        "Telehealth",
+        "telehealth",
+        "Telemedicine",
+        "telemedicine"
+      ],
+      "mentionCount": 30
+    },
+    {
+      "label": "Accountable Care Organizations",
+      "definition": "Groups of doctors, hospitals, and other health care providers, who come together voluntarily to give coordinated high-quality care to their Medicare patients.",
+      "terms": [
+        "Accountable Care Organizations (ACOs)",
+        "ACOs"
+      ],
+      "mentionCount": 27
+    },
+    {
+      "label": "Social Determinants of Health",
+      "definition": "The conditions in the environments where people are born, live, learn, work, play, worship, and age that affect a wide range of health, functioning, and quality-of-life outcomes and risks.",
+      "terms": [
+        "Social Determinants of Health",
+        "SDOH",
+        "Social determinants of health (SDOH)"
+      ],
+      "mentionCount": 24
+    },
+    {
+      "label": "Clinical Decision Support",
+      "definition": "A health information technology system that is designed to provide physicians and other health professionals with clinical decision support, that is, assistance with clinical decision-making tasks.",
+      "terms": [
+        "Clinical Decision Support",
+        "CDS"
+      ],
+      "mentionCount": 23
+    },
+    {
+      "label": "Prior Authorization",
+      "definition": "A decision by your health insurer or plan that a health care service, treatment plan, prescription drug or durable medical equipment is medically necessary.",
+      "terms": [
+        "Prior authorization",
+        "prior authorization"
+      ],
+      "mentionCount": 23
+    },
+    {
+      "label": "Remote Patient Monitoring",
+      "definition": "A method of healthcare delivery that uses the latest advances in information technology to gather patient data outside of traditional healthcare settings.",
+      "terms": [
+        "Remote Patient Monitoring",
+        "remote patient monitoring (RPM)",
+        "RPM"
+      ],
+      "mentionCount": 16
+    },
+    {
+      "label": "Health Equity",
+      "definition": "The state in which everyone has a fair and just opportunity to attain their full health potential.",
+      "terms": [
+        "Health Equity"
+      ],
+      "mentionCount": 12
+    },
+    {
+      "label": "Preventive Care",
+      "definition": "Medical care that focuses on disease prevention, rather than disease treatment.",
+      "terms": [
+        "Preventive care"
+      ],
+      "mentionCount": 10
+    },
+    {
+      "label": "Risk Adjustment",
+      "definition": "A statistical process that takes into account the underlying health status and health spending of the enrollees in an insurance plan when looking at their health care outcomes or costs.",
+      "terms": [
+        "Risk adjustment"
+      ],
+      "mentionCount": 10
+    },
+    {
+      "label": "Fraud, Waste, and Abuse",
+      "definition": "Intentional deception or misrepresentation that an individual knows to be false or does not believe to be true and makes, knowing that the deception could result in some unauthorized benefit.",
+      "terms": [
+        "Fraud, Waste, and Abuse",
+        "FWA"
+      ],
+      "mentionCount": 9
+    },
+    {
+      "label": "Predictive Analytics",
+      "definition": "The use of data, statistical algorithms and machine-learning techniques to identify the likelihood of future outcomes based on historical data.",
+      "terms": [
+        "Predictive analytics"
+      ],
+      "mentionCount": 9
+    },
+    {
+      "label": "Patient-Centered Care",
+      "definition": "Providing care that is respectful of and responsive to individual patient preferences, needs, and values, and ensuring that patient values guide all clinical decisions.",
+      "terms": [
+        "Patient-centered care",
+        "patient-centered care"
+      ],
+      "mentionCount": 8
+    },
+    {
+      "label": "Digital Therapeutics",
+      "definition": "A category of evidence-based therapeutic interventions that are driven by software to prevent, manage, or treat a medical disorder or disease.",
+      "terms": [
+        "digital therapeutics",
+        "Digital therapeutics (DTx)",
+        "Prescription digital therapeutics (PDTs)"
+      ],
+      "mentionCount": 7
+    },
+    {
+      "label": "Zero Trust",
+      "definition": "A security model that requires all users, whether in or outside the organization’s network, to be authenticated, authorized, and continuously validated for security configuration and posture before being granted or keeping access to applications and data.",
+      "terms": [
+        "zero-trust",
+        "Zero Trust"
+      ],
+      "mentionCount": 7
+    },
+    {
+      "label": "Health Literacy",
+      "definition": "The degree to which individuals have the ability to find, understand, and use information and services to inform health-related decisions and actions for themselves and others.",
+      "terms": [
+        "Health Literacy",
+        "health literacy"
+      ],
+      "mentionCount": 6
+    },
+    {
+      "label": "Post-Acute Care",
+      "definition": "Care provided to patients who have been discharged from a hospital but still need medical care that cannot be provided at home.",
+      "terms": [
+        "Post-acute care"
+      ],
+      "mentionCount": 6
+    },
+    {
+      "label": "Real-World Evidence",
+      "definition": "Health care information derived from multiple sources outside of typical clinical research settings, including electronic health records, claims and billing data, and data from product and disease registries.",
+      "terms": [
+        "Real-World Evidence",
+        "RWE"
+      ],
+      "mentionCount": 5
+    },
+    {
+      "label": "Remote Therapeutic Monitoring",
+      "definition": "A set of five CPT codes that reimburse for the monitoring of non-physiological data.",
+      "terms": [
+        "Remote Therapeutic Monitoring",
+        "RTM"
+      ],
+      "mentionCount": 4
+    },
+    {
+      "label": "Blockchain",
+      "definition": "A system of recording information in a way that makes it difficult or impossible to change, hack, or cheat the system.",
+      "terms": [
+        "blockchain",
+        "Blockchain"
+      ],
+      "mentionCount": 3
+    },
+    {
+      "label": "Food-as-Medicine",
+      "definition": "An approach that uses food and nutrition to prevent, manage, and treat illness.",
+      "terms": [
+        "food-as-medicine"
+      ],
+      "mentionCount": 2
+    },
+    {
+      "label": "Biosurveillance",
+      "definition": "The process of gathering, integrating, interpreting, and communicating essential information that might relate to disease activity and threats to human, animal, or plant health.",
+      "terms": [
+        "Biosurveillance"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Hospital-at-Home",
+      "definition": "A model of care that provides hospital-level care in a patient's home as a full substitute for acute hospital care.",
+      "terms": [
+        "Hospital-at-Home",
+        "HaH"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Lifestyle Medicine",
+      "definition": "A branch of medicine dealing with research, prevention and treatment of disorders caused by lifestyle factors such as nutrition, physical inactivity, and chronic stress.",
+      "terms": [
+        "Lifestyle Medicine"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Measurement-Based Care",
+      "definition": "The practice of basing clinical care on patient data collected throughout treatment.",
+      "terms": [
+        "measurement-based care"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Medical Paternalism",
+      "definition": "A concept in which a medical professional's power and authority is used to make decisions on behalf of a patient, with the belief that it is in their best interest, sometimes without the patient's full consent.",
+      "terms": [
+        "Medical Paternalism"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Pharmacogenomics",
+      "definition": "The study of how genes affect a person's response to drugs.",
+      "terms": [
+        "Pharmacogenomics",
+        "PGx"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Chronic Care Management",
+      "definition": "A specific CMS program providing care management services to Medicare beneficiaries with multiple chronic conditions.",
+      "terms": [
+        "Chronic Care Management (CCM)"
+      ],
+      "mentionCount": 0
+    },
+    {
+      "label": "Electronic Visit Verification",
+      "definition": "A system used to verify that home healthcare services are actually delivered to people who are authorized to receive them.",
+      "terms": [
+        "Electronic Visit Verification (EVV)"
+      ],
+      "mentionCount": 0
+    }
+  ],
+  "Healthcare Professionals & Roles": [
+    {
+      "label": "Caregiver",
+      "definition": "A family member or paid helper who regularly looks after a child or a sick, elderly, or disabled person.",
+      "terms": [
+        "caregivers",
+        "Caregiver",
+        "KinKeeper"
+      ],
+      "mentionCount": 61
+    },
+    {
+      "label": "Physician",
+      "definition": "A person qualified to practice medicine.",
+      "terms": [
+        "physician",
+        "physicians",
+        "doctor"
+      ],
+      "mentionCount": 58
+    },
+    {
+      "label": "Clinician",
+      "definition": "A healthcare professional qualified in the clinical practice of medicine.",
+      "terms": [
+        "clinicians"
+      ],
+      "mentionCount": 35
+    },
+    {
+      "label": "Nurse",
+      "definition": "A healthcare professional who is trained to care for people who are ill or injured.",
+      "terms": [
+        "nurse",
+        "nurses"
+      ],
+      "mentionCount": 16
+    },
+    {
+      "label": "Radiologist",
+      "definition": "A medical doctor who specializes in diagnosing and treating diseases and injuries using medical imaging techniques.",
+      "terms": [
+        "radiology"
+      ],
+      "mentionCount": 8
+    },
+    {
+      "label": "Broker",
+      "definition": "An insurance professional who sells insurance policies from various companies to clients.",
+      "terms": [
+        "broker",
+        "brokers"
+      ],
+      "mentionCount": 5
+    },
+    {
+      "label": "Pharmacist",
+      "definition": "A person who is professionally qualified to prepare and dispense medicinal drugs.",
+      "terms": [
+        "pharmacists"
+      ],
+      "mentionCount": 3
+    },
+    {
+      "label": "Psychiatrist",
+      "definition": "A medical practitioner specializing in the diagnosis and treatment of mental illness.",
+      "terms": [
+        "Psychiatrist"
+      ],
+      "mentionCount": 2
+    },
+    {
+      "label": "Diabetes Nurse Educator",
+      "definition": "A nurse who specializes in the care and management of people with diabetes.",
+      "terms": [
+        "diabetes nurse educators"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Dietitian",
+      "definition": "An expert on diet and nutrition.",
+      "terms": [
+        "dietitians"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Endocrinologist",
+      "definition": "A medical doctor who specializes in diagnosing and treating health conditions related to hormones.",
+      "terms": [
+        "endocrinologists"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Psychologist",
+      "definition": "An expert or specialist in psychology.",
+      "terms": [
+        "Psychology"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Surgeon",
+      "definition": "A medical practitioner qualified to practice surgery.",
+      "terms": [
+        "surgeons"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Physician Associate",
+      "definition": "A healthcare professional who practices medicine as a part of a healthcare team with collaborating physicians and other providers.",
+      "terms": [
+        "Physician Associates (PAs)"
+      ],
+      "mentionCount": 0
+    }
+  ],
+  "Healthcare Settings & Organizations": [
+    {
+      "label": "Health Information Exchanges",
+      "definition": "Organizations that provide services to enable the electronic sharing of health-related information among organizations.",
+      "terms": [
+        "Health Information Exchanges",
+        "HIEs"
+      ],
+      "mentionCount": 25
+    },
+    {
+      "label": "Qualified Health Information Networks",
+      "definition": "Networks that are part of TEFCA and are responsible for routing queries, responses, and messages between participants.",
+      "terms": [
+        "Qualified Health Information Networks (QHINs)",
+        "QHINs"
+      ],
+      "mentionCount": 14
+    },
+    {
+      "label": "Home Health Agency",
+      "definition": "An agency or organization that provides skilled nursing services and at least one other therapeutic service in the home.",
+      "terms": [
+        "Home Health",
+        "Home health agencies (HHAs)"
+      ],
+      "mentionCount": 10
+    },
+    {
+      "label": "Federally Qualified Health Centers",
+      "definition": "Community-based health care providers that receive funds from the HRSA Health Center Program to provide primary care services in underserved areas.",
+      "terms": [
+        "Federally Qualified Health Centers",
+        "FQHCs"
+      ],
+      "mentionCount": 8
+    },
+    {
+      "label": "Accountable Care Organizations",
+      "definition": "See Healthcare Concepts & Models.",
+      "terms": [
+        "Accountable Care Organizations"
+      ],
+      "mentionCount": 7
+    },
+    {
+      "label": "Hospice",
+      "definition": "A type of health care that focuses on the palliation of a chronically ill, terminally ill, or seriously ill patient's pain and symptoms, and attending to their emotional and spiritual needs at the end of life.",
+      "terms": [
+        "Hospice"
+      ],
+      "mentionCount": 7
+    },
+    {
+      "label": "Pharmacy Benefit Managers",
+      "definition": "Companies that manage prescription drug benefits on behalf of health insurers, Medicare Part D drug plans, large employers, and other payers.",
+      "terms": [
+        "Pharmacy Benefit Managers",
+        "PBMs"
+      ],
+      "mentionCount": 4
+    },
+    {
+      "label": "Community Health Centers",
+      "definition": "Community-based and patient-directed organizations that deliver comprehensive, culturally competent, high-quality primary health care services.",
+      "terms": [
+        "Community Health Centers",
+        "Community Health Centers (CHCs)"
+      ],
+      "mentionCount": 3
+    },
+    {
+      "label": "Skilled Nursing Facility",
+      "definition": "A facility that provides skilled nursing care and rehabilitation services.",
+      "terms": [
+        "skilled nursing facilities",
+        "Skilled Nursing Facilities (SNFs)",
+        "SNFs"
+      ],
+      "mentionCount": 3
+    },
+    {
+      "label": "Assisted Living Facility",
+      "definition": "A housing facility for people with disabilities or for adults who cannot or who choose not to live independently.",
+      "terms": [
+        "assisted living facility"
+      ],
+      "mentionCount": 2
+    },
+    {
+      "label": "Dementia Care Unit",
+      "definition": "A specialized unit in a long-term care facility for people with Alzheimer's disease or other forms of dementia.",
+      "terms": [
+        "dementia care unit"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Area Agencies on Aging",
+      "definition": "Public or private non-profit agencies designated by the state to address the needs and concerns of all older persons at the regional and local levels.",
+      "terms": [
+        "Area Agencies on Aging (AAAs)"
+      ],
+      "mentionCount": 0
+    },
+    {
+      "label": "Critical Access Hospital",
+      "definition": "A designation given to eligible rural hospitals by CMS.",
+      "terms": [
+        "Critical Access Hospital (CAH)"
+      ],
+      "mentionCount": 0
+    }
+  ],
+  "Legislation, Regulations & Legal Concepts": [
+    {
+      "label": "Right to be Forgotten",
+      "definition": "A concept that individuals have the civil right to have private information about them removed from Internet searches and other directories under some circumstances.",
+      "terms": [
+        "right to be forgotten"
+      ],
+      "mentionCount": 35
+    },
+    {
+      "label": "HIPAA",
+      "definition": "The Health Insurance Portability and Accountability Act of 1996, a federal law that required the creation of national standards to protect sensitive patient health information.",
+      "terms": [
+        "HIPAA"
+      ],
+      "mentionCount": 33
+    },
+    {
+      "label": "Information Blocking",
+      "definition": "A practice that is likely to interfere with, prevent, or materially discourage access, exchange, or use of electronic health information.",
+      "terms": [
+        "Information blocking",
+        "Information Blocking",
+        "data blocking",
+        "warranty-based data blocking"
+      ],
+      "mentionCount": 30
+    },
+    {
+      "label": "21st Century Cures Act",
+      "definition": "A 2016 law designed to help accelerate medical product development and bring new innovations and advances to patients who need them faster and more efficiently.",
+      "terms": [
+        "21st Century Cures Act"
+      ],
+      "mentionCount": 10
+    },
+    {
+      "label": "Affordable Care Act",
+      "definition": "A comprehensive health care reform law enacted in March 2010.",
+      "terms": [
+        "Affordable Care Act",
+        "ACA"
+      ],
+      "mentionCount": 5
+    },
+    {
+      "label": "42 CFR Part 2",
+      "definition": "A federal law that protects the confidentiality of substance use disorder patient records.",
+      "terms": [
+        "42 CFR Part 2"
+      ],
+      "mentionCount": 3
+    },
+    {
+      "label": "FMLA",
+      "definition": "The Family and Medical Leave Act of 1993, a U.S. labor law requiring covered employers to provide employees with job-protected, unpaid leave for qualified medical and family reasons.",
+      "terms": [
+        "FMLA"
+      ],
+      "mentionCount": 2
+    },
+    {
+      "label": "HITECH Act",
+      "definition": "The Health Information Technology for Economic and Clinical Health Act of 2009, which promoted the adoption and meaningful use of health information technology.",
+      "terms": [
+        "HITECH Act"
+      ],
+      "mentionCount": 2
+    },
+    {
+      "label": "REAL ID Act",
+      "definition": "A U.S. federal law that modifies federal law pertaining to security, authentication, and issuance procedure standards for drivers' licenses and identity documents.",
+      "terms": [
+        "REAL ID"
+      ],
+      "mentionCount": 2
+    },
+    {
+      "label": "Health ACCESS Act",
+      "definition": "A bipartisan bill aimed at modernizing the Anti-Kickback Statute to support value-based care.",
+      "terms": [
+        "Health ACCESS Act"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Privacy Act of 1974",
+      "definition": "A federal law that governs the collection, maintenance, use, and dissemination of personally identifiable information about individuals that is maintained in systems of records by federal agencies.",
+      "terms": [
+        "Privacy Act of 1974"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "SUPPORT Act",
+      "definition": "The Substance Use-Disorder Prevention that Promotes Opioid Recovery and Treatment (SUPPORT) for Patients and Communities Act of 2018.",
+      "terms": [
+        "SUPPORT Act"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Anti-Kickback Statute",
+      "definition": "A federal statute that prohibits the exchange of anything of value for referrals of Federal health care program business.",
+      "terms": [
+        "Anti-Kickback Statute (AKS)"
+      ],
+      "mentionCount": 0
+    },
+    {
+      "label": "MACRA",
+      "definition": "The Medicare Access and CHIP Reauthorization Act of 2015, a bipartisan legislation that changed how Medicare rewards clinicians for value over volume.",
+      "terms": [
+        "Medicare Access and CHIP Reauthorization Act of 2015 (MACRA)"
+      ],
+      "mentionCount": 0
+    },
+    {
+      "label": "PAVE Act",
+      "definition": "The Penicillin Allergy Verification and Evaluation Act, proposed legislation to make penicillin allergy assessment a covered preventive service.",
+      "terms": [
+        "PAVE Act",
+        "Penicillin Allergy Verification and Evaluation (PAVE) Act (H.R. 9778)"
+      ],
+      "mentionCount": 0
+    }
+  ],
+  "Organizations & Associations": [
+    {
+      "label": "SNOMED International",
+      "definition": "A not-for-profit organization that owns and maintains SNOMED CT.",
+      "terms": [
+        "SNOMED International"
+      ],
+      "mentionCount": 4
+    },
+    {
+      "label": "Sequoia Project",
+      "definition": "A non-profit, 501(c)(3) public-private collaborative chartered to advance implementation of secure, interoperable nationwide health information exchange.",
+      "terms": [
+        "Sequoia Project"
+      ],
+      "mentionCount": 4
+    },
+    {
+      "label": "CSIRO",
+      "definition": "The Commonwealth Scientific and Industrial Research Organisation, Australia's national science agency.",
+      "terms": [
+        "CSIRO"
+      ],
+      "mentionCount": 3
+    },
+    {
+      "label": "Canada Health Infoway",
+      "definition": "A federally funded, independent, not-for-profit organization tasked with accelerating the development and adoption of digital health in Canada.",
+      "terms": [
+        "Canada Health Infoway"
+      ],
+      "mentionCount": 3
+    },
+    {
+      "label": "Nictiz",
+      "definition": "The Dutch national competence center for electronic exchange of health and care information.",
+      "terms": [
+        "Nictiz"
+      ],
+      "mentionCount": 3
+    },
+    {
+      "label": "AARP",
+      "definition": "An American interest group focusing on issues affecting those over the age of fifty.",
+      "terms": [
+        "AARP"
+      ],
+      "mentionCount": 2
+    },
+    {
+      "label": "Da Vinci Project",
+      "definition": "A private-sector initiative to help payers and providers positively impact clinical, quality, cost and care management outcomes.",
+      "terms": [
+        "Da Vinci Project"
+      ],
+      "mentionCount": 2
+    },
+    {
+      "label": "TEACHERS FOR CHOICE",
+      "definition": "An advocacy group representing educators that opposes medical mandates.",
+      "terms": [
+        "TEACHERS FOR CHOICE"
+      ],
+      "mentionCount": 2
+    },
+    {
+      "label": "Accelerating Care Transformation Initiative",
+      "definition": "A multi-stakeholder association focused on reengineering clinical workflows.",
+      "terms": [
+        "Accelerating Care Transformation (ACT) Initiative"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Citizens Commission on Human Rights",
+      "definition": "An international mental health watchdog group established by the Church of Scientology.",
+      "terms": [
+        "Citizens Commission on Human Rights - CCHR"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Community Catalyst",
+      "definition": "A national non-profit consumer health advocacy group.",
+      "terms": [
+        "Community Catalyst"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Council on Foreign Relations",
+      "definition": "An American nonprofit, nonpartisan think tank and membership organization that focuses on U.S. foreign policy and international affairs.",
+      "terms": [
+        "Council on Foreign Relations"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Health first physicians ACO",
+      "definition": "An Accountable Care Organization.",
+      "terms": [
+        "Health first physicians ACO"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Leavitt Partners",
+      "definition": "A health care intelligence business.",
+      "terms": [
+        "Leavitt Partners"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "No Delays, No Surprises Coalition",
+      "definition": "A health care industry coalition advocating for shared digital infrastructure.",
+      "terms": [
+        "No Delays, No Surprises Coalition"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Peterson Health Technology Institute",
+      "definition": "An organization that conducts independent evaluations of digital health technologies.",
+      "terms": [
+        "Peterson Health Technology Institute"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Policy Center for Maternal Mental Health",
+      "definition": "A non-profit policy and research think tank.",
+      "terms": [
+        "Policy Center for Maternal Mental Health"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "SAFI Clinical Informatics Group LLC",
+      "definition": "A clinical informatics training organization.",
+      "terms": [
+        "SAFI Clinical Informatics Group LLC"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "South Carolina Primary Health Care Association",
+      "definition": "A health care association representing Community Health Centers in South Carolina.",
+      "terms": [
+        "South Carolina Primary Health Care Association"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "The CARIN Alliance",
+      "definition": "A non-partisan, multi-sector alliance working to enable consumers to get, use, and share their digital health information.",
+      "terms": [
+        "The CARIN Alliance"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "WEDI",
+      "definition": "The Workgroup for Electronic Data Interchange, a formal advisory committee to the Secretary of Health and Human Services.",
+      "terms": [
+        "WEDI"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Agilian Government Solutions",
+      "definition": "A government technology solutions provider.",
+      "terms": [
+        "Agilian Government Solutions (AGS)"
+      ],
+      "mentionCount": 0
+    },
+    {
+      "label": "American Academy of Allergy, Asthma & Immunology",
+      "definition": "A professional medical association for specialists in allergy, asthma, and immunology.",
+      "terms": [
+        "American Academy of Allergy, Asthma & Immunology (AAAAI)"
+      ],
+      "mentionCount": 0
+    },
+    {
+      "label": "American Academy of Neurology",
+      "definition": "A professional society representing more than 40,000 neurologists and neuroscience professionals.",
+      "terms": [
+        "American Academy of Neurology (AAN)"
+      ],
+      "mentionCount": 0
+    },
+    {
+      "label": "American Academy of Physician Associates",
+      "definition": "The national professional society for physician associates (PAs).",
+      "terms": [
+        "American Academy of Physician Associates (AAPA)"
+      ],
+      "mentionCount": 0
+    },
+    {
+      "label": "American College of Cardiology",
+      "definition": "A professional medical society and teaching institution for cardiovascular professionals.",
+      "terms": [
+        "American College of Cardiology (ACC)"
+      ],
+      "mentionCount": 0
+    },
+    {
+      "label": "American College of Obstetricians and Gynecologists",
+      "definition": "A professional association of physicians specializing in obstetrics and gynecology in the United States.",
+      "terms": [
+        "American College of Obstetricians and Gynecologists (ACOG)"
+      ],
+      "mentionCount": 0
+    },
+    {
+      "label": "American Diabetes Association",
+      "definition": "A United States-based nonprofit that seeks to educate the public about diabetes and to help those affected by it.",
+      "terms": [
+        "American Diabetes Association (ADA)"
+      ],
+      "mentionCount": 0
+    },
+    {
+      "label": "Bipartisan Policy Center",
+      "definition": "A non-profit organization that promotes bipartisanship.",
+      "terms": [
+        "Bipartisan Policy Center (BPC)"
+      ],
+      "mentionCount": 0
+    },
+    {
+      "label": "Dental Standards Institute",
+      "definition": "An ANSI-accredited standards development organization for the dental sector.",
+      "terms": [
+        "Dental Standards Institute (DSI)"
+      ],
+      "mentionCount": 0
+    },
+    {
+      "label": "Federation of State Medical Boards",
+      "definition": "A national non-profit organization representing the 69 state medical and osteopathic boards of the U.S. and its territories.",
+      "terms": [
+        "Federation of State Medical Boards (FSMB)"
+      ],
+      "mentionCount": 0
+    },
+    {
+      "label": "Health and Reentry Project",
+      "definition": "An advocacy group focused on improving health care access for individuals impacted by the justice system.",
+      "terms": [
+        "Health and Reentry Project (HARP)"
+      ],
+      "mentionCount": 0
+    },
+    {
+      "label": "Medical Alert Monitoring Association",
+      "definition": "An industry association representing the personal emergency response services (PERS) industry.",
+      "terms": [
+        "Medical Alert Monitoring Association (MAMA)"
+      ],
+      "mentionCount": 0
+    },
+    {
+      "label": "Partnership to Advance Virtual Care",
+      "definition": "An advocacy coalition representing health systems, health IT vendors, and other stakeholders.",
+      "terms": [
+        "Partnership to Advance Virtual Care (PAVC)"
+      ],
+      "mentionCount": 0
+    },
+    {
+      "label": "Society of Thoracic Surgeons",
+      "definition": "A global organization representing cardiothoracic surgeons.",
+      "terms": [
+        "Society of Thoracic Surgeons (STS)"
+      ],
+      "mentionCount": 0
+    },
+    {
+      "label": "Texas Medical Association",
+      "definition": "A professional association representing physicians in Texas.",
+      "terms": [
+        "Texas Medical Association (TMA)"
+      ],
+      "mentionCount": 0
+    },
+    {
+      "label": "World Health Organization",
+      "definition": "A specialized agency of the United Nations responsible for international public health.",
+      "terms": [
+        "World Health Organization (WHO)"
+      ],
+      "mentionCount": 0
+    },
+    {
+      "label": "cnmi growers association",
+      "definition": "An advocacy group from the Commonwealth of the Northern Mariana Islands.",
+      "terms": [
+        "cnmi growers association / panopticon group ww (CNMIGA.ORG)"
+      ],
+      "mentionCount": 0
+    }
+  ],
+  "Private Companies & Branded Products": [
+    {
+      "label": "CLEAR",
+      "definition": "A private company that provides a secure identity platform.",
+      "terms": [
+        "CLEAR"
+      ],
+      "mentionCount": 35
+    },
+    {
+      "label": "Epic",
+      "definition": "A large, privately held healthcare software company.",
+      "terms": [
+        "Epic"
+      ],
+      "mentionCount": 13
+    },
+    {
+      "label": "Login.gov",
+      "definition": "A secure sign-in service used by the public to access participating U.S. government agency websites.",
+      "terms": [
+        "Login.gov"
+      ],
+      "mentionCount": 10
+    },
+    {
+      "label": "ID.me",
+      "definition": "A digital identity network that allows users to verify their identity online.",
+      "terms": [
+        "ID.me"
+      ],
+      "mentionCount": 8
+    },
+    {
+      "label": "Electronic Caregiver",
+      "definition": "A health technology company offering an interactive AI avatar to assist seniors.",
+      "terms": [
+        "Electronic Caregiver"
+      ],
+      "mentionCount": 7
+    },
+    {
+      "label": "MyChart",
+      "definition": "A patient portal application from Epic Systems.",
+      "terms": [
+        "MyChart"
+      ],
+      "mentionCount": 7
+    },
+    {
+      "label": "Cerner",
+      "definition": "A supplier of health information technology services, devices, and hardware, now owned by Oracle.",
+      "terms": [
+        "Cerner"
+      ],
+      "mentionCount": 6
+    },
+    {
+      "label": "Clover Health",
+      "definition": "An American health care company that offers Medicare Advantage plans.",
+      "terms": [
+        "Clover Health"
+      ],
+      "mentionCount": 6
+    },
+    {
+      "label": "Addison",
+      "definition": "An AI-powered virtual caregiver product from Electronic Caregiver.",
+      "terms": [
+        "Addison",
+        "Addison product from electronic caregiver",
+        "Addison Care"
+      ],
+      "mentionCount": 5
+    },
+    {
+      "label": "Counterpart Assistant",
+      "definition": "An AI tool from Clover Health designed for point-of-care IT solutions.",
+      "terms": [
+        "Counterpart Assistant",
+        "Counterpart AI Assistant"
+      ],
+      "mentionCount": 4
+    },
+    {
+      "label": "Apple Health",
+      "definition": "A health and fitness tracking application developed by Apple Inc.",
+      "terms": [
+        "Apple Health"
+      ],
+      "mentionCount": 3
+    },
+    {
+      "label": "CRISP",
+      "definition": "Chesapeake Regional Information System for our Patients, a regional health information exchange serving Maryland and the District of Columbia.",
+      "terms": [
+        "CRISP"
+      ],
+      "mentionCount": 3
+    },
+    {
+      "label": "Carequality",
+      "definition": "A national-level, consensus-built, common interoperability framework to enable exchange between and among health data sharing networks.",
+      "terms": [
+        "Carequality"
+      ],
+      "mentionCount": 2
+    },
+    {
+      "label": "Cigna",
+      "definition": "A global health insurance company.",
+      "terms": [
+        "Cigna"
+      ],
+      "mentionCount": 2
+    },
+    {
+      "label": "CommonWell",
+      "definition": "CommonWell Health Alliance, a not-for-profit trade association of health IT companies working together to create universal access to health data.",
+      "terms": [
+        "CommonWell"
+      ],
+      "mentionCount": 2
+    },
+    {
+      "label": "Healix",
+      "definition": "A technology company providing a clinical neurofeedback device.",
+      "terms": [
+        "Healix"
+      ],
+      "mentionCount": 2
+    },
+    {
+      "label": "Palantir",
+      "definition": "A public American software company that specializes in big data analytics.",
+      "terms": [
+        "Palantir"
+      ],
+      "mentionCount": 2
+    },
+    {
+      "label": "Patient360",
+      "definition": "A qualified clinical data registry supporting CMS quality reporting programs.",
+      "terms": [
+        "Patient360"
+      ],
+      "mentionCount": 2
+    },
+    {
+      "label": "Salesforce",
+      "definition": "A cloud-based software company providing customer relationship management services.",
+      "terms": [
+        "Salesforce"
+      ],
+      "mentionCount": 2
+    },
+    {
+      "label": "UnitedHealthcare",
+      "definition": "A health insurance company.",
+      "terms": [
+        "UnitedHealthcare"
+      ],
+      "mentionCount": 2
+    },
+    {
+      "label": "Alcott AI",
+      "definition": "A health technology company providing a platform that unifies patient data and generates pre-visit summaries.",
+      "terms": [
+        "Alcott"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Allscripts",
+      "definition": "A healthcare information technology company that offers electronic health records and other practice management solutions.",
+      "terms": [
+        "Allscripts"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Behaivior",
+      "definition": "A private industry company that develops a predictive platform for behavioral health recovery.",
+      "terms": [
+        "Behaivior"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "BitSight Corporation",
+      "definition": "A cybersecurity ratings company.",
+      "terms": [
+        "BitSight Corporation"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Boulder Community Health",
+      "definition": "A community-owned, nonprofit health system in Boulder, Colorado.",
+      "terms": [
+        "Boulder Community Health"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "CVS Health",
+      "definition": "A healthcare company that owns CVS Pharmacy, a retail pharmacy chain; CVS Caremark, a pharmacy benefits manager; and Aetna, a health insurance provider.",
+      "terms": [
+        "CVS Health"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "ChronicCare",
+      "definition": "A digital health organization providing Chronic Care Management, Remote Patient Monitoring, and Transitional Care Management services.",
+      "terms": [
+        "ChronicCare"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Confluent Federal",
+      "definition": "A technology vendor specializing in data streaming platforms based on Apache Kafka.",
+      "terms": [
+        "Confluent Federal"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "DART HEALTH AI",
+      "definition": "A health AI company proposing automated review of clinical records.",
+      "terms": [
+        "DART HEALTH AI"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Defacto Health LLC",
+      "definition": "A technology company specializing in provider directories and interoperability.",
+      "terms": [
+        "Defacto Health LLC"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Devoted Health",
+      "definition": "A private insurance company offering Medicare Advantage plans.",
+      "terms": [
+        "Devoted Health"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Dock Health",
+      "definition": "A health IT vendor providing clinical workflow and task management solutions.",
+      "terms": [
+        "Dock Health"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Docket Health",
+      "definition": "A health technology company and mobile app developer focused on providing immunization records.",
+      "terms": [
+        "Docket Health"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "ECW",
+      "definition": "eClinicalWorks, a company that sells electronic health record and practice management software.",
+      "terms": [
+        "ECW"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Equitable Tech",
+      "definition": "A company focused on technology equity.",
+      "terms": [
+        "Equitable Tech"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Fairview Health Systems",
+      "definition": "A non-profit health system based in Minneapolis, Minnesota.",
+      "terms": [
+        "Fairview Health Systems"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Freespira",
+      "definition": "A digital therapeutic for treating PTSD and panic disorder.",
+      "terms": [
+        "Freespira"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Glytec",
+      "definition": "A health technology company providing FDA-cleared insulin management software.",
+      "terms": [
+        "Glytec"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Goliath Engineering Technology",
+      "definition": "A technology company advocating for a blockchain-based health data framework.",
+      "terms": [
+        "Goliath Engineering Technology"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Google Health Connect",
+      "definition": "A platform by Google that allows users to manage health and fitness data from various apps in one place.",
+      "terms": [
+        "Google’s Health Connect"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "HCHB",
+      "definition": "Homecare Homebase, a software for home-based care.",
+      "terms": [
+        "HCHB"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "HEP, LLC",
+      "definition": "A company that designs digital neuromusculoskeletal therapy programs.",
+      "terms": [
+        "HEP, LLC"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "HHAeXchange",
+      "definition": "A company providing homecare management software for the Medicaid LTSS population.",
+      "terms": [
+        "HHAeXchange"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Health Gorilla",
+      "definition": "A health information network and interoperability platform, designated as a QHIN.",
+      "terms": [
+        "Health Gorilla"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Hello Better Healthcare, LLC",
+      "definition": "A business focused on community-clinical linkages.",
+      "terms": [
+        "Hello Better Healthcare, LLC"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Hippocratic AI",
+      "definition": "A company developing safety-focused, non-diagnostic generative AI health agents.",
+      "terms": [
+        "Hippocratic AI"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Imagineeer, LLC",
+      "definition": "A technology firm with experience in federal IT modernization, including the HHS Protect platform.",
+      "terms": [
+        "Imagineeer, LLC"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Jitterbug phone",
+      "definition": "A brand of mobile phones with simplified features, marketed to senior citizens.",
+      "terms": [
+        "Jitterbug phone"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Kbrax",
+      "definition": "A health technology company with a platform for care coordination and behavioral health.",
+      "terms": [
+        "Kbrax"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Kith and Kin, LLC",
+      "definition": "A health technology company providing a consumer-controlled platform for managing health information for a care circle.",
+      "terms": [
+        "Kith and Kin, LLC"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Kno2",
+      "definition": "A health information network that connects healthcare providers to enable interoperable data exchange.",
+      "terms": [
+        "Kno2"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Lark",
+      "definition": "An AI-powered coaching tool for chronic disease management.",
+      "terms": [
+        "Lark"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "MRG Health",
+      "definition": "A digital health technology and virtual care delivery company.",
+      "terms": [
+        "MRG Health"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "MamaLift Plus",
+      "definition": "An FDA-approved digital therapeutic for maternal mental health.",
+      "terms": [
+        "MamaLift Plus"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Marani Health",
+      "definition": "A digital health company providing maternal and fetal care technology.",
+      "terms": [
+        "Marani Health"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Mayo Clinic",
+      "definition": "A nonprofit American academic medical center focused on integrated health care, education, and research.",
+      "terms": [
+        "Mayo Clinic"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Medkasa",
+      "definition": "A healthcare industry small business.",
+      "terms": [
+        "Medkasa"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Medplum",
+      "definition": "An independent software vendor focused on health data interoperability.",
+      "terms": [
+        "Medplum"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Medsense Health",
+      "definition": "A digital health company and medical device manufacturer specializing in smart medication adherence technologies.",
+      "terms": [
+        "Medsense Health"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Metacardio",
+      "definition": "A company offering a lifestyle coaching mobile app.",
+      "terms": [
+        "Metacardio"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Microsoft Copilot",
+      "definition": "An AI assistant from Microsoft.",
+      "terms": [
+        "Microsoft Copilot"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "MuleSoft",
+      "definition": "A software company that provides an integration platform for connecting applications, data, and devices.",
+      "terms": [
+        "MuleSoft"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "My Medical Images",
+      "definition": "An application that gives patients their medical images via cloud-based technology.",
+      "terms": [
+        "My Medical Images"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "N2V Life",
+      "definition": "A technology developer focused on lifestyle medicine and precision diagnostics.",
+      "terms": [
+        "N2V Life"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "NeuroFlow",
+      "definition": "A technology company providing behavioral health integration infrastructure.",
+      "terms": [
+        "NeuroFlow"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "NextGen",
+      "definition": "A healthcare technology company that provides electronic health record and practice management solutions.",
+      "terms": [
+        "NextGen"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Noom",
+      "definition": "A subscription-based app for tracking a person's food intake and exercise habits.",
+      "terms": [
+        "Noom"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Nuvo Health",
+      "definition": "A health insurance technology company.",
+      "terms": [
+        "Nuvo Health"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Olio Health",
+      "definition": "A SaaS care coordination platform provider.",
+      "terms": [
+        "Olio Health"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "One & Done Smart Bids",
+      "definition": "An AI-powered platform for optimizing Medicare Advantage plan selection.",
+      "terms": [
+        "One & Done Smart Bids"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "OttnoAI",
+      "definition": "A company developing a direct-to-consumer AI-powered personal health record application.",
+      "terms": [
+        "OttnoAI"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Precog",
+      "definition": "An AI data integration platform provider.",
+      "terms": [
+        "Precog"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Primary Record",
+      "definition": "A technology company providing a patient-centered data aggregation platform.",
+      "terms": [
+        "Primary Record"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Private Identity LLC",
+      "definition": "A technology vendor proposing a credential-based infrastructure for program integrity and interoperability.",
+      "terms": [
+        "Private Identity LLC"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Rainfall Health",
+      "definition": "A SaaS company using an AI-powered platform to automate compliance and improve data exchange.",
+      "terms": [
+        "Rainfall Health"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Real Time Medical Systems",
+      "definition": "A data analytics platform focused on the long-term and post-acute care sectors.",
+      "terms": [
+        "Real Time Medical Systems"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Reperio Health",
+      "definition": "A digital health startup providing an at-home biometric screening kit.",
+      "terms": [
+        "Reperio Health"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "SHP",
+      "definition": "Strategic Healthcare Programs, a company providing data analytics and benchmarking for post-acute care.",
+      "terms": [
+        "SHP"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Salient Health",
+      "definition": "A healthcare technology company providing a decision intelligence platform.",
+      "terms": [
+        "Salient Health"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Salphaware, LLC",
+      "definition": "A veteran-owned health technology company advocating for a redesign of U.S. health data infrastructure.",
+      "terms": [
+        "Salphaware, LLC"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Sandata Technologies",
+      "definition": "A provider of homecare management solutions, acquired by HHAeXchange.",
+      "terms": [
+        "Sandata Technologies"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Sensentia",
+      "definition": "A data provider focused on healthcare coverage and cost transparency.",
+      "terms": [
+        "Sensentia"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Skyward IT Solutions, LLC",
+      "definition": "An IT contractor with experience supporting CMS.",
+      "terms": [
+        "Skyward IT Solutions, LLC"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "SleepioRx",
+      "definition": "A digital therapeutic for insomnia.",
+      "terms": [
+        "SleepioRx"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Socially Determined",
+      "definition": "A health technology company that provides social risk analytics.",
+      "terms": [
+        "Socially Determined"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Somryst",
+      "definition": "A prescription digital therapeutic for chronic insomnia.",
+      "terms": [
+        "Somryst"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Spare Health",
+      "definition": "A healthcare technology company advocating for a unified data infrastructure.",
+      "terms": [
+        "Spare Health"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Summit Voice AI",
+      "definition": "A technology vendor promoting a HIPAA-compliant voice AI platform.",
+      "terms": [
+        "Summit Voice AI"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Syntax Health",
+      "definition": "A health technology company working with independent provider organizations.",
+      "terms": [
+        "Syntax Health"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Tableau",
+      "definition": "An interactive data visualization software company, owned by Salesforce.",
+      "terms": [
+        "Tableau"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Tendo",
+      "definition": "A participant in the public engagement process requesting meeting materials.",
+      "terms": [
+        "Tendo"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Tennr",
+      "definition": "An intelligent automation technology vendor.",
+      "terms": [
+        "Tennr"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Trinity Health",
+      "definition": "A national Catholic health system.",
+      "terms": [
+        "Trinity Health"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Wavital",
+      "definition": "A health technology company whose platform streams high-frequency physiologic data.",
+      "terms": [
+        "Wavital"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Wellcare",
+      "definition": "A managed care company that provides government-sponsored health plans.",
+      "terms": [
+        "Wellcare"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Wellory",
+      "definition": "An AI-powered coaching tool.",
+      "terms": [
+        "Wellory"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "ZeroTrusted.ai LLC",
+      "definition": "A technology vendor specializing in zero-trust cybersecurity for healthcare.",
+      "terms": [
+        "ZeroTrusted.ai LLC"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Zoom",
+      "definition": "A video conferencing platform.",
+      "terms": [
+        "Zoom"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "iTrust Identity",
+      "definition": "A credential-based identity platform proposed by Private Identity LLC.",
+      "terms": [
+        "iTrust Identity"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "iVision Consulting",
+      "definition": "A Health IT firm with experience supporting federal agencies and commercial health organizations.",
+      "terms": [
+        "iVision Consulting"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "ppxTEC",
+      "definition": "A prototype interoperability platform proposed by Debra Griffin.",
+      "terms": [
+        "ppxTEC"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "reSET",
+      "definition": "A prescription digital therapeutic for Substance Use Disorder.",
+      "terms": [
+        "reSET"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "reSET-O",
+      "definition": "A prescription digital therapeutic for Opioid Use Disorder.",
+      "terms": [
+        "reSET-O"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Altera Digital Health",
+      "definition": "A health IT company that acquired the hospital and large physician practice business segments from Allscripts.",
+      "terms": [
+        "Altera Digital Health, Inc."
+      ],
+      "mentionCount": 0
+    },
+    {
+      "label": "Broadspire, Inc.",
+      "definition": "A third-party administrator for workers' compensation claims, liability claims, and medical management services.",
+      "terms": [
+        "Broadspire, Inc."
+      ],
+      "mentionCount": 0
+    },
+    {
+      "label": "CONNEXiONS, Inc.",
+      "definition": "A health technology company using AI-powered digital avatars to simulate patient-provider conversations.",
+      "terms": [
+        "CONNEXiONS, Inc."
+      ],
+      "mentionCount": 0
+    },
+    {
+      "label": "CareAtlas Inc.",
+      "definition": "A technology-enabled care management provider for RPM and CCM services.",
+      "terms": [
+        "CareAtlas Inc."
+      ],
+      "mentionCount": 0
+    },
+    {
+      "label": "Customer Value Partners, LLC",
+      "definition": "A technology and healthcare consulting firm.",
+      "terms": [
+        "Customer Value Partners, LLC (CVP)"
+      ],
+      "mentionCount": 0
+    },
+    {
+      "label": "Dexcom, Inc.",
+      "definition": "A company that develops, manufactures, and distributes continuous glucose monitoring systems for diabetes management.",
+      "terms": [
+        "Dexcom, Inc."
+      ],
+      "mentionCount": 0
+    },
+    {
+      "label": "Diet ID, Inc.",
+      "definition": "A health technology company providing a digital dietary assessment tool.",
+      "terms": [
+        "Diet ID, Inc."
+      ],
+      "mentionCount": 0
+    },
+    {
+      "label": "Doximity, Inc.",
+      "definition": "A technology firm operating a professional network for U.S. physicians.",
+      "terms": [
+        "Doximity, Inc."
+      ],
+      "mentionCount": 0
+    },
+    {
+      "label": "Ginkgo Health, Inc.",
+      "definition": "A health technology company proposing a mobile app for preventive care.",
+      "terms": [
+        "Ginkgo Health, Inc."
+      ],
+      "mentionCount": 0
+    },
+    {
+      "label": "Guidehouse, Inc.",
+      "definition": "A global management, technology, and risk consulting firm.",
+      "terms": [
+        "Guidehouse, Inc."
+      ],
+      "mentionCount": 0
+    },
+    {
+      "label": "OneSelf Technology Inc.",
+      "definition": "A technology company that developed the OneSelf Path™ consumer-directed health application.",
+      "terms": [
+        "OneSelf Technology Inc."
+      ],
+      "mentionCount": 0
+    },
+    {
+      "label": "PointClickCare",
+      "definition": "A healthcare software company that provides EHR solutions for the long-term and post-acute care industry.",
+      "terms": [
+        "PointClickCare Technologies, Inc."
+      ],
+      "mentionCount": 0
+    },
+    {
+      "label": "Polimorphic, Inc.",
+      "definition": "An AI solutions provider for government benefits administration.",
+      "terms": [
+        "Polimorphic, Inc."
+      ],
+      "mentionCount": 0
+    },
+    {
+      "label": "RegenMed, Inc.",
+      "definition": "A technology vendor advocating for the use of high-quality, verifiable real-world evidence.",
+      "terms": [
+        "RegenMed, Inc."
+      ],
+      "mentionCount": 0
+    },
+    {
+      "label": "Sifter Solutions, Inc.",
+      "definition": "A \"food-as-medicine\" technology vendor.",
+      "terms": [
+        "Sifter Solutions, Inc."
+      ],
+      "mentionCount": 0
+    },
+    {
+      "label": "Sparx Group, Inc.",
+      "definition": "A healthcare technology and analytics company focused on risk management and FWA prevention.",
+      "terms": [
+        "Sparx Group, Inc."
+      ],
+      "mentionCount": 0
+    },
+    {
+      "label": "Theragen, Inc.",
+      "definition": "A medical device manufacturer of a home-based spinal fusion bone growth stimulator.",
+      "terms": [
+        "Theragen, Inc."
+      ],
+      "mentionCount": 0
+    },
+    {
+      "label": "Trilogy Innovations, Inc.",
+      "definition": "A technology firm and government contractor specializing in data exchange and cybersecurity.",
+      "terms": [
+        "Trilogy Innovations, Inc."
+      ],
+      "mentionCount": 0
+    },
+    {
+      "label": "beHuman Corp.",
+      "definition": "A health technology company developing an AI-powered preventive care platform.",
+      "terms": [
+        "beHuman Corp."
+      ],
+      "mentionCount": 0
+    },
+    {
+      "label": "xCures, Inc.",
+      "definition": "An AI-first health-data SaaS company focused on extracting data from unstructured sources.",
+      "terms": [
+        "xCures, Inc."
+      ],
+      "mentionCount": 0
+    }
+  ],
+  "Technological Concepts & Components": [
+    {
+      "label": "Application",
+      "definition": "A software program that runs on a computer or mobile device.",
+      "terms": [
+        "app",
+        "application",
+        "apps"
+      ],
+      "mentionCount": 79
+    },
+    {
+      "label": "Wearables",
+      "definition": "A category of electronic devices that can be worn as accessories, embedded in clothing, implanted in the user's body, or even tattooed on the skin.",
+      "terms": [
+        "wearable",
+        "wearables",
+        "Wearable technology"
+      ],
+      "mentionCount": 60
+    },
+    {
+      "label": "Patient Portal",
+      "definition": "A secure online website that gives patients convenient, 24-hour access to personal health information from anywhere with an Internet connection.",
+      "terms": [
+        "patient portal",
+        "patient portals"
+      ],
+      "mentionCount": 21
+    },
+    {
+      "label": "Smartphone",
+      "definition": "A mobile phone that performs many of the functions of a computer, typically having a touchscreen interface, internet access, and an operating system capable of running downloaded apps.",
+      "terms": [
+        "smartphone",
+        "smartphones"
+      ],
+      "mentionCount": 12
+    },
+    {
+      "label": "Algorithm",
+      "definition": "A process or set of rules to be followed in calculations or other problem-solving operations, especially by a computer.",
+      "terms": [
+        "algorithm",
+        "algorithms"
+      ],
+      "mentionCount": 11
+    },
+    {
+      "label": "Cloud",
+      "definition": "A network of servers and the software and databases that run on those servers, which provide various services over the Internet.",
+      "terms": [
+        "cloud",
+        "Cloud"
+      ],
+      "mentionCount": 10
+    },
+    {
+      "label": "Mobile App",
+      "definition": "A software application developed specifically for use on small, wireless computing devices, such as smartphones and tablets, rather than desktop or laptop computers.",
+      "terms": [
+        "mobile app",
+        "mobile apps"
+      ],
+      "mentionCount": 10
+    },
+    {
+      "label": "Sandbox",
+      "definition": "A testing environment that isolates untested code changes and outright experimentation from the production environment or repository.",
+      "terms": [
+        "sandbox"
+      ],
+      "mentionCount": 10
+    },
+    {
+      "label": "Natural Language Processing",
+      "definition": "A subfield of linguistics, computer science, and artificial intelligence concerned with the interactions between computers and human language.",
+      "terms": [
+        "Natural Language Processing",
+        "NLP"
+      ],
+      "mentionCount": 7
+    },
+    {
+      "label": "Large Language Models",
+      "definition": "A type of AI algorithm that uses deep learning techniques and massively large data sets to understand, summarize, generate, and predict new content.",
+      "terms": [
+        "large language models",
+        "LLMs"
+      ],
+      "mentionCount": 6
+    },
+    {
+      "label": "Chatbot",
+      "definition": "A computer program designed to simulate conversation with human users, especially over the Internet.",
+      "terms": [
+        "chatbot",
+        "Chatbots"
+      ],
+      "mentionCount": 5
+    },
+    {
+      "label": "Machine Learning",
+      "definition": "A branch of artificial intelligence and computer science which focuses on the use of data and algorithms to imitate the way that humans learn, gradually improving its accuracy.",
+      "terms": [
+        "Machine Learning (ML)",
+        "machine learning"
+      ],
+      "mentionCount": 5
+    },
+    {
+      "label": "Software as a Service",
+      "definition": "A software licensing and delivery model in which software is licensed on a subscription basis and is centrally hosted.",
+      "terms": [
+        "Software as a Service",
+        "SaaS"
+      ],
+      "mentionCount": 5
+    },
+    {
+      "label": "Avatar",
+      "definition": "A graphical representation of a user or the user's character or persona.",
+      "terms": [
+        "avatar"
+      ],
+      "mentionCount": 4
+    },
+    {
+      "label": "Ontology",
+      "definition": "A formal naming and definition of the types, properties, and interrelationships of the entities that really or fundamentally exist for a particular domain of discourse.",
+      "terms": [
+        "ontology",
+        "ontologies"
+      ],
+      "mentionCount": 4
+    },
+    {
+      "label": "AI Agent",
+      "definition": "An autonomous program that perceives its environment and takes actions to achieve goals.",
+      "terms": [
+        "AI agent",
+        "health agents"
+      ],
+      "mentionCount": 3
+    },
+    {
+      "label": "AI Model",
+      "definition": "A program or algorithm that uses a set of data to recognize certain types of patterns.",
+      "terms": [
+        "AI model"
+      ],
+      "mentionCount": 3
+    },
+    {
+      "label": "AI Gateway",
+      "definition": "A central point of control for managing and securing API traffic, including AI-driven services.",
+      "terms": [
+        "AI Gateway"
+      ],
+      "mentionCount": 2
+    },
+    {
+      "label": "Bulk Data Export",
+      "definition": "The process of exporting large datasets from a system, often for analytics or data migration.",
+      "terms": [
+        "Bulk data export"
+      ],
+      "mentionCount": 2
+    },
+    {
+      "label": "Federated Learning",
+      "definition": "A machine learning technique that trains an algorithm across multiple decentralized edge devices or servers holding local data samples, without exchanging them.",
+      "terms": [
+        "Federated Learning"
+      ],
+      "mentionCount": 2
+    },
+    {
+      "label": "Smart Contracts",
+      "definition": "Self-executing contracts with the terms of the agreement between buyer and seller being directly written into lines of code.",
+      "terms": [
+        "Smart contracts"
+      ],
+      "mentionCount": 2
+    },
+    {
+      "label": "Data Mesh",
+      "definition": "A decentralized sociotechnical approach to share, access, and manage analytical data in complex and large-scale environments.",
+      "terms": [
+        "data mesh"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Digital Wallet",
+      "definition": "An electronic device, online service, or software program that allows one party to make electronic transactions with another party.",
+      "terms": [
+        "digital wallets"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "EHR Inbox",
+      "definition": "The electronic messaging system within an Electronic Health Record.",
+      "terms": [
+        "EHR inboxes"
+      ],
+      "mentionCount": 1
+    },
+    {
+      "label": "Virtual Card",
+      "definition": "A digital credit or debit card that is created for online transactions.",
+      "terms": [
+        "virtual cards"
+      ],
+      "mentionCount": 1
+    }
+  ]
+}

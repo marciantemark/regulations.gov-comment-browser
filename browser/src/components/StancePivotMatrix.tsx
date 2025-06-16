@@ -42,14 +42,21 @@ const StancePivotMatrix: React.FC<Props> = ({ analysis, perspectives, themeCode,
   }
 
   const { stanceKeys, stakeholderTypes, matrix } = useMemo(() => measure('StancePivotMatrix build', () => {
-    if (!analysis.perspective_mapping || !analysis.stances) return {stanceKeys:[], stakeholderTypes:[], matrix:{}};
+    const mappingData:any[] = (analysis as any).commenter_mapping ?? (analysis.perspective_mapping as any[] ?? []);
+    if (!mappingData.length || !analysis.stances) return {stanceKeys:[], stakeholderTypes:[], matrix:{}};
     const stanceKeys = (analysis.stances as any[]).map((s:any)=>s.stance_key);
 
-    // aggregate stakeholder counts
-    const totalByType: Record<string, number> = {};
+    // Build commenter -> stakeholder map
+    const commenterStake:Record<number,string> = {};
     perspectives.forEach(p=>{
-      const t=(p.stakeholder_group? p.stakeholder_group : p.submitter_type)||'Other';
-      totalByType[t]=(totalByType[t]||0)+1;
+      const grp = p.stakeholder_group? p.stakeholder_group : p.submitter_type || 'Other';
+      commenterStake[p.abstraction_id]=grp;
+    });
+
+    // aggregate stakeholder counts by unique commenter
+    const totalByType: Record<string, number> = {};
+    Object.entries(commenterStake).forEach(([,grp])=>{
+      totalByType[grp]= (totalByType[grp]||0)+1;
     });
 
     // sort types by total perspectives desc
@@ -65,10 +72,15 @@ const StancePivotMatrix: React.FC<Props> = ({ analysis, perspectives, themeCode,
     stakeholderTypes.forEach(t=>{counts[t]={}; stanceKeys.forEach(sk=>counts[t][sk]=0);});
     const byStakeholderTotal: Record<string, number> = {};
 
-    (analysis.perspective_mapping as any[]).forEach((m:any)=>{
-      const p = perspectives.find(pp=>pp.id===m.perspective_id);
-      if(!p) return;
-      let st = (p.stakeholder_group? p.stakeholder_group : p.submitter_type)||'Other';
+    mappingData.forEach((m:any)=>{
+      const commenterId = m.commenter_id ?? undefined;
+      let st='Other';
+      if(commenterId!==undefined){
+         st = commenterStake[commenterId]||'Other';
+      } else {
+         const p = perspectives.find(pp=>pp.id===m.perspective_id);
+         if(p){ st = (p.stakeholder_group? p.stakeholder_group : p.submitter_type)||'Other'; }
+      }
       if(!mainTypes.includes(st)) st='Other';
       counts[st][m.stance_key] +=1;
       byStakeholderTotal[st]=(byStakeholderTotal[st]||0)+1;

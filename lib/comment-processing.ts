@@ -153,7 +153,7 @@ export async function enrichComment(
     const fullContent = [
       `=== COMMENT ${comment.id} ===`,
       `Submitter: ${metadata.submitter}`,
-      `Type: ${metadata.submitterType}`,
+      `Category: ${metadata.submitterType}`,
       `Location: ${[metadata.city, metadata.state, metadata.country].filter(Boolean).join(', ') || 'Not specified'}`,
       `Posted: ${metadata.postedDate || 'Unknown'}`,
       `Title: ${metadata.title || 'No title'}`,

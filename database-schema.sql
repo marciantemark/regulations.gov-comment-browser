@@ -19,6 +19,9 @@ CREATE TABLE IF NOT EXISTS abstractions (
   attributes_json TEXT, -- Store flexible LLM-generated attributes as a JSON string
   primary_themes TEXT, -- Comma-separated theme codes
   
+  -- Condensed version of the full comment (bullet-point outline)
+  condensed_comment TEXT,
+  
   -- Original metadata from regulations.gov as JSON
   original_metadata_json TEXT, -- Store original regulations.gov metadata as JSON
   
@@ -159,3 +162,26 @@ SELECT
   json_extract(analysis_json, '$.supporting_stats.total_perspectives')    AS total_perspectives,
   json_extract(analysis_json, '$.supporting_stats.total_stakeholders')    AS total_stakeholders
 FROM theme_analysis_raw;
+
+-- New table for comments
+CREATE TABLE IF NOT EXISTS comments (
+  id TEXT PRIMARY KEY,               -- original regulations.gov comment ID
+  condensed_comment TEXT NOT NULL,   -- LLM-generated condensed bullet-point version
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Taxonomy of named entities across the corpus
+CREATE TABLE IF NOT EXISTS entity_taxonomy (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  taxonomy_json TEXT NOT NULL,
+  generated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Per-comment entity tags
+CREATE TABLE IF NOT EXISTS comment_entities (
+  comment_id TEXT NOT NULL,
+  category TEXT NOT NULL,
+  entity_label TEXT NOT NULL,
+  PRIMARY KEY (comment_id, category, entity_label),
+  FOREIGN KEY (comment_id) REFERENCES comments(id)
+);

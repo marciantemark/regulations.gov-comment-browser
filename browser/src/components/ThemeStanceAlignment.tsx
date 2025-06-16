@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import type { ThemeAnalysisRaw } from '../database/queries';
 import type { Perspective } from '../database/queries';
 import { Link } from 'react-router-dom';
+import clsx from 'clsx';
 
 interface Props {
   analysis: ThemeAnalysisRaw;
@@ -16,6 +17,13 @@ interface StanceCount {
   total: number;
   byStakeholder: Record<string, number>;
 }
+
+const Chip: React.FC<{label:string; variant:'high'|'low'}> = ({label, variant}) => (
+  <span className={clsx(
+    'inline-block px-2 py-0.5 rounded-full text-xs font-medium',
+    variant==='high' ? 'bg-green-100 text-green-800 border border-green-300' : 'bg-gray-100 text-gray-700 border border-gray-300'
+  )}>{label}</span>
+);
 
 const ThemeStanceAlignment: React.FC<Props> = ({ analysis, perspectives, themeCode }) => {
   const stanceSummary = useMemo<StanceCount[]>(() => {
@@ -107,14 +115,22 @@ const ThemeStanceAlignment: React.FC<Props> = ({ analysis, perspectives, themeCo
               const top = percents.slice(0,2);
               const bottom = percents.slice(-2).reverse();
               return (
-                <p className="text-sm text-gray-700 mt-2">
-                  <span className="font-medium">Highest share:</span> {top.map(t=>`${t.stake} (${t.pct.toFixed(0)}%)`).join(', ')}
+                <div className="text-sm text-gray-700 mt-3 space-y-1">
+                  <div>
+                    <span className="font-medium mr-2">Highest share:</span>
+                    {top.map(t=> (
+                      <Chip key={t.stake} variant="high" label={`${t.stake} (${t.pct.toFixed(0)}%)`} />
+                    ))}
+                  </div>
                   {bottom.length>0 && (
-                    <>
-                      {' • '}<span className="font-medium">Lowest:</span> {bottom.map(t=>`${t.stake} (${t.pct.toFixed(0)}%)`).join(', ')}
-                    </>
+                    <div>
+                      <span className="font-medium mr-2">Lowest:</span>
+                      {bottom.map(t=> (
+                        <Chip key={t.stake} variant="low" label={`${t.stake} (${t.pct.toFixed(0)}%)`} />
+                      ))}
+                    </div>
                   )}
-                </p>
+                </div>
               );
             })()}
             {/* Typical arguments if provided */}

@@ -16,20 +16,22 @@ const Pill: React.FC<{label:string; color?:string}> = ({label, color='gray'}) =>
   )}>{label}</span>
 );
 
-// Card that groups a relationship tuple with an inset label
-const RelationCard: React.FC<{type:'aligned'|'opposing'; children: React.ReactNode}> = ({type, children}) => {
+interface RelationCardProps {type:'aligned'|'opposing'; groups:string[]}
+const RelationCard: React.FC<RelationCardProps> = ({type, groups}) => {
   const isAligned = type==='aligned';
   const bg = isAligned ? 'bg-indigo-50' : 'bg-red-50';
   const border = isAligned ? 'border-indigo-400' : 'border-red-400';
   const text = isAligned ? 'text-indigo-700' : 'text-red-700';
   const label = isAligned ? 'with' : 'vs';
   return (
-    <div className="relative inline-block mr-2 mb-2">
+    <div className="relative inline-block mr-2 mb-2 max-w-full">
       <span className={clsx('absolute -top-2 left-3 px-1 text-[10px] uppercase tracking-wide rounded-sm', bg, border, text)}>
         {label}
       </span>
-      <div className={clsx('flex flex-nowrap items-center gap-2 rounded-lg px-3 py-1', bg, border, 'border-2')}>
-        {children}
+      <div className={clsx('border-2 rounded-lg px-3 py-2', bg, border)}>
+        <ul className="list-disc list-inside space-y-1 text-sm break-words">
+          {groups.map((g,i)=>(<li key={i} className={clsx(text)}>{g}</li>))}
+        </ul>
       </div>
     </div>
   );
@@ -123,14 +125,9 @@ const ThemeNarrative: React.FC<ThemeNarrativeProps> = ({ narrative, perspectiveI
               <div className="bg-indigo-50 border border-indigo-200 p-4 rounded">
                 <div className="font-medium text-indigo-800 mb-1">Aligned Groups</div>
                 <ul className="list-disc ml-4">
-                  {(narrative.stakeholder_dynamics as any).aligned_groups.map((grp: any, idx: number) => {
-                    if (!Array.isArray(grp)) return <li key={idx}>{grp}</li>;
-                    return (
-                      <RelationCard key={idx} type="aligned">
-                        <span className="text-indigo-800 whitespace-nowrap">{grp.join('   ')}</span>
-                      </RelationCard>
-                    );
-                  })}
+                  {(narrative.stakeholder_dynamics as any).aligned_groups.map((grp: any, idx: number) => (
+                    <RelationCard key={idx} type="aligned" groups={grp} />
+                  ))}
                 </ul>
               </div>
             )}
@@ -139,14 +136,9 @@ const ThemeNarrative: React.FC<ThemeNarrativeProps> = ({ narrative, perspectiveI
               <div className="bg-red-50 border border-red-200 p-4 rounded">
                 <div className="font-medium text-red-800 mb-1">Opposing Groups</div>
                 <ul className="list-disc ml-4">
-                  {(narrative.stakeholder_dynamics as any).opposing_groups.map((grp: any, idx: number) => {
-                    if (!Array.isArray(grp)) return <li key={idx}>{grp}</li>;
-                    return (
-                      <RelationCard key={idx} type="opposing">
-                        <span className="text-red-800 whitespace-nowrap">{grp.join('   ')}</span>
-                      </RelationCard>
-                    );
-                  })}
+                  {(narrative.stakeholder_dynamics as any).opposing_groups.map((grp: any, idx: number) => (
+                    <RelationCard key={idx} type="opposing" groups={grp} />
+                  ))}
                 </ul>
               </div>
             )}

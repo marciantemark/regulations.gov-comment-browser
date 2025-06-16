@@ -59,23 +59,25 @@ OUTPUT TEMPLATE (fill all fields; arrays may be empty if not applicable):
   }
 }`;
 
-export const STANCE_DETECTION_PROMPT = `Analyze perspectives on theme {THEME_CODE}: {THEME_DESCRIPTION}
+export const STANCE_DETECTION_PROMPT = `Analyze commenter submissions on theme {THEME_CODE}: {THEME_DESCRIPTION}
 
-Review these {COUNT} perspectives and identify the 3-5 main stances/positions people take.
+We collected {COUNT} unique commenters. Each XML block shows one <commenter> and all of their on-theme perspectives.
 
-PERSPECTIVES:
-{PERSPECTIVES_LIST}
+Review these commenters and identify a set of "different stances" they take -- a good set of stances means that an individual commenter fits quite cleanly into exactly 1 stance, so the stances should help classify the different commentors.
 
-Identify distinct STANCES (not stakeholder types). A stance is a position on what should be done.
-Good stances are mutually exclusive - each perspective should clearly fit one stance.
 
-Examples of good stances:
-- "Require immediately" vs "Phase in gradually" vs "Keep voluntary"
-- "Federal oversight" vs "State control" vs "Market-driven"
-- "Expand access" vs "Ensure quality first" vs "Reduce costs"
+
+COMMENTERS:
+{COMMENTER_LIST}
+
+Task: define 3-5 distinct **stances**.  A good stance is mutually exclusive: a commenter should fit cleanly into exactly one stance with no internal contradictions.
+Identify distinct STANCES.  Good stances are mutually exclusive - each commenter should clearly fit one stance without conradiction across their perspectives.
+
+Return only JSON using the schema below (no markdown).
 
 OUTPUT:
 {
+  "notes": "Brief explanation of how stances were identified",
   "stances": [
     {
       "stance_key": "short_snake_case_id",
@@ -90,14 +92,13 @@ OUTPUT:
       ]
     }
   ],
-  "perspective_mapping": [
+  "commenter_mapping": [
     {
-      "perspective_id": 1,
+      "commenter_id": 1,
       "stance_key": "immediate_mandate",
       "confidence": 0.95
     }
-  ],
-  "mapping_notes": "Brief explanation of how stances were identified"
+  ]
 }`;
 
 // ===== Helper Utilities =====================================================
@@ -264,27 +265,48 @@ export async function generateThemeNarrative(db: Database, themeCode: string, de
 export async function detectThemeStances(db: Database, themeCode: string, debug = false) {
   const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 
-  const perspectives = db.prepare(`
-    SELECT p.id, p.perspective, p.excerpt, a.submitter_type
-    FROM perspectives p
-    JOIN abstractions a ON p.abstraction_id = a.id
+  // Group all perspectives by commenter (abstraction)
+  const rows = db.prepare(`
+    SELECT 
+      a.id                AS commenter_id,
+      a.submitter_type    AS submitter_type,
+      COALESCE(a.organization_name, json_extract(a.original_metadata_json,'$.organization'), a.submitter_type) AS display_name,
+      COALESCE(json_extract(a.attributes_json,'$.stakeholder_group'), a.submitter_type, 'Other')             AS stakeholder_group,
+      json_group_array(json_object('id', p.id, 'text', p.perspective, 'excerpt', p.excerpt)) AS perspectives_json
+    FROM abstractions a
+    JOIN perspectives p ON p.abstraction_id = a.id
     WHERE p.taxonomy_code = ? OR p.taxonomy_code LIKE ? || '.%'
-  `).all(themeCode, themeCode) as Array<{id:number; perspective:string; excerpt:string; submitter_type:string}>;
+    GROUP BY a.id
+  `).all(themeCode, themeCode) as Array<{commenter_id:number; submitter_type:string; display_name:string; stakeholder_group:string; perspectives_json:string}>;
 
-  if (perspectives.length === 0) {
+  if (rows.length === 0) {
     console.warn(`No perspectives for theme ${themeCode}, skipping stance detection.`);
     return;
   }
 
-  const perspectivesList = perspectives
-    .map(p => `[ID:${p.id}] (${p.submitter_type}) ${p.perspective}\nExcerpt: "${p.excerpt}"`)
-    .join('\n\n');
+  // Build map commenter -> perspective ids for later expansion
+  const commenterToPersp: Record<number, number[]> = {};
+  rows.forEach(r => {
+    const pers = JSON.parse(r.perspectives_json) as Array<{id:number}>;
+    commenterToPersp[r.commenter_id] = pers.map(p=>p.id);
+  });
+
+  const perspectivesList = rows.map(r => {
+    const stakeAttr = r.stakeholder_group.replace(/"/g,'');
+    const nameAttr = r.display_name.replace(/"/g,'');
+    const perspectives = JSON.parse(r.perspectives_json) as Array<{id:number;text:string;excerpt:string}>;
+    const inner = perspectives.map(p=>`  <perspective id="${p.id}">
+    <text>${p.text}</text>
+    <excerpt>${p.excerpt}</excerpt>
+  </perspective>`).join('\n');
+    return `<commenter id="${r.commenter_id}" stakeholder="${stakeAttr}" name="${nameAttr}">\n${inner}\n</commenter>`;
+  }).join('\n\n');
 
   const prompt = STANCE_DETECTION_PROMPT
     .replace(/\{THEME_CODE\}/g, themeCode)
     .replace(/\{THEME_DESCRIPTION\}/g, getThemeDescription(db, themeCode))
-    .replace(/\{COUNT\}/g, perspectives.length.toString())
-    .replace(/\{PERSPECTIVES_LIST\}/g, perspectivesList);
+    .replace(/\{COUNT\}/g, rows.length.toString())
+    .replace(/\{COMMENTER_LIST\}/g, perspectivesList);
 
   await debugSave(`stances_${themeCode}_prompt.txt`, prompt, debug);
 
@@ -316,30 +338,38 @@ export async function detectThemeStances(db: Database, themeCode: string, debug 
     );
   }
 
-  if (Array.isArray(result.perspective_mapping)) {
+  if (Array.isArray(result.commenter_mapping)) {
     const insertMapping = db.prepare(`
       INSERT OR REPLACE INTO perspective_stances (perspective_id, theme_code, stance_key, confidence)
       VALUES (?, ?, ?, ?)
     `);
 
-    for (const mapping of result.perspective_mapping) {
-      insertMapping.run(
-        mapping.perspective_id,
-        themeCode,
-        mapping.stance_key,
-        mapping.confidence || 1.0
-      );
+    const perspectiveMappings: {perspective_id: number; stance_key: string; confidence: number}[] = [];
+
+    for (const mapping of result.commenter_mapping) {
+      const commenterId = mapping.commenter_id; // treated as commenter id in new prompt
+      const targetPersps = commenterToPersp[commenterId] || [];
+      for (const pid of targetPersps) {
+        insertMapping.run(
+          pid,
+          themeCode,
+          mapping.stance_key,
+          mapping.confidence || 1.0
+        );
+        perspectiveMappings.push({perspective_id: pid, stance_key: mapping.stance_key, confidence: mapping.confidence || 1.0});
+      }
     }
+
+    // ---------------- Store to raw analysis JSON ----------------
+    mergeAndSaveAnalysis(db, themeCode, {
+      stances: result.stances,
+      commenter_mapping: result.commenter_mapping,
+      perspective_mapping: perspectiveMappings,
+      notes: result.notes
+    });
   }
 
   console.log(`  ✓ Stored ${result.stances?.length || 0} stances for ${themeCode}`);
-
-  // Save stances to raw analysis JSON
-  mergeAndSaveAnalysis(db, themeCode, {
-    stances: result.stances,
-    perspective_mapping: result.perspective_mapping,
-    mapping_notes: result.mapping_notes
-  });
 }
 
 // ===== Batch Analysis Command ==============================================
