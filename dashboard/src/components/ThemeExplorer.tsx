@@ -1,8 +1,9 @@
 import { useState, useMemo, useEffect } from 'react'
-import { ChevronRight, ChevronDown, Search, Info, FileText } from 'lucide-react'
+import { ChevronRight, ChevronDown, Search, Info, FileText, Copy } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import useStore from '../store/useStore'
 import type { Theme } from '../types'
+import CopyThemeListModal from './CopyThemeListModal'
 
 function ThemeExplorer() {
   const { themes, themeSummaries } = useStore()
@@ -10,6 +11,7 @@ function ThemeExplorer() {
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set())
   const [searchQuery, setSearchQuery] = useState('')
   const [expandedDescriptions, setExpandedDescriptions] = useState<Set<string>>(new Set())
+  const [showCopyModal, setShowCopyModal] = useState(false)
   
   // Build theme tree
   const themeTree = useMemo(() => {
@@ -127,10 +129,18 @@ function ThemeExplorer() {
               <div className="flex-1 flex items-center">
                 <span className="font-medium text-gray-900">{theme.code}</span>
                 <span className="text-gray-600 ml-2">{theme.label || theme.description}</span>
-                {hasSummary && (
+                {hasSummary ? (
                   <span className="ml-2 text-purple-600" title="Theme analysis available">
                     <FileText className="h-3 w-3" />
                   </span>
+                ) : (
+                  theme.code.split('.').length > 2 && (
+                    <span className="ml-2 text-amber-500" title="Analysis at parent level">
+                      <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                      </svg>
+                    </span>
+                  )
                 )}
                 {theme.detailedDescription && (
                   <button
@@ -198,12 +208,20 @@ function ThemeExplorer() {
             </div>
           </div>
           
-          <div className="ml-4">
+          <div className="ml-4 flex items-center space-x-4">
             <button
               onClick={() => expandedNodes.size === visibleThemeCount ? collapseAll() : expandAll()}
               className="text-sm text-blue-600 hover:text-blue-800 font-medium"
             >
               {expandedNodes.size === visibleThemeCount ? 'Collapse All' : 'Expand All'}
+            </button>
+            <button
+              onClick={() => setShowCopyModal(true)}
+              className="flex items-center space-x-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors text-sm"
+              title="Copy theme hierarchy for LLM"
+            >
+              <Copy className="h-4 w-4" />
+              <span>Copy for LLM</span>
             </button>
           </div>
         </div>
@@ -243,6 +261,13 @@ function ThemeExplorer() {
           <div className="text-sm text-gray-600">Total Direct Mentions</div>
         </div>
       </div>
+      
+      {/* Copy Theme List Modal */}
+      <CopyThemeListModal
+        isOpen={showCopyModal}
+        onClose={() => setShowCopyModal(false)}
+        themes={themes}
+      />
     </div>
   )
 }

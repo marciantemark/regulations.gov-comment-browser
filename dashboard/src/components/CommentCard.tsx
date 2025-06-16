@@ -1,10 +1,12 @@
-import { ExternalLink, Paperclip, Calendar, MapPin, User, Quote } from 'lucide-react'
+import { ExternalLink, Paperclip, Calendar, MapPin, User, Quote, FileText } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { getRegulationsGovUrl, formatDate } from '../utils/helpers'
 import clsx from 'clsx'
+import { useState } from 'react'
 import type { Comment } from '../types'
+import CopyCommentsModal from './CopyCommentsModal'
 
 interface CommentCardProps {
   comment: Comment
@@ -38,6 +40,7 @@ function CommentCard({
   sections = defaultSections 
 }: CommentCardProps) {
   const navigate = useNavigate()
+  const [showCopyModal, setShowCopyModal] = useState(false)
   const regulationsUrl = getRegulationsGovUrl(comment.documentId || '', comment.id)
   
   const handleCardClick = (e: React.MouseEvent) => {
@@ -51,6 +54,7 @@ function CommentCard({
   }
   
   return (
+    <>
     <div 
       className={clsx(
         "bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden transition-all",
@@ -92,6 +96,16 @@ function CommentCard({
             <span className="text-xs font-mono text-gray-500 bg-gray-200 px-2 py-1 rounded">
               #{comment.id}
             </span>
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                setShowCopyModal(true)
+              }}
+              className="text-purple-600 hover:text-purple-800 transition-colors"
+              title="Copy for LLM"
+            >
+              <FileText className="h-4 w-4" />
+            </button>
             <a
               href={regulationsUrl}
               target="_blank"
@@ -328,6 +342,18 @@ function CommentCard({
         )}
       </div>
     </div>
+    
+    {/* Copy Comment Modal - Outside the clickable card */}
+    {showCopyModal && (
+      <CopyCommentsModal
+        isOpen={showCopyModal}
+        onClose={() => setShowCopyModal(false)}
+        title="Copy Comment for LLM"
+        leadInContent={`# Comment ${comment.id}`}
+        comments={[comment]}
+      />
+    )}
+    </>
   )
 }
 

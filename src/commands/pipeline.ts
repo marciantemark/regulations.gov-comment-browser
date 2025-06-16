@@ -13,73 +13,151 @@ export const pipelineCommand = new Command("pipeline")
   .option("-s, --skip-attachments", "Skip downloading attachments")
   .option("-d, --debug", "Enable debug mode for all steps")
   .option("-o, --output <dir>", "Output directory for website files", "dist/data")
+  .option("-l, --limit-total-comment-load <N>", "Limit initial number of comments loaded")
+  .option("--start-at <step>", "Start at a specific step (1-7): 1=load, 2=condense, 3=discover-themes, 4=score-themes, 5=summarize-themes, 6=discover-entities, 7=build-website")
+  .option("-c, --concurrency <N>", "Number of concurrent operations")
+  .option("--max-crashes <N>", "Maximum number of crashes before giving up (default: 10)", parseInt)
   .action(async (documentId: string, options: any) => {
-    console.log(`🚀 Starting complete pipeline for ${documentId}\n`);
+    const startStep = options.startAt ? parseInt(options.startAt) : 1;
+    const maxCrashes = options.maxCrashes || 10;
     
-    try {
-      // 1. Load comments
-      console.log("📥 Step 1/7: Loading comments...");
-      await loadCommentsCommand.parseAsync([
-        'bun', 'cli.ts', 
-        documentId,
-        ...(options.skipAttachments ? ['--skip-attachments'] : []),
-        ...(options.debug ? ['--debug'] : [])
-      ]);
-      
-      // 2. Condense comments
-      console.log("\n📝 Step 2/7: Condensing comments...");
-      await condenseCommand.parseAsync([
-        'bun', 'cli.ts', 
-        documentId,
-        ...(options.debug ? ['--debug'] : [])
-      ]);
-      
-      // 3. Discover themes
-      console.log("\n🔍 Step 3/7: Discovering themes...");
-      await discoverThemesCommand.parseAsync([
-        'bun', 'cli.ts', 
-        documentId,
-        ...(options.debug ? ['--debug'] : [])
-      ]);
-      
-      // 4. Score themes
-      console.log("\n📊 Step 4/7: Scoring themes...");
-      await scoreThemesCommand.parseAsync([
-        'bun', 'cli.ts', 
-        documentId,
-        ...(options.debug ? ['--debug'] : [])
-      ]);
-      
-      // 5. Summarize themes
-      console.log("\n📄 Step 5/7: Summarizing themes...");
-      await summarizeThemesCommand.parseAsync([
-        'bun', 'cli.ts', 
-        documentId,
-        ...(options.debug ? ['--debug'] : [])
-      ]);
-      
-      // 6. Discover entities
-      console.log("\n🏷️  Step 6/7: Discovering entities...");
-      await discoverEntitiesCommand.parseAsync([
-        'bun', 'cli.ts', 
-        documentId,
-        ...(options.debug ? ['--debug'] : [])
-      ]);
-      
-      // 7. Build website
-      console.log("\n🏗️  Step 7/7: Building website files...");
-      await buildWebsiteCommand.parseAsync([
-        'bun', 'cli.ts', 
-        documentId,
-        '--output', options.output
-      ]);
-      
-      console.log("\n✅ Pipeline completed successfully!");
-      console.log(`📁 Website files are in: ${options.output}`);
-      console.log(`🌐 Copy to dashboard/public/data/ and run the dashboard`);
-      
-    } catch (error) {
-      console.error("\n❌ Pipeline failed:", error);
+    if (isNaN(startStep) || startStep < 1 || startStep > 7) {
+      console.error("❌ Invalid start step. Please provide a number between 1 and 7.");
       process.exit(1);
+    }
+    
+    console.log(`🚀 Starting pipeline for ${documentId} at step ${startStep}\n`);
+    console.log(`🛡️  Max crashes allowed: ${maxCrashes}`);
+    
+    const steps = [
+      {
+        num: 1,
+        name: "Loading comments",
+        icon: "📥",
+        execute: async () => {
+          await loadCommentsCommand.parseAsync([
+            'bun', 'cli.ts', 
+            documentId,
+            ...(options.skipAttachments ? ['--skip-attachments'] : []),
+            ...(options.debug ? ['--debug'] : []),
+            ...(options.limitTotalCommentLoad ? ['--limit', options.limitTotalCommentLoad] : []),
+          ]);
+        }
+      },
+      {
+        num: 2,
+        name: "Condensing comments",
+        icon: "📝",
+        execute: async () => {
+          await condenseCommand.parseAsync([
+            'bun', 'cli.ts', 
+            documentId,
+            ...(options.debug ? ['--debug'] : []),
+            ...(options.concurrency ? ['--concurrency', options.concurrency] : []),
+          ]);
+        }
+      },
+      {
+        num: 3,
+        name: "Discovering themes",
+        icon: "🔍",
+        execute: async () => {
+          await discoverThemesCommand.parseAsync([
+            'bun', 'cli.ts', 
+            documentId,
+            ...(options.debug ? ['--debug'] : []),
+            ...(options.concurrency ? ['--concurrency', options.concurrency] : []),
+          ]);
+        }
+      },
+      {
+        num: 4,
+        name: "Scoring themes",
+        icon: "📊",
+        execute: async () => {
+          await scoreThemesCommand.parseAsync([
+            'bun', 'cli.ts', 
+            documentId,
+            ...(options.debug ? ['--debug'] : []),
+            ...(options.concurrency ? ['--concurrency', options.concurrency] : []),
+          ]);
+        }
+      },
+      {
+        num: 5,
+        name: "Summarizing themes",
+        icon: "📄",
+        execute: async () => {
+          await summarizeThemesCommand.parseAsync([
+            'bun', 'cli.ts', 
+            documentId,
+            ...(options.debug ? ['--debug'] : []),
+            ...(options.concurrency ? ['--concurrency', options.concurrency] : []),
+          ]);
+        }
+      },
+      {
+        num: 6,
+        name: "Discovering entities",
+        icon: "🏷️",
+        execute: async () => {
+          await discoverEntitiesCommand.parseAsync([
+            'bun', 'cli.ts', 
+            documentId,
+            ...(options.debug ? ['--debug'] : []),
+            ...(options.concurrency ? ['--concurrency', options.concurrency] : []),
+          ]);
+        }
+      },
+      {
+        num: 7,
+        name: "Building website files",
+        icon: "🏗️",
+        execute: async () => {
+          await buildWebsiteCommand.parseAsync([
+            'bun', 'cli.ts', 
+            documentId,
+            '--output', options.output,
+          ]);
+        }
+      }
+    ];
+    
+    let crashCount = 0;
+    let currentStep = startStep;
+    
+    while (currentStep <= 7 && crashCount < maxCrashes) {
+      try {
+        // Execute only steps from currentStep onwards
+        for (const step of steps) {
+          if (step.num >= currentStep) {
+            console.log(`\n${step.icon} Step ${step.num}/7: ${step.name}...`);
+            await step.execute();
+            currentStep = step.num + 1; // Move to next step on success
+          } else {
+            if (crashCount === 0) { // Only log skipping on first attempt
+              console.log(`\n⏭️  Skipping step ${step.num}/7: ${step.name}`);
+            }
+          }
+        }
+        
+        // If we get here, all steps completed successfully
+        console.log("\n✅ Pipeline completed successfully!");
+        console.log(`📁 Website files are in: ${options.output}`);
+        console.log(`🌐 Copy to dashboard/public/data/ and run the dashboard`);
+        break; // Exit the retry loop
+        
+      } catch (error) {
+        crashCount++;
+        console.error(`\n💥 Pipeline crashed at step ${currentStep} (crash ${crashCount}/${maxCrashes}):`, error);
+        
+        if (crashCount >= maxCrashes) {
+          console.error(`\n❌ Pipeline failed after ${maxCrashes} crashes. Giving up.`);
+          process.exit(1);
+        } else {
+          console.log(`\n🔄 Restarting from step ${currentStep} in 5 seconds...`);
+          await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds before retry
+        }
+      }
     }
   }); 

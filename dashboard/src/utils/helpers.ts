@@ -1,4 +1,4 @@
-import type { Theme, Comment } from '../types'
+import type { Theme } from '../types'
 
 // Generate regulations.gov URL for a comment
 export function getRegulationsGovUrl(_documentId: string, commentId: string): string {
@@ -49,50 +49,7 @@ export function buildThemeHierarchy(themes: Theme[]): ThemeWithChildren[] {
   return rootThemes.map(addChildren)
 }
 
-// Export comments to CSV
-export function exportToCSV(comments: Comment[], filename = 'comments.csv'): void {
-  const headers = [
-    'Comment ID',
-    'Submitter',
-    'Submitter Type',
-    'Date',
-    'Location',
-    'Has Attachments',
-    'Summary',
-    'Theme Codes',
-    'Entities',
-    'Regulations.gov URL'
-  ]
-  
-  const rows = comments.map(c => [
-    c.id,
-    c.submitter,
-    c.submitterType,
-    formatDate(c.date),
-    c.location || '',
-    c.hasAttachments ? 'Yes' : 'No',
-    `"${(c.structuredSections?.oneLineSummary || '').replace(/"/g, '""')}"`,
-    Object.entries(c.themeScores || {})
-      .filter(([_, score]) => score <= 2)
-      .map(([code, score]) => `${code}(${score})`)
-      .join('; '),
-    (c.entities || []).map(e => `${e.category}:${e.label}`).join('; '),
-    getRegulationsGovUrl('', c.id)
-  ])
-  
-  const csv = [
-    headers.join(','),
-    ...rows.map(row => row.join(','))
-  ].join('\n')
-  
-  const blob = new Blob([csv], { type: 'text/csv' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  a.click()
-  URL.revokeObjectURL(url)
-}
+
 
 // Copy text to clipboard
 export async function copyToClipboard(text: string): Promise<boolean> {

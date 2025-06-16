@@ -6,6 +6,7 @@ import { AIClient } from "../lib/ai-client";
 import { createEvenBatches, DEFAULT_BATCH_OPTIONS } from "../lib/batch-processor";
 import { THEME_SUMMARY_PROMPT, THEME_SUMMARY_MERGE_PROMPT, THEME_SUMMARY_STRUCTURE_PROMPT } from "../prompts/theme-summary";
 import { parseJsonResponse } from "../lib/json-parser";
+import { runPool } from "../lib/worker-pool";
 
 export const summarizeThemesCommand = new Command("summarize-themes")
   .description("Generate narrative summaries for themes based on relevant comments")
@@ -14,6 +15,7 @@ export const summarizeThemesCommand = new Command("summarize-themes")
   .option("--min-comments <n>", "Minimum comments required for a theme (default: 5)", parseInt)
   .option("--batch-limit <n>", "Word limit to trigger batching (default: 150000)", parseInt)
   .option("--batch-size <n>", "Target words per batch (default: 75000)", parseInt)
+  .option("--depth <n>", "Maximum theme hierarchy depth to summarize (default: 2)", parseInt)
   .option("-d, --debug", "Enable debug output")
   .option("-c, --concurrency <n>", "Number of parallel API calls (default: 3)", parseInt)
   .action(summarizeThemes);
@@ -27,6 +29,11 @@ async function summarizeThemes(documentId: string, options: any) {
   console.log(`📝 Summarizing themes for document ${documentId}`);
   
   // Get themes to analyze
+  const maxDepth = options.depth || 2;
+  
+  // Build depth filter - e.g. for depth 2, match codes like "1", "1.1", but not "1.1.1"
+  const depthFilter = `LENGTH(th.code) - LENGTH(REPLACE(th.code, '.', '')) < ?`;
+  
   let themeQuery = `
     SELECT 
       th.code,
@@ -34,12 +41,13 @@ async function summarizeThemes(documentId: string, options: any) {
       COUNT(DISTINCT ct.comment_id) as comment_count
     FROM theme_hierarchy th
     LEFT JOIN comment_themes ct ON th.code = ct.theme_code AND ct.score IN (1, 2)
+    WHERE ${depthFilter}
     GROUP BY th.code
     HAVING comment_count >= ?
   `;
   
   const minComments = options.minComments || 5;
-  const queryParams: any[] = [minComments];
+  const queryParams: any[] = [maxDepth, minComments];
   
   if (options.themes) {
     const themeCodes = options.themes.split(',').map((t: string) => t.trim());
@@ -75,17 +83,19 @@ async function summarizeThemes(documentId: string, options: any) {
   }
   
   console.log(`🆕 ${themesToProcess.length} themes need summarization`);
+  console.log(`📏 Max depth: ${maxDepth}`);
   
-  // Process each theme
+  // Process themes using worker pool
   const concurrency = options.concurrency || 3;
-  let processed = 0;
   
-  async function processTheme(theme: typeof themes[0]) {
-    const localProcessed = ++processed;
-    console.log(`\n[${localProcessed}/${themesToProcess.length}] Processing theme ${theme.code}: ${theme.description}`);
-    console.log(`   Comments: ${theme.comment_count}`);
-    
-    try {
+  await runPool(
+    themesToProcess,
+    concurrency,
+    async (theme, index, total) => {
+      console.log(`\n[${index}/${total}] Processing theme ${theme.code}: ${theme.description}`);
+      console.log(`   Comments: ${theme.comment_count}`);
+      
+      try {
       // Get comments for this theme with structured sections
       const comments = db.prepare(`
         SELECT DISTINCT
@@ -171,19 +181,14 @@ async function summarizeThemes(documentId: string, options: any) {
         );
       });
       
-      console.log(`   [${theme.code}] ✅ Summary generated successfully`);
-      
-    } catch (error) {
-      console.error(`   [${theme.code}] ❌ Error:`, error);
-      throw error;
+        console.log(`   [${theme.code}] ✅ Summary generated successfully`);
+        
+      } catch (error) {
+        console.error(`   [${theme.code}] ❌ Error:`, error);
+        throw error;
+      }
     }
-  }
-  
-  // Process themes in parallel chunks
-  for (let i = 0; i < themesToProcess.length; i += concurrency) {
-    const chunk = themesToProcess.slice(i, i + concurrency);
-    await Promise.all(chunk.map(processTheme));
-  }
+  );
   
   // Summary
   const summaryCount = db.prepare("SELECT COUNT(*) as count FROM theme_summaries").get() as { count: number };

@@ -146,11 +146,13 @@ async function exportAllComments(db: any, outputDir: string, documentId: string)
       c.attributes_json,
       cc.structured_sections,
       GROUP_CONCAT(DISTINCT ct.theme_code || ':' || ct.score) as theme_scores,
-      GROUP_CONCAT(DISTINCT ce.category || '|' || ce.entity_label) as entities
+      GROUP_CONCAT(DISTINCT ce.category || '|' || ce.entity_label) as entities,
+      COUNT(DISTINCT a.id) as attachment_count
     FROM comments c
     LEFT JOIN condensed_comments cc ON c.id = cc.comment_id
     LEFT JOIN comment_themes ct ON c.id = ct.comment_id
     LEFT JOIN comment_entities ce ON c.id = ce.comment_id
+    LEFT JOIN attachments a ON c.id = a.comment_id
     GROUP BY c.id
     ORDER BY c.id
   `).all();
@@ -202,7 +204,7 @@ async function exportAllComments(db: any, outputDir: string, documentId: string)
       structuredSections,
       themeScores,
       entities,
-      hasAttachments: attrs.attachments?.length > 0
+      hasAttachments: c.attachment_count > 0
     };
   });
   

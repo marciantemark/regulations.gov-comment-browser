@@ -6,8 +6,8 @@ export interface BatchOptions {
 }
 
 export const DEFAULT_BATCH_OPTIONS: BatchOptions = {
-  totalWordLimit: 200_000,
-  batchWordLimit: 100_000,
+  totalWordLimit: 250_000,
+  batchWordLimit: 150_000,
 };
 
 export function countWords(text: string): number {

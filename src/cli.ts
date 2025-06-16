@@ -3,9 +3,9 @@ import { Command } from "commander";
 import { loadCommentsCommand } from "./commands/load-comments";
 import { condenseCommand } from "./commands/condense";
 import { discoverThemesCommand } from "./commands/discover-themes";
-import { discoverEntitiesCommand } from "./commands/discover-entities";
 import { scoreThemesCommand } from "./commands/score-themes";
 import { summarizeThemesCommand } from "./commands/summarize-themes";
+import { discoverEntitiesCommand } from "./commands/discover-entities";
 import { buildWebsiteCommand } from "./website-build-script";
 import { pipelineCommand } from "./commands/pipeline";
 

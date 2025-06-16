@@ -6,6 +6,7 @@ import { loadComments, enrichComment } from "../lib/comment-processing";
 import { CONDENSE_PROMPT } from "../prompts/condense";
 import { parseCondensedSections } from "../lib/parse-condensed-sections";
 import type { RawComment } from "../types";
+import { runPool } from "../lib/worker-pool";
 
 export const condenseCommand = new Command("condense")
   .description("Generate condensed versions of comments")
@@ -101,10 +102,12 @@ async function condenseComments(documentId: string, options: any) {
   
   const concurrency = options.concurrency || 5;
   
-  // Process comments in parallel batches
-  async function processComment(comment: any) {
+  const activeWorkers = new Set<string>();
+  
+  // Process a single comment
+  async function processComment(comment: any): Promise<void> {
     const localProcessed = ++processed;
-    console.log(`\n[${localProcessed}/${comments.length}] Processing comment ${comment.id}`);
+    console.log(`\n[${localProcessed}/${comments.length}] Processing comment ${comment.id} (${activeWorkers.size} workers active)`);
     
     try {
       // Mark as processing
@@ -139,15 +142,10 @@ async function condenseComments(documentId: string, options: any) {
       
       // Save result with structured sections
       withTransaction(db, () => {
-        // Add the full response as detailedContent to sections
-        const sectionsWithDetail = {
-          ...sections,
-          detailedContent: response
-        };
-        
+        // Don't add the full response as detailedContent - it's already parsed from the response
         insertCondensed.run(
           comment.id, 
-          JSON.stringify(sectionsWithDetail)
+          JSON.stringify(sections)
         );
       });
       
@@ -163,11 +161,12 @@ async function condenseComments(documentId: string, options: any) {
     }
   }
   
-  // Process in chunks
-  for (let i = 0; i < comments.length; i += concurrency) {
-    const chunk = comments.slice(i, i + concurrency);
-    await Promise.all(chunk.map(processComment));
-  }
+  // Run pool
+  await runPool(comments, concurrency, async (comment, index) => {
+    activeWorkers.add('w');
+    await processComment(comment);
+    activeWorkers.delete('w');
+  });
   
   // Final summary
   console.log("\n📊 Condensing complete:");

@@ -1,12 +1,11 @@
 import { Link, useParams } from 'react-router-dom'
-import { Download, Copy, ChevronRight, FileText } from 'lucide-react'
+import { Copy, ChevronRight, FileText } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import useStore from '../store/useStore'
 import CommentCard from './CommentCard'
-import { exportToCSV } from '../utils/helpers'
 import Breadcrumbs from './Breadcrumbs'
 import ThemeSummaryView from './ThemeSummaryView'
-import CopyThemePromptModal from './CopyThemePromptModal'
+import CopyCommentsModal from './CopyCommentsModal'
 
 function ThemeDetail() {
   const { themeCode } = useParams<{ themeCode: string }>()
@@ -47,9 +46,7 @@ function ThemeDetail() {
     )
   }
   
-  const handleExport = () => {
-    exportToCSV(displayedComments, `theme-${themeCode}-comments.csv`)
-  }
+
   
   const handleCopyIds = () => {
     const ids = displayedComments.map(c => c.id).join('\n')
@@ -111,13 +108,6 @@ function ThemeDetail() {
                 <Copy className="h-4 w-4" />
                 <span>Copy IDs</span>
               </button>
-              <button
-                onClick={handleExport}
-                className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-              >
-                <Download className="h-4 w-4" />
-                <span>Export CSV</span>
-              </button>
             </div>
           </div>
         </div>
@@ -150,11 +140,40 @@ function ThemeDetail() {
       )}
       
       {/* Theme Summary Analysis */}
-      {themeSummary && (
+      {themeSummary ? (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-6">Theme Analysis</h2>
           <ThemeSummaryView summary={themeSummary} themeCode={theme.code} />
         </div>
+      ) : (
+        // No summary available - check if parent has one
+        theme.parent_code && (
+          <div className="bg-amber-50 rounded-lg shadow-sm border border-amber-200 p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+              <svg className="h-5 w-5 text-amber-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              No Detailed Analysis Available
+            </h2>
+            <p className="text-gray-700 mb-4">
+              This sub-theme hasn't been analyzed in detail yet. 
+              {theme.parent_code && (
+                <>
+                  {' '}View the parent theme for a broader analysis that may include this topic.
+                </>
+              )}
+            </p>
+            {theme.parent_code && (
+              <Link
+                to={`/themes/${theme.parent_code}`}
+                className="inline-flex items-center space-x-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg transition-colors"
+              >
+                <ChevronRight className="h-4 w-4 rotate-180" />
+                <span>View Parent Theme Analysis</span>
+              </Link>
+            )}
+          </div>
+        )
       )}
       
       {/* Sub-themes */}
@@ -214,13 +233,26 @@ function ThemeDetail() {
         )}
       </div>
       
-      {/* Copy Theme Prompt Modal */}
-      <CopyThemePromptModal
+      {/* Copy Theme Comments Modal */}
+      <CopyCommentsModal
         isOpen={showCopyModal}
         onClose={() => setShowCopyModal(false)}
-        theme={theme}
+        title="Copy Theme Comments for LLM"
+        leadInContent={`# Theme Analysis: ${theme.code} - ${theme.label || theme.description}${theme.detailedDescription ? '\n\n## Theme Description\n' + theme.detailedDescription : ''}`}
         comments={displayedComments}
-        summary={themeSummary}
+        themeSummary={themeSummary}
+        commentSectionOptions={{
+          metadata: true,
+          oneLineSummary: false,
+          corePosition: false,
+          keyRecommendations: false,
+          mainConcerns: false,
+          notableExperiences: false,
+          keyQuotations: false,
+          detailedContent: true,
+          themes: false,
+          entities: false
+        }}
       />
     </div>
   )

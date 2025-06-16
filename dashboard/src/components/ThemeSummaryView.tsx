@@ -1,5 +1,7 @@
 import { CheckCircle, AlertCircle, Users, Lightbulb, TrendingUp, Quote, BarChart3, MessageSquare, Building2 } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import type { ThemeSummary } from '../types'
+import useStore from '../store/useStore'
 
 interface ThemeSummaryViewProps {
   summary: ThemeSummary
@@ -8,6 +10,49 @@ interface ThemeSummaryViewProps {
 
 function ThemeSummaryView({ summary }: ThemeSummaryViewProps) {
   const { sections } = summary
+  const { entities } = useStore()
+  
+  // Helper function to find entity link for an organization
+  const getEntityLink = (orgName: string): string | null => {
+    // Search through all entity categories
+    for (const [category, entityList] of Object.entries(entities)) {
+      for (const entity of entityList) {
+        // Check if any term matches the organization name (case-insensitive)
+        const orgNameLower = orgName.toLowerCase()
+        for (const term of entity.terms) {
+          if (term.toLowerCase() === orgNameLower) {
+            return `/entities/${encodeURIComponent(category)}/${encodeURIComponent(entity.label)}`
+          }
+        }
+      }
+    }
+    return null
+  }
+  
+  // Helper to render organization link or plain text
+  const renderOrganization = (org: string, key: string | number) => {
+    const link = getEntityLink(org)
+    if (link) {
+      return (
+        <Link
+          key={key}
+          to={link}
+          className="inline-flex items-center text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded hover:bg-gray-200 hover:text-gray-700 transition-colors"
+        >
+          <Building2 className="h-3 w-3 mr-1" />
+          {org}
+        </Link>
+      )
+    } else {
+      // No matching entity found - render as plain text
+      return (
+        <span key={key} className="inline-flex items-center text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+          <Building2 className="h-3 w-3 mr-1" />
+          {org}
+        </span>
+      )
+    }
+  }
   
   return (
     <div className="space-y-8">
@@ -58,12 +103,7 @@ function ThemeSummaryView({ summary }: ThemeSummaryViewProps) {
                   )}
                   {point.organizations && point.organizations.length > 0 && (
                     <div className="flex items-center flex-wrap gap-2 mt-2">
-                      {point.organizations.map((org, i) => (
-                        <span key={i} className="inline-flex items-center text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                          <Building2 className="h-3 w-3 mr-1" />
-                          {org}
-                        </span>
-                      ))}
+                      {point.organizations.map((org, i) => renderOrganization(org, i))}
                     </div>
                   )}
                   {point.exceptions && (
@@ -121,12 +161,28 @@ function ThemeSummaryView({ summary }: ThemeSummaryViewProps) {
                       )}
                       {position.organizations && position.organizations.length > 0 && (
                         <div className="flex items-center flex-wrap gap-1 mt-3">
-                          {position.organizations.map((org, i) => (
-                            <span key={i} className="text-xs text-gray-500">
-                              <Building2 className="h-3 w-3 inline mr-1" />
-                              {org}
-                            </span>
-                          ))}
+                          {position.organizations.map((org, i) => {
+                            const link = getEntityLink(org)
+                            if (link) {
+                              return (
+                                <Link
+                                  key={i}
+                                  to={link}
+                                  className="text-xs text-gray-500 hover:text-gray-700 transition-colors"
+                                >
+                                  <Building2 className="h-3 w-3 inline mr-1" />
+                                  {org}
+                                </Link>
+                              )
+                            } else {
+                              return (
+                                <span key={i} className="text-xs text-gray-500">
+                                  <Building2 className="h-3 w-3 inline mr-1" />
+                                  {org}
+                                </span>
+                              )
+                            }
+                          })}
                         </div>
                       )}
                     </div>
@@ -184,9 +240,26 @@ function ThemeSummaryView({ summary }: ThemeSummaryViewProps) {
                     {stakeholder.organizations && stakeholder.organizations.length > 0 && (
                       <div className="flex items-center flex-wrap gap-1 mt-2">
                         <span className="text-xs text-gray-500">Organizations:</span>
-                        {stakeholder.organizations.map((org, i) => (
-                          <span key={i} className="text-xs text-gray-600 font-medium">{org}</span>
-                        ))}
+                        {stakeholder.organizations.map((org, i) => {
+                          const link = getEntityLink(org)
+                          if (link) {
+                            return (
+                              <Link
+                                key={i}
+                                to={link}
+                                className="text-xs text-gray-600 font-medium hover:text-blue-600 transition-colors"
+                              >
+                                {org}
+                              </Link>
+                            )
+                          } else {
+                            return (
+                              <span key={i} className="text-xs text-gray-600 font-medium">
+                                {org}
+                              </span>
+                            )
+                          }
+                        })}
                       </div>
                     )}
                   </div>

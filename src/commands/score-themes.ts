@@ -122,10 +122,14 @@ async function scoreThemes(documentId: string, options: any) {
   
   const concurrency = options.concurrency || 5;
   
-  // Process comments in parallel
-  async function processComment(comment: { comment_id: string; structured_sections: string }) {
+  // Create a queue of comments
+  const queue = [...comments];
+  const activeWorkers = new Set<string>();
+  
+  // Process a single comment
+  async function processComment(comment: { comment_id: string; structured_sections: string }): Promise<void> {
     const localProcessed = ++processed;
-    console.log(`\n[${localProcessed}/${comments.length}] Processing comment ${comment.comment_id}`);
+    console.log(`\n[${localProcessed}/${comments.length}] Processing comment ${comment.comment_id} (${activeWorkers.size} workers active)`);
     
     try {
       // Mark as processing
@@ -203,11 +207,22 @@ async function scoreThemes(documentId: string, options: any) {
     }
   }
   
-  // Process in chunks
-  for (let i = 0; i < comments.length; i += concurrency) {
-    const chunk = comments.slice(i, i + concurrency);
-    await Promise.all(chunk.map(processComment));
+  // Worker function continuously processes comments from the queue
+  async function worker(workerId: string): Promise<void> {
+    while (queue.length > 0) {
+      const next = queue.shift();
+      if (!next) break;
+      activeWorkers.add(workerId);
+      await processComment(next);
+      activeWorkers.delete(workerId);
+    }
   }
+  
+  // Start workers
+  const workers = Array.from({ length: concurrency }, (_, i) => worker(`worker-${i + 1}`));
+  
+  // Wait for all workers
+  await Promise.all(workers);
   
   // Final summary
   console.log("\n📊 Theme scoring complete:");

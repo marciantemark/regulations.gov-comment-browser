@@ -1,6 +1,48 @@
 import { create } from 'zustand'
-import type { StoreState, Theme, Comment } from '../types'
+import type { Meta, Theme, Entity, Comment, ThemeIndex, EntityIndex, ThemeSummary } from '../types'
 import { parseThemeDescription } from '../utils/helpers'
+
+interface FilterOptions {
+  themes: string[]
+  entities: string[]
+  submitterTypes: string[]
+  hasCondensed: 'all' | 'yes' | 'no'
+  searchQuery: string
+}
+
+interface StoreState {
+  loading: boolean
+  error: string | null
+  meta: Meta | null
+  themes: Theme[]
+  themeSummaries: Record<string, ThemeSummary>
+  entities: Record<string, Entity[]>
+  comments: Comment[]
+  filters: FilterOptions
+  searchQuery: string
+  themeIndex: ThemeIndex
+  entityIndex: EntityIndex
+  organizationCategory: string | null
+  
+  // UI state
+  selectedView: string
+  selectedTheme: Theme | null
+  selectedEntity: { category: string; label: string } | null
+  
+  // Actions
+  loadData: () => Promise<void>
+  setFilters: (filters: FilterOptions) => void
+  setSearchQuery: (query: string) => void
+  setData: (data: any) => void
+  setSelectedView: (view: string) => void
+  setSelectedTheme: (theme: Theme | null) => void
+  setSelectedEntity: (entity: { category: string; label: string } | null) => void
+  
+  // Computed
+  getCommentsForTheme: (themeCode: string) => { direct: Comment[], touches: Comment[] }
+  getCommentsForEntity: (category: string, label: string) => Comment[]
+  getFilteredComments: () => Comment[]
+}
 
 const useStore = create<StoreState>((set, get) => ({
   // Core data
@@ -11,6 +53,7 @@ const useStore = create<StoreState>((set, get) => ({
   comments: [],
   themeIndex: {},
   entityIndex: {},
+  organizationCategory: null,
   
   // UI state
   selectedView: 'overview',
@@ -25,17 +68,17 @@ const useStore = create<StoreState>((set, get) => ({
     themes: [],
     entities: [],
     submitterTypes: [],
-    hasCondensed: 'all',
+    hasCondensed: 'all' as const,
     searchQuery: ''
   },
   
   // Actions
-  setData: (data) => set(data),
-  setSelectedView: (view) => set({ selectedView: view }),
-  setSelectedTheme: (theme) => set({ selectedTheme: theme }),
-  setSelectedEntity: (entity) => set({ selectedEntity: entity }),
-  setSearchQuery: (query) => set({ searchQuery: query }),
-  setFilters: (filters) => set({ filters }),
+  setData: (data: any) => set(data),
+  setSelectedView: (view: string) => set({ selectedView: view }),
+  setSelectedTheme: (theme: Theme | null) => set({ selectedTheme: theme }),
+  setSelectedEntity: (entity: { category: string; label: string } | null) => set({ selectedEntity: entity }),
+  setSearchQuery: (query: string) => set({ searchQuery: query }),
+  setFilters: (filters: FilterOptions) => set({ filters }),
   
   // Load all data
   loadData: async () => {
@@ -62,6 +105,10 @@ const useStore = create<StoreState>((set, get) => ({
         }
       })
       
+      // After loading themeSummaries and entities
+      // Determine the organization category by sampling
+      const orgCategory = determineOrganizationCategory(themeSummaries, entities)
+      
       set({
         meta,
         themes: parsedThemes,
@@ -70,6 +117,7 @@ const useStore = create<StoreState>((set, get) => ({
         comments,
         themeIndex,
         entityIndex,
+        organizationCategory: orgCategory,
         loading: false,
         error: null,
       })
@@ -105,7 +153,7 @@ const useStore = create<StoreState>((set, get) => ({
     if (state.filters.themes.length > 0) {
       filtered = filtered.filter(c => {
         if (!c.themeScores) return false
-        return state.filters.themes.some(themeCode => 
+        return state.filters.themes.some((themeCode: string) => 
           c.themeScores![themeCode] && c.themeScores![themeCode] <= 2
         )
       })
@@ -115,7 +163,7 @@ const useStore = create<StoreState>((set, get) => ({
     if (state.filters.entities.length > 0) {
       filtered = filtered.filter(c => {
         if (!c.entities || c.entities.length === 0) return false
-        return state.filters.entities.some(entityKey => {
+        return state.filters.entities.some((entityKey: string) => {
           const [category, label] = entityKey.split('|')
           return c.entities!.some(e => e.category === category && e.label === label)
         })
@@ -139,7 +187,7 @@ const useStore = create<StoreState>((set, get) => ({
     return filtered
   },
   
-  getCommentsForTheme: (themeCode) => {
+  getCommentsForTheme: (themeCode: string) => {
     const state = get()
     const commentIds = state.themeIndex[themeCode]
     if (!commentIds) return { direct: [], touches: [] }
@@ -157,7 +205,7 @@ const useStore = create<StoreState>((set, get) => ({
     }
   },
   
-  getCommentsForEntity: (category, label) => {
+  getCommentsForEntity: (category: string, label: string) => {
     const state = get()
     const key = `${category}|${label}`
     const commentIds = state.entityIndex[key] || []
@@ -169,3 +217,82 @@ const useStore = create<StoreState>((set, get) => ({
 }))
 
 export default useStore 
+
+// Helper function to determine organization category
+function determineOrganizationCategory(
+  themeSummaries: Record<string, ThemeSummary>, 
+  entities: Record<string, Entity[]>
+): string | null {
+  // Collect a sample of organizations from theme summaries
+  const organizationSample = new Set<string>()
+  const maxSample = 200
+  
+  for (const summary of Object.values(themeSummaries)) {
+    if (organizationSample.size >= maxSample) break
+    
+    const { sections } = summary
+    
+    // Extract from consensus points
+    if (sections.consensusPoints) {
+      for (const point of sections.consensusPoints) {
+        if (point.organizations) {
+          point.organizations.forEach((org: string) => organizationSample.add(org))
+        }
+      }
+    }
+    
+    // Extract from areas of debate
+    if (sections.areasOfDebate) {
+      for (const debate of sections.areasOfDebate) {
+        if (debate.positions) {
+          for (const position of debate.positions) {
+            if (position.organizations) {
+              position.organizations.forEach((org: string) => organizationSample.add(org))
+            }
+          }
+        }
+      }
+    }
+    
+    // Extract from stakeholder perspectives
+    if (sections.stakeholderPerspectives) {
+      for (const stakeholder of sections.stakeholderPerspectives) {
+        if (stakeholder.organizations) {
+          stakeholder.organizations.forEach((org: string) => organizationSample.add(org))
+        }
+      }
+    }
+  }
+  
+  // Now check which category has the most matches
+  const categoryMatches: Record<string, number> = {}
+  
+  for (const [category, entityList] of Object.entries(entities)) {
+    let matchCount = 0
+    for (const entity of entityList) {
+      for (const term of entity.terms) {
+        if (organizationSample.has(term)) {
+          matchCount++
+          break // Count each entity only once
+        }
+      }
+    }
+    if (matchCount > 0) {
+      categoryMatches[category] = matchCount
+    }
+  }
+  
+  // Find the category with most matches
+  let bestCategory: string | null = null
+  let maxMatches = 0
+  
+  for (const [category, count] of Object.entries(categoryMatches)) {
+    if (count > maxMatches) {
+      maxMatches = count
+      bestCategory = category
+    }
+  }
+  
+  // Default fallback
+  return bestCategory || 'Organizations'
+} 

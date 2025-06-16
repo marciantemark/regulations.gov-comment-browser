@@ -77,7 +77,7 @@ bun run discover-themes CMS-2025-0050-0031
 Options:
 - `--limit <n>` - Use only first N condensed comments
 - `--batch-limit <n>` - Word count to trigger batching (default: 200000)
-- `--batch-size <n>` - Target words per batch (default: 100000)
+- `--batch-size <n>` - Target words per batch (default: 150000)
 - `--debug` - Save intermediate results
 
 **Simplified Architecture**: Theme discovery now works with plain text responses instead of complex JSON structures, improving reliability and reducing parsing errors. The system automatically extracts multiple quotes per theme with proper citation tracking.
@@ -103,6 +103,27 @@ Options:
 - `--debug` - Save prompts and responses
 
 **New Functionality**: Scores every comment against every theme in the hierarchy (1=directly addresses, 2=touches on, 3=does not address) with comprehensive validation to ensure complete coverage.
+
+### 6. Summarize Themes
+
+Generate detailed narrative summaries for themes:
+```bash
+bun run summarize-themes CMS-2025-0050-0031
+```
+
+Options:
+- `--themes <list>` - Comma-separated theme IDs to analyze
+- `--min-comments <n>` - Minimum comments required for a theme (default: 5)
+- `--depth <n>` - Maximum theme hierarchy depth to summarize (default: 2)
+- `--batch-limit <n>` - Word limit to trigger batching (default: 150000)
+- `--batch-size <n>` - Target words per batch (default: 75000)
+- `--concurrency <n>` - Number of parallel API calls (default: 3)
+- `--debug` - Save prompts and responses
+
+**Key Features**:
+- Uses worker pool for parallel processing
+- Only summarizes themes up to specified depth (e.g., "1.1" but not "1.1.1" at depth 2)
+- Dashboard shows link to parent theme analysis for deeper themes
 
 ## Architecture
 
@@ -160,6 +181,25 @@ Each document gets its own SQLite database in `dbs/<document-id>.sqlite` contain
 ## Examples
 
 ### Full Pipeline
+
+Run all steps at once:
+```bash
+# Run the complete pipeline
+bun run pipeline CMS-2025-0050-0031
+
+# Start from a specific step (e.g., step 3 = discover-themes)
+bun run pipeline CMS-2025-0050-0031 --start-at 3
+
+# With options
+bun run pipeline CMS-2025-0050-0031 --limit-total-comment-load 100 --debug --start-at 2
+
+# With crash recovery (default: 10 max crashes)
+bun run pipeline CMS-2025-0050-0031 --max-crashes 20
+```
+
+**Crash Recovery**: The pipeline automatically retries from the failed step if it crashes (e.g., due to API errors). It will retry up to `--max-crashes` times (default: 10) before giving up. Each retry waits 5 seconds before restarting.
+
+Or run individual steps:
 ```bash
 # Load first 1000 comments
 bun run load CMS-2025-0050-0031 --limit 1000
@@ -173,8 +213,14 @@ bun run discover-themes CMS-2025-0050-0031
 # Extract entities
 bun run discover-entities CMS-2025-0050-0031
 
-# Analyze specific themes
-bun run score-themes CMS-2025-0050-0031 --themes 1.1,2.3,4.2
+# Score all themes
+bun run score-themes CMS-2025-0050-0031
+
+# Summarize themes
+bun run summarize-themes CMS-2025-0050-0031
+
+# Build website
+bun run build-website CMS-2025-0050-0031
 ```
 
 ### Debug Mode
@@ -245,6 +291,17 @@ This will:
 - Build a separate React dashboard for each regulation
 - Output to `dist/<regulation-id>/` directories
 - Create an index page at `dist/index.html` listing all dashboards
+
+### Dashboard Features
+The web dashboard provides:
+- **Interactive Theme Explorer**: Browse hierarchical theme structure with comment counts
+- **Entity Browser**: Explore discovered entities by category
+- **Comment Search**: Full-text search across all comments
+- **Copy for LLM**: Export data in LLM-friendly formats with customizable sections
+  - Theme hierarchies with summaries and comments
+  - Entity definitions with related comments
+  - Individual comments with selectable structured sections
+- **No CSV Export**: Removed CSV export functionality in favor of LLM-optimized copy features
 
 ### Build Single Dashboard
 Build dashboard for a specific regulation:

@@ -1,14 +1,15 @@
 import { useParams, Link } from 'react-router-dom'
-import { Tag, Download } from 'lucide-react'
+import { Tag, FileText } from 'lucide-react'
 import useStore from '../store/useStore'
 import CommentCard from './CommentCard'
-import { exportToCSV } from '../utils/helpers'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import Breadcrumbs from './Breadcrumbs'
+import CopyCommentsModal from './CopyCommentsModal'
 
 function EntityDetail() {
   const { category, label } = useParams<{ category: string; label: string }>()
   const { entities, getCommentsForEntity, themes } = useStore()
+  const [showCopyModal, setShowCopyModal] = useState(false)
   
   const entity = category && label && entities[category]?.find(e => e.label === label)
   const comments = category && label ? getCommentsForEntity(category, label) : []
@@ -48,9 +49,7 @@ function EntityDetail() {
     )
   }
   
-  const handleExport = () => {
-    exportToCSV(comments, `topic-${category}-${label}-comments.csv`)
-  }
+
   
   return (
     <div className="space-y-6">
@@ -92,11 +91,12 @@ function EntityDetail() {
             </div>
             
             <button
-              onClick={handleExport}
-              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+              onClick={() => setShowCopyModal(true)}
+              className="flex items-center space-x-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+              title="Copy entity and comments for LLM"
             >
-              <Download className="h-4 w-4" />
-              <span>Export CSV</span>
+              <FileText className="h-4 w-4" />
+              <span>Copy for LLM</span>
             </button>
           </div>
         </div>
@@ -145,6 +145,29 @@ function EntityDetail() {
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
           <p className="text-gray-500">No comments found mentioning this topic</p>
         </div>
+      )}
+      
+      {/* Copy Entity Modal */}
+      {entity && (
+        <CopyCommentsModal
+          isOpen={showCopyModal}
+          onClose={() => setShowCopyModal(false)}
+          title="Copy Entity for LLM"
+          leadInContent={`# Entity: ${entity.label}\n\n## Category: ${category}\n\n## Definition\n${entity.definition}${entity.terms.length > 1 ? '\n\n## Alternative Terms\n' + entity.terms.filter(t => t !== entity.label).map(t => `- ${t}`).join('\n') : ''}\n\n## Mention Count\n${comments.length} comments mention this entity`}
+          comments={comments}
+          commentSectionOptions={{
+            metadata: true,
+            oneLineSummary: true,
+            corePosition: true,
+            keyRecommendations: false,
+            mainConcerns: false,
+            notableExperiences: false,
+            keyQuotations: false,
+            detailedContent: false,
+            themes: false,
+            entities: false
+          }}
+        />
       )}
     </div>
   )
