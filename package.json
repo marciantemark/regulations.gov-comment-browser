@@ -1,36 +1,34 @@
 {
-  "name": "taxonomy-pipeline",
-  "version": "2.0.0",
-  "description": "Complete pipeline for analyzing public comments with theme taxonomy and position discovery",
+  "name": "regulations-comment-analysis",
+  "version": "3.0.0",
+  "description": "Analysis pipeline for public comments from regulations.gov",
   "type": "module",
+  "main": "src/cli.ts",
   "scripts": {
-    "// Core Pipeline": "",
-    "generate": "bun run taxonomy-pipeline.ts generate",
-    "setup-db": "bun run taxonomy-pipeline.ts setup-db",
-    "abstract": "bun run taxonomy-pipeline.ts abstract",
-    "// Position Analysis": "",
-    "discover-axes": "bun run axis-discovery.ts discover-axes",
-    "classify-positions": "bun run axis-discovery.ts classify-positions",
-    "// Combined Workflows": "",
-    "pipeline": "bun run generate ./comments && bun run setup-db && bun run abstract ./comments",
-    "full-pipeline": "bun run pipeline && bun run discover-axes && bun run classify-positions",
-    "// Database Operations": "",
-    "db:create": "sqlite3 ./output/abstractions.db < database-schema.sql",
-    "db:analyze": "sqlite3 ./output/abstractions.db < analysis-queries.sql",
-    "db:export": "sqlite3 -header -csv ./output/abstractions.db < analysis-queries.sql > ./output/analysis-results.csv",
-    "// Utilities": "",
-    "clean": "rm -rf ./output/*",
-    "validate": "bun run check-data"
+    "start": "bun run src/cli.ts",
+    "load": "bun run src/cli.ts load",
+    "condense": "bun run src/cli.ts condense",
+    "discover-themes": "bun run src/cli.ts discover-themes",
+    "score-themes": "bun run src/cli.ts score-themes",
+    "summarize-themes": "bun run src/cli.ts summarize-themes",
+    "discover-entities": "bun run src/cli.ts discover-entities",
+    "build-website": "bun run src/cli.ts build-website",
+    "pipeline": "bun run src/cli.ts pipeline",
+    "clean": "rm -rf dbs/* debug/*",
+    "typecheck": "bunx tsc --noEmit"
   },
   "dependencies": {
     "@google/genai": "^1.4.0",
-    "@types/bun": "^1.2.16",
     "commander": "^14.0.0",
-    "csv-parse": "^5.6.0"
+    "csv-parse": "^5.6.0",
+    "pdf-parse": "^1.1.1"
   },
   "devDependencies": {
+    "@types/bun": "^1.2.16",
     "@types/node": "^24.0.1",
-    "bun-types": "latest"
+    "@types/pdf-parse": "^1.1.5",
+    "bun-types": "latest",
+    "typescript": "^5.0.0"
   },
   "engines": {
     "bun": ">=1.0.0"

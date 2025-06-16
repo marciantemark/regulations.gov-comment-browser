@@ -1,96 +1,289 @@
-# Regulations.gov Comment Browser
+# Regulations.gov Comment Analysis Pipeline
 
-Explore and analyze public-comment data from U.S. federal rule-makings directly in your browser — no backend required.
+A modular pipeline for analyzing public comments from federal regulations using AI-powered theme and entity discovery.
 
----
+## Overview
 
-## ✨ What is this?
-A single-page React application that ships a compressed SQLite database (compiled to WASM) together with the JavaScript bundle.  Open `dist/index.html` in any modern browser and you can:
+This tool processes public comments to:
+1. **Load** comments from regulations.gov API or CSV bulk downloads
+2. **Condense** verbose comments into structured bullet-point summaries
+3. **Discover themes** - build a hierarchical taxonomy of topics discussed
+4. **Discover entities** - identify organizations, programs, and concepts mentioned
+5. **Score themes** - analyze stance alignment and generate narrative summaries per theme
 
-* Browse an AI-generated **theme hierarchy** of topics
-* Read **narrative summaries** that explain consensus, debate, and stakeholder dynamics
-* Dive into **stance heat-maps** showing how different stakeholder groups align
-* Inspect individual **perspectives** & jump to full comments
+## Installation
 
-All of this works **offline** once the bundle is built.
-
-<p align="center">
-  <em>Screenshot TODO</em>
-</p>
-
----
-
-## 🛠️ Developer guide
-
-### Requirements
-* [Bun](https://bun.sh/) ≥ 1.1 (provides the runtime, package manager, and bundler)
-* A recent Node / npm if you prefer, but Bun alone is sufficient
-
-### Install deps
 ```bash
+# Install Bun (if not already installed)
+curl -fsSL https://bun.sh/install | bash
+
+# Install dependencies
 bun install
 ```
 
-### Develop in watch-mode
+## Usage
+
+All commands follow the pattern:
 ```bash
-bun run dev        # serves dist/ on http://localhost:8080 & rebuilds on change
+bun run src/cli.ts <command> <document-id> [options]
 ```
-(The script uses `bun build --watch` plus a tiny static server.)
 
-### Build for production
+Or use the shorthand scripts:
 ```bash
-bun run build      # bundles TS/JS, minifies, runs Tailwind, copies DB → dist/
-```
-The output lives in `browser/dist/`.
-
-### Project structure
-```
-/                            project root
-├─ browser/                  React SPA
-│  ├─ src/
-│  │  ├─ pages/              route components (Home, ThemeDetail, StanceDetail…)
-│  │  ├─ components/         reusable UI (StancePivotMatrix, ThemeNarrative…)
-│  │  ├─ database/           sql.js provider + typed query helpers
-│  │  ├─ utils/              perf logging, misc helpers
-│  │  └─ styles/             Tailwind entry
-│  ├─ dist/                  production bundle (generated)
-│  └─ tailwind.config.js
-├─ database-schema.sql       full SQLite schema (executes in browser & Node)
-├─ theme-analysis.ts         CLI that calls Gemini to generate narrative/stances
-└─ README.md                 this file
+bun run <command> <document-id> [options]
 ```
 
-### Performance tracing
-We ship a lightweight helper in `utils/perf.ts` that logs timings to the browser console.  Wrap any hot path with:
-```ts
-import { measure } from "../utils/perf";
-const data = measure("expensive-query", () => db.exec(...));
-```
-Marks like `theme-detail-total` and `StancePivotMatrix build` are already in place.
+### 1. Load Comments
 
-### Regenerating the database / AI analysis
-1. **Collect comments** and insert into `output/abstractions.db` using your own ETL.
-2. Run the analysis script (requires a valid `GEMINI_API_KEY` env var):
-   ```bash
-   bun run theme-analysis           # processes all themes with ≥10 perspectives
-   bun run theme-analysis A.B C.D   # or pass specific theme codes
-   ```
-   * The script skips themes that already have both a narrative and ≥3 stances stored.
-   * Results are persisted to the same SQLite DB (`theme_narratives`, `theme_stances`, etc.).
-3. Re-build the browser bundle so the updated DB is copied into `dist/`.
-
-### Linting / type-checking
-We rely on TypeScript's compiler:
+Load from regulations.gov API:
 ```bash
-bunx tsc --noEmit
+bun run load CMS-2025-0050-0031 --limit 100
 ```
-(But CI or you can run it manually; the main dev workflow does not auto-run this each rebuild.)
 
-### Contributing
-Pull requests & issues are welcome!  Please:
-* Follow the existing coding style (Prettier defaults).
-* Keep the app self-contained without introducing runtime back-end dependencies.
-* Include screenshots or perf numbers when altering UI or heavy queries.
+Load from CSV file:
+```bash
+bun run load path/to/comments.csv --limit 500
+```
 
-### License
-MIT © 2024 – community contributions gladly accepted. 
+Options:
+- `--api-key <key>` - Regulations.gov API key (default: DEMO_KEY)
+- `--skip-attachments` - Don't download PDF attachments
+- `--limit <n>` - Stop after N comments
+- `--debug` - Save all API responses to debug/
+
+**PDF Text Extraction**: The system now automatically extracts text content from PDF attachments using `pdf-parse`, providing actual document content instead of placeholder messages.
+
+### 2. Condense Comments
+
+Generate condensed bullet-point versions:
+```bash
+bun run condense CMS-2025-0050-0031 --limit 100
+```
+
+Options:
+- `--limit <n>` - Process only N comments
+- `--retry-failed` - Retry previously failed comments
+- `--debug` - Save prompts and responses
+
+**Metadata Optimization**: The condensing process now uses streamlined metadata headers instead of redundant JSON blocks, improving prompt efficiency while maintaining essential context.
+
+### 3. Discover Themes
+
+Build hierarchical theme taxonomy:
+```bash
+bun run discover-themes CMS-2025-0050-0031
+```
+
+Options:
+- `--limit <n>` - Use only first N condensed comments
+- `--batch-limit <n>` - Word count to trigger batching (default: 200000)
+- `--batch-size <n>` - Target words per batch (default: 100000)
+- `--debug` - Save intermediate results
+
+**Simplified Architecture**: Theme discovery now works with plain text responses instead of complex JSON structures, improving reliability and reducing parsing errors. The system automatically extracts multiple quotes per theme with proper citation tracking.
+
+### 4. Discover Entities
+
+Extract named entities and build taxonomy:
+```bash
+bun run discover-entities CMS-2025-0050-0031
+```
+
+Options: Same as discover-themes
+
+### 5. Score Themes
+
+Generate stance analysis and narrative summaries per theme:
+```bash
+bun run score-themes CMS-2025-0050-0031 --themes 1.1,2.3
+```
+
+Options:
+- `--themes <list>` - Comma-separated theme IDs to analyze (e.g., "1.1,2.3,4.2")
+- `--debug` - Save prompts and responses
+
+**New Functionality**: Scores every comment against every theme in the hierarchy (1=directly addresses, 2=touches on, 3=does not address) with comprehensive validation to ensure complete coverage.
+
+## Architecture
+
+### Directory Structure
+```
+src/
+├── commands/          # CLI command implementations
+├── lib/              # Shared utilities (database, comment processing)
+├── prompts/          # AI prompt templates
+├── types/            # TypeScript type definitions
+└── cli.ts            # Main entry point
+
+dbs/                  # SQLite databases (one per document)
+debug/                # Debug outputs when --debug flag used
+```
+
+### Database Schema
+
+Each document gets its own SQLite database in `dbs/<document-id>.sqlite` containing:
+
+- `comments` - Raw comment data from regulations.gov
+- `attachments` - PDF and other attachments with extracted text content
+- `condensed_comments` - AI-generated summaries with progress tracking
+- `theme_batches` - Theme discovery results stored as plain text
+- `themes` - Parsed hierarchical theme structure with multiple quotes per theme
+- `entity_taxonomy` - Discovered entity categories
+- `comment_entities` - Entity annotations per comment
+- `comment_themes` - Complete scoring matrix (every comment vs every theme)
+- `theme_scoring_status` - Processing status and error tracking
+
+### Key Features
+
+1. **Progress Tracking** - All operations can be resumed if interrupted
+2. **Failure Handling** - Failed items tracked separately, retry with `--retry-failed`
+3. **Batching** - Automatic batching for large datasets (>200k words)
+4. **Debug Mode** - `--debug` flag saves all intermediate artifacts
+5. **Modular Design** - Each command is independent and can be run separately
+6. **Enhanced PDF Processing** - Automatic text extraction from PDF attachments
+7. **Multiple Quote Support** - Themes can reference multiple supporting quotes with proper citations
+8. **Complete Theme Scoring** - Every comment scored against every theme with validation
+
+### AI Processing Approach
+
+- **Narrative Output**: AI generates narrative/markdown responses for better quality
+- **Post-hoc Parsing**: Structured data is extracted from narratives after generation
+- **Smart Merging**: When batching is required, custom merge prompts reconcile different organizational schemes
+- **Single Task Focus**: Each prompt focuses on one task to maximize quality
+- **Simplified Data Structures**: Removed complex JSON wrappers in favor of direct text processing
+
+## Environment Variables
+
+- `GEMINI_API_KEY` - Required for AI features (condense, discover-themes, discover-entities, score-themes)
+- `REGSGOV_API_KEY` - For regulations.gov API (defaults to DEMO_KEY)
+
+## Examples
+
+### Full Pipeline
+```bash
+# Load first 1000 comments
+bun run load CMS-2025-0050-0031 --limit 1000
+
+# Condense all loaded comments
+bun run condense CMS-2025-0050-0031
+
+# Discover themes from condensed comments
+bun run discover-themes CMS-2025-0050-0031
+
+# Extract entities
+bun run discover-entities CMS-2025-0050-0031
+
+# Analyze specific themes
+bun run score-themes CMS-2025-0050-0031 --themes 1.1,2.3,4.2
+```
+
+### Debug Mode
+```bash
+# Run any command with --debug to save artifacts
+bun run condense CMS-2025-0050-0031 --limit 10 --debug
+
+# Check debug/ directory for:
+# - condense_<comment-id>_prompt.txt
+# - condense_<comment-id>_response.txt
+# - themes_<batch-id>_prompt.txt
+# - themes_<batch-id>_response.txt
+# - score_themes_<theme-id>_prompt.txt
+# - score_themes_<theme-id>_response.txt
+```
+
+### Incremental Processing
+```bash
+# Process in batches over multiple runs
+bun run load CMS-2025-0050-0031 --limit 100    # First 100
+bun run load CMS-2025-0050-0031 --limit 100    # Next 100 (201-300)
+
+# Retry failed condensing
+bun run condense CMS-2025-0050-0031 --retry-failed
+
+# Analyze themes incrementally
+bun run score-themes CMS-2025-0050-0031 --themes 1.1,1.2  # First batch
+bun run score-themes CMS-2025-0050-0031 --themes 2.1,2.2  # Second batch
+```
+
+## Recent Improvements
+
+### PDF Text Extraction
+- Fixed import issues with `pdf-parse` in Bun/ESM environments
+- Added proper TypeScript definitions for PDF parsing
+- Enhanced attachment processing to extract actual text content
+- Improved error handling for corrupted or unsupported PDF files
+
+### Theme Discovery Enhancements
+- Simplified data structures by removing unnecessary JSON wrappers
+- Improved quote extraction to support multiple citations per theme
+- Enhanced database schema to store quotes as structured JSON arrays
+- Streamlined parsing logic to reduce errors and improve reliability
+
+### Enhanced Theme Scoring Feature
+- Complete scoring matrix: every comment scored against every theme (1/2/3 scale)
+- Strict validation ensures no themes are skipped in LLM responses
+- Comprehensive error handling for incomplete or malformed JSON responses
+- Detailed progress reporting with score breakdowns (direct/touches/not-addressed)
+- Database schema supports all three score levels with proper constraints
+
+### Metadata Optimization
+- Removed redundant metadata blocks from AI prompts
+- Streamlined comment context while preserving essential information
+- Improved prompt efficiency and reduced token usage
+
+## Building Web Dashboards
+
+### Build All Dashboards
+Build separate dashboard instances for each regulation database:
+```bash
+./scripts/build-all-dashboards.sh
+```
+
+This will:
+- Find all SQLite databases in `dbs/`
+- Generate data files for each regulation using `build-website` command
+- Build a separate React dashboard for each regulation
+- Output to `dist/<regulation-id>/` directories
+- Create an index page at `dist/index.html` listing all dashboards
+
+### Build Single Dashboard
+Build dashboard for a specific regulation:
+```bash
+./scripts/build-single-dashboard.sh CMS-2025-0050-0031
+```
+
+### GitHub Actions
+The project includes a GitHub Actions workflow that automatically builds dashboards for all regulations on push to main:
+- Workflow: `.github/workflows/build-regulation-dashboards.yml`
+- Uploads built dashboards as artifacts
+- Optional: Can deploy to GitHub Pages
+
+### Serving Locally
+```bash
+cd dist
+python -m http.server 8000
+# Then visit http://localhost:8000
+```
+
+## Development
+
+### Type Checking
+```bash
+bun run typecheck
+```
+
+### Clean Databases
+```bash
+bun run clean  # Removes all dbs/* and debug/*
+```
+
+### Adding New Commands
+
+1. Create command file in `src/commands/`
+2. Import and register in `src/cli.ts`
+3. Add any new prompts to `src/prompts/`
+4. Update database schema if needed
+
+## License
+
+MIT
