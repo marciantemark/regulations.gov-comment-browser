@@ -55,10 +55,13 @@ function ThemeDetail() {
   
   return (
     <div className="space-y-6">
-      {/* Breadcrumbs */}
+      {/* Breadcrumbs with full theme hierarchy */}
       <Breadcrumbs items={[
         { label: 'Themes', path: '/themes' },
-        { label: theme.code }
+        ...themeHierarchy.map((t, index) => ({
+          label: `${t.code}${t.label ? `: ${t.label}` : ''}`,
+          path: index === themeHierarchy.length - 1 ? undefined : `/themes/${t.code}`
+        }))
       ]} />
       
       {/* Header */}
@@ -67,14 +70,16 @@ function ThemeDetail() {
           <div className="flex justify-between items-start">
             <div className="flex-1">
               <div className="flex items-center space-x-4 mb-2">
-                <h2 className="text-2xl font-bold text-gray-900">{theme.code}</h2>
+                <h2 className="text-2xl font-bold text-gray-900">
+                  {theme.code}
+                  {theme.label && (
+                    <span className="text-gray-700 font-medium ml-3">{theme.label}</span>
+                  )}
+                </h2>
                 <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
                   {theme.direct_count} {theme.direct_count === 1 ? 'comment' : 'comments'}
                 </span>
               </div>
-              {theme.label && (
-                <h3 className="text-lg font-medium text-gray-700 mb-3">{theme.label}</h3>
-              )}
               {theme.detailedDescription && (
                 <div className="bg-blue-50 border-l-4 border-blue-200 pl-4 py-3 rounded-r-lg">
                   <p className="text-gray-700 text-sm leading-relaxed italic">
@@ -112,32 +117,6 @@ function ThemeDetail() {
           </div>
         </div>
       </div>
-      
-      {/* Theme Hierarchy */}
-      {themeHierarchy.length > 1 && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h3 className="text-sm font-medium text-gray-700 mb-3">Theme Hierarchy</h3>
-          <div className="flex items-center flex-wrap text-sm">
-            {themeHierarchy.map((t, index) => (
-              <div key={t.code} className="flex items-center">
-                {index > 0 && <ChevronRight className="h-4 w-4 text-gray-400 mx-1" />}
-                {index === themeHierarchy.length - 1 ? (
-                  <span className="font-medium text-gray-900">
-                    {t.code}: {t.label || t.description}
-                  </span>
-                ) : (
-                  <Link 
-                    to={`/themes/${t.code}`}
-                    className="text-blue-600 hover:text-blue-800 hover:underline"
-                  >
-                    {t.code}: {t.label || t.description}
-                  </Link>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
       
       {/* Theme Summary Analysis */}
       {themeSummary ? (
