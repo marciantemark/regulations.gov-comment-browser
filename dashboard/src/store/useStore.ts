@@ -109,12 +109,28 @@ const useStore = create<StoreState>((set, get) => ({
       // Determine the organization category by sampling
       const orgCategory = determineOrganizationCategory(themeSummaries, entities)
       
+      // Compute wordCount for each comment (use .wordCount if present, else fallback)
+      const getWordCount = (c: any): number => {
+        if (typeof c.wordCount === 'number' && !isNaN(c.wordCount)) return c.wordCount
+        const sections = c.structuredSections || {}
+        const text = Object.values(sections).filter(Boolean).join(' ')
+        return text.trim() === '' ? 0 : text.trim().split(/\s+/).length
+      }
+      const wordCounts = comments.map(getWordCount)
+      const sortedCounts = [...wordCounts].sort((a, b) => a - b)
+      const commentsWithCounts = comments.map((c, i) => {
+        const wc = getWordCount(c)
+        const rank = sortedCounts.findIndex(x => x === wc)
+        const percentile = sortedCounts.length > 1 ? Math.round((rank / (sortedCounts.length - 1)) * 100) : 100
+        return { ...c, wordCount: wc, percentile }
+      })
+      
       set({
         meta,
         themes: parsedThemes,
         themeSummaries,
         entities,
-        comments,
+        comments: commentsWithCounts,
         themeIndex,
         entityIndex,
         organizationCategory: orgCategory,

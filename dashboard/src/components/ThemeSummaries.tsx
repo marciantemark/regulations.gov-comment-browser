@@ -1,12 +1,12 @@
 import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { FileText, Search, TrendingUp, AlertCircle, CheckCircle } from 'lucide-react'
+import { FileText, Search, TrendingUp, AlertCircle, CheckCircle, ListOrdered, MessageSquare, Quote } from 'lucide-react'
 import useStore from '../store/useStore'
 
 function ThemeSummaries() {
   const { themes, themeSummaries } = useStore()
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState<'all' | 'consensus' | 'debate' | 'insights'>('all')
+  const [sortBy, setSortBy] = useState<'theme' | 'comments' | 'consensus' | 'debate' | 'insights' | 'quotes'>('comments')
   
   // Get themes that have summaries
   const themesWithSummaries = useMemo(() => {
@@ -18,11 +18,9 @@ function ThemeSummaries() {
       .sort((a, b) => b.summary.commentCount - a.summary.commentCount)
   }, [themes, themeSummaries])
   
-  // Filter themes based on search and category
+  // Filter and sort themes
   const filteredThemes = useMemo(() => {
     let filtered = themesWithSummaries
-    
-    // Apply search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase()
       filtered = filtered.filter(theme => 
@@ -32,33 +30,29 @@ function ThemeSummaries() {
         theme.summary.sections.executiveSummary?.toLowerCase().includes(query)
       )
     }
-    
-    // Apply category filter
-    if (selectedCategory !== 'all') {
-      filtered = filtered.filter(theme => {
-        const { sections } = theme.summary
-        switch (selectedCategory) {
-          case 'consensus':
-            return sections.consensusPoints && sections.consensusPoints.length > 0
-          case 'debate':
-            return sections.areasOfDebate && sections.areasOfDebate.length > 0
-          case 'insights':
-            return sections.noteworthyInsights && sections.noteworthyInsights.length > 0
-          default:
-            return true
-        }
-      })
-    }
-    
+    // Sort
+    filtered = [...filtered].sort((a, b) => {
+      const sa = a.summary.sections
+      const sb = b.summary.sections
+      switch (sortBy) {
+        case 'theme':
+          return a.code.localeCompare(b.code)
+        case 'comments':
+          return b.summary.commentCount - a.summary.commentCount
+        case 'consensus':
+          return (sb.consensusPoints?.length || 0) - (sa.consensusPoints?.length || 0)
+        case 'debate':
+          return (sb.areasOfDebate?.length || 0) - (sa.areasOfDebate?.length || 0)
+        case 'insights':
+          return (sb.noteworthyInsights?.length || 0) - (sa.noteworthyInsights?.length || 0)
+        case 'quotes':
+          return (sb.keyQuotations?.length || 0) - (sa.keyQuotations?.length || 0)
+        default:
+          return 0
+      }
+    })
     return filtered
-  }, [themesWithSummaries, searchQuery, selectedCategory])
-  
-  const categories = [
-    { id: 'all', label: 'All Summaries', icon: FileText, color: 'gray' },
-    { id: 'consensus', label: 'With Consensus', icon: CheckCircle, color: 'green' },
-    { id: 'debate', label: 'With Debates', icon: AlertCircle, color: 'red' },
-    { id: 'insights', label: 'With Insights', icon: TrendingUp, color: 'amber' }
-  ]
+  }, [themesWithSummaries, searchQuery, sortBy])
   
   return (
     <div className="space-y-6">
@@ -77,7 +71,56 @@ function ThemeSummaries() {
       
       {/* Filters */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-        <div className="flex flex-col md:flex-row gap-4">
+        <div className="flex flex-col md:flex-row gap-4 items-end">
+          {/* Sort By */}
+          <div className="flex items-center space-x-2">
+            <ListOrdered className="h-4 w-4 text-gray-500" />
+            <label className="text-xs font-medium text-gray-700">Sort by</label>
+            <div className="flex space-x-1">
+              <button
+                className={`flex items-center space-x-1 px-3 py-1.5 rounded-md border text-xs font-medium transition-colors ${sortBy === 'comments' ? 'bg-purple-100 text-purple-800 border-purple-300' : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'}`}
+                onClick={() => setSortBy('comments')}
+                title="Sort by # Comments"
+              >
+                <MessageSquare className="h-3 w-3" /> <span># Comments</span>
+              </button>
+              <button
+                className={`flex items-center space-x-1 px-3 py-1.5 rounded-md border text-xs font-medium transition-colors ${sortBy === 'theme' ? 'bg-purple-100 text-purple-800 border-purple-300' : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'}`}
+                onClick={() => setSortBy('theme')}
+                title="Sort by Theme Code"
+              >
+                <ListOrdered className="h-3 w-3" /> <span>Theme Code</span>
+              </button>
+              <button
+                className={`flex items-center space-x-1 px-3 py-1.5 rounded-md border text-xs font-medium transition-colors ${sortBy === 'consensus' ? 'bg-green-100 text-green-800 border-green-300' : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'}`}
+                onClick={() => setSortBy('consensus')}
+                title="Sort by # Consensus Points"
+              >
+                <CheckCircle className="h-3 w-3" /> <span># Consensus</span>
+              </button>
+              <button
+                className={`flex items-center space-x-1 px-3 py-1.5 rounded-md border text-xs font-medium transition-colors ${sortBy === 'debate' ? 'bg-red-100 text-red-800 border-red-300' : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'}`}
+                onClick={() => setSortBy('debate')}
+                title="Sort by # Debate Points"
+              >
+                <AlertCircle className="h-3 w-3" /> <span># Debate</span>
+              </button>
+              <button
+                className={`flex items-center space-x-1 px-3 py-1.5 rounded-md border text-xs font-medium transition-colors ${sortBy === 'insights' ? 'bg-amber-100 text-amber-800 border-amber-300' : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'}`}
+                onClick={() => setSortBy('insights')}
+                title="Sort by # Insights"
+              >
+                <TrendingUp className="h-3 w-3" /> <span># Insights</span>
+              </button>
+              <button
+                className={`flex items-center space-x-1 px-3 py-1.5 rounded-md border text-xs font-medium transition-colors ${sortBy === 'quotes' ? 'bg-blue-100 text-blue-800 border-blue-300' : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'}`}
+                onClick={() => setSortBy('quotes')}
+                title="Sort by # Quotes"
+              >
+                <Quote className="h-3 w-3" /> <span># Quotes</span>
+              </button>
+            </div>
+          </div>
           {/* Search */}
           <div className="flex-1">
             <div className="relative">
@@ -90,28 +133,6 @@ function ThemeSummaries() {
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
             </div>
-          </div>
-          
-          {/* Category Filter */}
-          <div className="flex gap-2">
-            {categories.map(cat => {
-              const Icon = cat.icon
-              const isActive = selectedCategory === cat.id
-              return (
-                <button
-                  key={cat.id}
-                  onClick={() => setSelectedCategory(cat.id as any)}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
-                    isActive
-                      ? `bg-${cat.color}-100 text-${cat.color}-800 border-${cat.color}-300`
-                      : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-                  } border`}
-                >
-                  <Icon className="h-4 w-4" />
-                  <span className="text-sm font-medium">{cat.label}</span>
-                </button>
-              )
-            })}
           </div>
         </div>
       </div>
@@ -150,7 +171,7 @@ function ThemeSummaries() {
                   </p>
                 )}
                 
-                {/* Key Highlights */}
+                {/* Key Highlights restored */}
                 <div className="space-y-3">
                   {hasConsensus && (
                     <div className="flex items-start space-x-2">
@@ -165,7 +186,6 @@ function ThemeSummaries() {
                       </div>
                     </div>
                   )}
-                  
                   {hasDebate && (
                     <div className="flex items-start space-x-2">
                       <AlertCircle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
@@ -179,7 +199,6 @@ function ThemeSummaries() {
                       </div>
                     </div>
                   )}
-                  
                   {hasInsights && (
                     <div className="flex items-start space-x-2">
                       <TrendingUp className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />

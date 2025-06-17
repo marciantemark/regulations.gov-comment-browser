@@ -39,8 +39,8 @@ function CommentCard({
   showThemes = true, 
   showEntities = true, 
   clickable = true,
-  wordCount,
-  percentile,
+  wordCount = comment.wordCount,
+  percentile = comment.percentile,
   sections = defaultSections 
 }: CommentCardProps) {
   const navigate = useNavigate()
@@ -101,7 +101,7 @@ function CommentCard({
             <span className="text-xs font-mono text-gray-500 bg-gray-200 px-2 py-1 rounded" title="Comment ID">
               #{comment.id}
             </span>
-            {wordCount && (
+            {typeof wordCount === 'number' && !isNaN(wordCount) && (
               <div className="flex flex-col items-end space-y-0.5" title={`${wordCount.toLocaleString()} words · ${percentile ?? 0}th percentile`}>
                 <span className="text-[10px] leading-none text-gray-600">{wordCount.toLocaleString()} words</span>
                 {percentile !== undefined && (

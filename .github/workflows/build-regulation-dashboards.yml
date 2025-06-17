@@ -72,30 +72,34 @@ jobs:
               continue
             fi
           
-          # Extract regulation ID from filename
-          regulation_id=$(basename "$db_file" .sqlite)
+            # Print SHA256 hash for traceability
+            echo "SHA256 for $db_file:"
+            sha256sum "$db_file"
           
-          echo "Building dashboard for $regulation_id..."
+            # Extract regulation ID from filename
+            regulation_id=$(basename "$db_file" .sqlite)
           
-          # Generate data files for this regulation
-          bun run src/cli.ts build-website "$regulation_id" --output "temp-data"
+            echo "Building dashboard for $regulation_id..."
           
-          # Copy data to dashboard public directory
-          rm -rf dashboard/public/data
-          cp -r temp-data dashboard/public/data
+            # Generate data files for this regulation
+            bun run src/cli.ts build-website "$regulation_id" --output "temp-data"
           
-          # Build the dashboard
-          cd dashboard
-          bun run build
-          cd ..
+            # Copy data to dashboard public directory
+            rm -rf dashboard/public/data
+            cp -r temp-data dashboard/public/data
           
-          # Copy built dashboard to dist directory
-          mkdir -p "dist/$regulation_id"
-          cp -r dashboard/dist/* "dist/$regulation_id/"
+            # Build the dashboard
+            cd dashboard
+            bun run build
+            cd ..
           
-          # Clean up temp data
-          rm -rf temp-data
-        done
+            # Copy built dashboard to dist directory
+            mkdir -p "dist/$regulation_id"
+            cp -r dashboard/dist/* "dist/$regulation_id/"
+          
+            # Clean up temp data
+            rm -rf temp-data
+          done
         
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
