@@ -49,11 +49,7 @@ function ThemeDetail() {
   const wordCounts = displayedComments.map(getWordCount)
   const sortedCounts = [...wordCounts].sort((a,b)=>a-b)
   
-  const maxWordCount = displayedComments.reduce((max, c) => {
-    const wc = getWordCount(c)
-    return wc > max ? wc : max
-  }, 0)
-  
+ 
   if (!theme) {
     return (
       <div className="p-8">
