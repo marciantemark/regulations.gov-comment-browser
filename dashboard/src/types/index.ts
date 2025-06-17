@@ -114,6 +114,7 @@ export interface Comment {
   }>
   hasAttachments: boolean
   documentId?: string
+  wordCount?: number
 }
 
 export interface ThemeIndex {

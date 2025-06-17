@@ -145,6 +145,7 @@ async function exportAllComments(db: any, outputDir: string, documentId: string)
       c.id,
       c.attributes_json,
       cc.structured_sections,
+      cc.word_count,
       GROUP_CONCAT(DISTINCT ct.theme_code || ':' || ct.score) as theme_scores,
       GROUP_CONCAT(DISTINCT ce.category || '|' || ce.entity_label) as entities,
       COUNT(DISTINCT a.id) as attachment_count
@@ -184,6 +185,8 @@ async function exportAllComments(db: any, outputDir: string, documentId: string)
       }
     }
     
+    const wordCount = c.word_count ?? null
+
     // Parse structured sections if available
     let structuredSections = null;
     if (c.structured_sections) {
@@ -204,7 +207,8 @@ async function exportAllComments(db: any, outputDir: string, documentId: string)
       structuredSections,
       themeScores,
       entities,
-      hasAttachments: c.attachment_count > 0
+      hasAttachments: c.attachment_count > 0,
+      wordCount,
     };
   });
   

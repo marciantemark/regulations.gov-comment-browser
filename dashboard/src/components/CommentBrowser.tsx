@@ -202,7 +202,7 @@ function CommentBrowser() {
       <div className="space-y-4">
         {paginatedComments.length > 0 ? (
           paginatedComments.map(comment => (
-            <CommentCard key={comment.id} comment={comment} />
+            <CommentCard key={comment.id} comment={comment} showThemes={false} showEntities={false} />
           ))
         ) : (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">

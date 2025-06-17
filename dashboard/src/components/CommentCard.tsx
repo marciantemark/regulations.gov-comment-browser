@@ -13,6 +13,8 @@ interface CommentCardProps {
   showThemes?: boolean
   showEntities?: boolean
   clickable?: boolean
+  wordCount?: number
+  percentile?: number
   sections?: {
     oneLineSummary?: boolean
     corePosition?: boolean
@@ -37,6 +39,8 @@ function CommentCard({
   showThemes = true, 
   showEntities = true, 
   clickable = true,
+  wordCount,
+  percentile,
   sections = defaultSections 
 }: CommentCardProps) {
   const navigate = useNavigate()
@@ -93,9 +97,20 @@ function CommentCard({
           </div>
           
           <div className="flex items-center space-x-3">
-            <span className="text-xs font-mono text-gray-500 bg-gray-200 px-2 py-1 rounded">
+            {/* ID */}
+            <span className="text-xs font-mono text-gray-500 bg-gray-200 px-2 py-1 rounded" title="Comment ID">
               #{comment.id}
             </span>
+            {wordCount !== undefined && (
+              <div className="flex flex-col items-end space-y-0.5" title={`${wordCount.toLocaleString()} words · ${percentile ?? 0}th percentile`}>
+                <span className="text-[10px] leading-none text-gray-600">{wordCount.toLocaleString()} words</span>
+                {percentile !== undefined && (
+                  <div className="w-16 h-1 bg-gray-200 rounded overflow-hidden">
+                    <div className="bg-blue-500 h-full" style={{ width: `${percentile}%` }} />
+                  </div>
+                )}
+              </div>
+            )}
             <button
               onClick={(e) => {
                 e.stopPropagation()

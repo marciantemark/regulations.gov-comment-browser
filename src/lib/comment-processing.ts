@@ -5,7 +5,7 @@ import { countWords } from "./batch-processor";
 // that attempts to read a non-existent fixture file when the module has no parent
 // (the case for Bun + ESM). Instead, import the actual implementation directly.
 // @ts-ignore – sub-path has no typings, but runtime API is identical.
-import pdfParse from "pdf-parse/lib/pdf-parse.js";
+import { PDFExtract } from 'pdf.js-extract';
 
 // Load comments and attachments from database
 export function loadComments(db: Database, limit?: number): {
@@ -124,8 +124,7 @@ export async function enrichComment(
       
       for (const pdf of pdfAttachments) {
         try {
-          const pdfData = await pdfParse(Buffer.from(pdf.blob_data!));
-          const extractedText = (pdfData.text as string).trim();
+          const extractedText = (await extractPdfText(Buffer.from(pdf.blob_data!))).trim();
           if (extractedText.length > 0) {
             parts.push(`\nPDF: ${pdf.file_name}`);
             parts.push(extractedText);
@@ -275,4 +274,18 @@ export function parseEntityTaxonomy(text: string): Record<string, Array<{
   }
   
   return result;
+}
+
+async function extractPdfText(buffer: Buffer | Uint8Array): Promise<string> {
+  const pdfExtract = new PDFExtract();
+  const options = { normalizeWhitespace: true, disableCombineTextItems: false };
+  return new Promise((resolve, reject) => {
+    pdfExtract.extractBuffer(buffer, options, (err, data) => {
+      if (err) return reject(err);
+      const allText = data.pages
+        .map(page => page.content.map(item => item.str).join(' '))
+        .join('\n\n');
+      resolve(allText);
+    });
+  });
 }

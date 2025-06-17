@@ -199,6 +199,17 @@ function runMigrations(db: Database) {
   } catch (e) {
     console.warn("Migration 5 warning:", e);
   }
+  
+  // Migration 6: Add word_count to condensed_comments
+  try {
+    db.prepare("SELECT word_count FROM condensed_comments LIMIT 1").get();
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("no such column")) {
+      console.log("🔄 Adding word_count column to condensed_comments...");
+      db.exec("ALTER TABLE condensed_comments ADD COLUMN word_count INTEGER");
+      console.log("✅ Added word_count column");
+    }
+  }
 }
 
 export function initSchema(db: Database) {

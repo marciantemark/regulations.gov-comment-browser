@@ -69,10 +69,11 @@ async function condenseComments(documentId: string, options: any) {
   
   // Prepare statements
   const insertCondensed = db.prepare(`
-    INSERT INTO condensed_comments (comment_id, structured_sections, status)
-    VALUES (?, ?, 'completed')
+    INSERT INTO condensed_comments (comment_id, structured_sections, word_count, status)
+    VALUES (?, ?, ?, 'completed')
     ON CONFLICT(comment_id) DO UPDATE SET 
       structured_sections = excluded.structured_sections,
+      word_count = excluded.word_count,
       status = 'completed',
       error_message = NULL,
       last_attempt_at = CURRENT_TIMESTAMP
@@ -145,7 +146,8 @@ async function condenseComments(documentId: string, options: any) {
         // Don't add the full response as detailedContent - it's already parsed from the response
         insertCondensed.run(
           comment.id, 
-          JSON.stringify(sections)
+          JSON.stringify(sections),
+          enriched.content.trim().split(/\s+/).length
         );
       });
       

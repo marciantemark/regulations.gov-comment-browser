@@ -5,7 +5,7 @@ import clsx from 'clsx'
 const navItems = [
   { id: 'overview', label: 'Overview', icon: Home, path: '/overview' },
   { id: 'themes', label: 'Themes', icon: BarChart3, path: '/themes' },
-  { id: 'summaries', label: 'Summaries', icon: FileText, path: '/summaries' },
+  { id: 'summaries', label: 'Theme Summaries', icon: FileText, path: '/summaries' },
   { id: 'entities', label: 'Topics', icon: Tag, path: '/entities' },
   { id: 'comments', label: 'Comments', icon: MessageSquare, path: '/comments' }
 ]
