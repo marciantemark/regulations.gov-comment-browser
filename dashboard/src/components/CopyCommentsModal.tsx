@@ -340,8 +340,8 @@ function CopyCommentsModal({
       />
       
       {/* Modal content */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={(e) => e.stopPropagation()}>
-        <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
+        <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] overflow-hidden" onClick={(e)=>e.stopPropagation()}>
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-gray-200">
             <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
@@ -381,7 +381,6 @@ function CopyCommentsModal({
                     {themeSummary.sections.executiveSummary && (
                       <label 
                         className="flex items-center space-x-3 cursor-pointer"
-                        onClick={(e) => e.stopPropagation()}
                       >
                         <input
                           type="checkbox"
@@ -396,7 +395,6 @@ function CopyCommentsModal({
                     {themeSummary.sections.consensusPoints && (
                       <label 
                         className="flex items-center space-x-3 cursor-pointer"
-                        onClick={(e) => e.stopPropagation()}
                       >
                         <input
                           type="checkbox"
@@ -411,7 +409,6 @@ function CopyCommentsModal({
                     {themeSummary.sections.areasOfDebate && (
                       <label 
                         className="flex items-center space-x-3 cursor-pointer"
-                        onClick={(e) => e.stopPropagation()}
                       >
                         <input
                           type="checkbox"
@@ -426,7 +423,6 @@ function CopyCommentsModal({
                     {themeSummary.sections.stakeholderPerspectives && (
                       <label 
                         className="flex items-center space-x-3 cursor-pointer"
-                        onClick={(e) => e.stopPropagation()}
                       >
                         <input
                           type="checkbox"
@@ -441,7 +437,6 @@ function CopyCommentsModal({
                     {themeSummary.sections.noteworthyInsights && (
                       <label 
                         className="flex items-center space-x-3 cursor-pointer"
-                        onClick={(e) => e.stopPropagation()}
                       >
                         <input
                           type="checkbox"
@@ -456,7 +451,6 @@ function CopyCommentsModal({
                     {themeSummary.sections.emergingPatterns && (
                       <label 
                         className="flex items-center space-x-3 cursor-pointer"
-                        onClick={(e) => e.stopPropagation()}
                       >
                         <input
                           type="checkbox"
@@ -471,7 +465,6 @@ function CopyCommentsModal({
                     {themeSummary.sections.keyQuotations && (
                       <label 
                         className="flex items-center space-x-3 cursor-pointer"
-                        onClick={(e) => e.stopPropagation()}
                       >
                         <input
                           type="checkbox"
@@ -486,7 +479,6 @@ function CopyCommentsModal({
                     {themeSummary.sections.analyticalNotes && (
                       <label 
                         className="flex items-center space-x-3 cursor-pointer"
-                        onClick={(e) => e.stopPropagation()}
                       >
                         <input
                           type="checkbox"
@@ -518,7 +510,6 @@ function CopyCommentsModal({
                 <div className="space-y-2">
                   <label 
                     className="flex items-center space-x-3 cursor-pointer"
-                    onClick={(e) => e.stopPropagation()}
                   >
                     <input
                       type="checkbox"
@@ -531,7 +522,6 @@ function CopyCommentsModal({
                   
                   <label 
                     className="flex items-center space-x-3 cursor-pointer"
-                    onClick={(e) => e.stopPropagation()}
                   >
                     <input
                       type="checkbox"
@@ -544,7 +534,6 @@ function CopyCommentsModal({
                   
                   <label 
                     className="flex items-center space-x-3 cursor-pointer"
-                    onClick={(e) => e.stopPropagation()}
                   >
                     <input
                       type="checkbox"
@@ -557,7 +546,6 @@ function CopyCommentsModal({
                   
                   <label 
                     className="flex items-center space-x-3 cursor-pointer"
-                    onClick={(e) => e.stopPropagation()}
                   >
                     <input
                       type="checkbox"
@@ -570,7 +558,6 @@ function CopyCommentsModal({
                   
                   <label 
                     className="flex items-center space-x-3 cursor-pointer"
-                    onClick={(e) => e.stopPropagation()}
                   >
                     <input
                       type="checkbox"
@@ -583,7 +570,6 @@ function CopyCommentsModal({
                   
                   <label 
                     className="flex items-center space-x-3 cursor-pointer"
-                    onClick={(e) => e.stopPropagation()}
                   >
                     <input
                       type="checkbox"
@@ -596,7 +582,6 @@ function CopyCommentsModal({
                   
                   <label 
                     className="flex items-center space-x-3 cursor-pointer"
-                    onClick={(e) => e.stopPropagation()}
                   >
                     <input
                       type="checkbox"
@@ -609,7 +594,6 @@ function CopyCommentsModal({
                   
                   <label 
                     className="flex items-center space-x-3 cursor-pointer"
-                    onClick={(e) => e.stopPropagation()}
                   >
                     <input
                       type="checkbox"
@@ -622,7 +606,6 @@ function CopyCommentsModal({
                   
                   <label 
                     className="flex items-center space-x-3 cursor-pointer"
-                    onClick={(e) => e.stopPropagation()}
                   >
                     <input
                       type="checkbox"
@@ -635,7 +618,6 @@ function CopyCommentsModal({
                   
                   <label 
                     className="flex items-center space-x-3 cursor-pointer"
-                    onClick={(e) => e.stopPropagation()}
                   >
                     <input
                       type="checkbox"

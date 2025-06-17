@@ -137,7 +137,12 @@ function EntityDetail() {
           </h2>
           <div className="space-y-4">
             {comments.map(comment => (
-              <CommentCard key={comment.id} comment={comment} />
+              <CommentCard 
+                key={comment.id} 
+                comment={comment} 
+                showThemes={false} 
+                showEntities={false} 
+              />
             ))}
           </div>
         </div>

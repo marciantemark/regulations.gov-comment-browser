@@ -234,11 +234,6 @@ function CommentDetailView({ comment }: CommentDetailViewProps) {
                 <div className="prose prose-sm max-w-none pl-4 border-l-2 border-slate-200">
                   <ReactMarkdown 
                     remarkPlugins={[remarkGfm]}
-                    components={{
-                      ul: ({children}) => <ul className="list-disc list-inside space-y-1 ml-4">{children}</ul>,
-                      ol: ({children}) => <ol className="list-decimal list-inside space-y-1 ml-4">{children}</ol>,
-                      li: ({children}) => <li className="text-gray-800">{children}</li>,
-                    }}
                   >
                     {comment.structuredSections.detailedContent}
                   </ReactMarkdown>
