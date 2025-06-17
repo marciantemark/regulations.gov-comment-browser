@@ -1,8 +1,9 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Filter, MessageSquare } from 'lucide-react'
+import { Filter, MessageSquare, Copy } from 'lucide-react'
 import useStore from '../store/useStore'
 import CommentCard from './CommentCard'
+import CopyCommentsModal from './CopyCommentsModal'
 import { getUniqueValues } from '../utils/helpers'
 
 function CommentBrowser() {
@@ -10,6 +11,7 @@ function CommentBrowser() {
   const [searchParams] = useSearchParams()
   const [page, setPage] = useState(0)
   const [showFilters, setShowFilters] = useState(true)
+  const [showCopyModal, setShowCopyModal] = useState(false)
   const ITEMS_PER_PAGE = 20
   
   // Apply URL query parameters to filters on mount
@@ -81,6 +83,8 @@ function CommentBrowser() {
     (page + 1) * ITEMS_PER_PAGE
   )
   
+  const commentsToCopy = filteredComments
+
   const handleFilterChange = (type: keyof typeof filters, value: any) => {
     setFilters({ ...filters, [type]: value })
     setPage(0) // Reset to first page when filters change
@@ -102,14 +106,22 @@ function CommentBrowser() {
               </p>
             </div>
           </div>
-          
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center space-x-2 px-4 py-2 border rounded-lg hover:bg-gray-50"
-          >
-            <Filter className="h-4 w-4" />
-            <span>{showFilters ? 'Hide' : 'Show'} Filters</span>
-          </button>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => setShowCopyModal(true)}
+              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <Copy className="h-4 w-4" />
+              <span>Copy for LLM</span>
+            </button>
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="flex items-center space-x-2 px-4 py-2 border rounded-lg hover:bg-gray-50"
+            >
+              <Filter className="h-4 w-4" />
+              <span>{showFilters ? 'Hide' : 'Show'} Filters</span>
+            </button>
+          </div>
         </div>
       </div>
       
@@ -235,8 +247,16 @@ function CommentBrowser() {
           </button>
         </div>
       )}
+      
+      {/* Copy Modal */}
+      <CopyCommentsModal
+        isOpen={showCopyModal}
+        onClose={() => setShowCopyModal(false)}
+        title={`Copy ${commentsToCopy.length} Comments for LLM`}
+        comments={commentsToCopy}
+      />
     </div>
   )
 }
 
-export default CommentBrowser 
+export default CommentBrowser

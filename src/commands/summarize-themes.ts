@@ -138,7 +138,9 @@ async function summarizeThemes(documentId: string, options: any) {
       if (totalWords <= batchOptions.totalWordLimit) {
         // Single batch
         console.log(`   Processing as single batch`);
-        finalSummaryText = await generateThemeSummary(ai, theme, comments, options.debug);
+        finalSummaryText = await generateThemeSummary(
+          ai, theme, comments, options.debug, 1, 1
+        );
       } else {
         // Multiple batches needed
         console.log(`   Large theme - using batching`);
@@ -152,9 +154,14 @@ async function summarizeThemes(documentId: string, options: any) {
       const structurePrompt = THEME_SUMMARY_STRUCTURE_PROMPT
         .replace('{THEME_ANALYSIS}', finalSummaryText);
       
+      await debugSave(
+        `theme_summary_structured_${theme.code}_final_prompt.txt`, 
+        structurePrompt
+      );
+
       const structuredResponse = await ai.generateContent(
         structurePrompt,
-        options.debug ? `theme_summary_structured_${theme.code}_final` : undefined
+        options.debug ? `theme_summary_structured_${theme.code}_final_response` : undefined
       );
       
       let finalSections: any;
@@ -204,7 +211,9 @@ async function generateThemeSummary(
   ai: AIClient,
   theme: { code: string; description: string },
   comments: any[],
-  debug: boolean
+  debug: boolean,
+  batchNum?: number,
+  totalBatches?: number
 ): Promise<string> {
   // Build comment blocks with relevant structured sections
   const commentBlocks = comments.map(c => {
@@ -246,9 +255,13 @@ async function generateThemeSummary(
     .replace('{THEME_DESCRIPTION}', theme.description)
     .replace('{COMMENTS}', commentBlocks);
   
+  const debugId = batchNum 
+    ? `theme_summary_${theme.code}_batch_${batchNum}-of-${totalBatches}` 
+    : `theme_summary_${theme.code}`;
+
   const response = await ai.generateContent(
     prompt,
-    debug ? `theme_summary_${theme.code}` : undefined
+    debug ? debugId : undefined
   );
   
   return response;
@@ -276,68 +289,41 @@ async function processThemeInBatches(
     
     return {
       ...c,
-      content: relevantText,
       wordCount: relevantText.split(/\s+/).length
     };
   });
   
-  // Create batches
-  const batches = createEvenBatches(items, batchOptions);
-  console.log(`   Created ${batches.length} batches for processing`);
+  // Create batches based on word count
+  const batches = createEvenBatches(items, {
+    batchWordLimit: batchOptions.batchWordLimit,
+  });
   
-  const batchStmt = db.prepare(`
-    INSERT INTO theme_summary_batches (
-      theme_code, batch_number, word_count, comment_count, structured_sections
-    )
-    VALUES (?, ?, ?, ?, ?)
-  `);
+  console.log(`   Split into ${batches.length} batches`);
   
-  // Process each batch
-  const batchSummaries: string[] = [];
+  const summaries: string[] = [];
   
   for (let i = 0; i < batches.length; i++) {
     const batch = batches[i];
-    console.log(`   Processing batch ${batch.number}/${batches.length} (${batch.items.length} comments)`);
-    
-    const summaryText = await generateThemeSummary(
-      ai,
-      theme,
-      batch.items,
-      debug
-    );
-    
-    // Save batch result as text
-    withTransaction(db, () => {
-      batchStmt.run(
-        theme.code,
-        batch.number,
-        batch.wordCount,
-        batch.items.length,
-        summaryText  // Store as plain text, not JSON
+    console.log(`   Processing batch ${i + 1}/${batches.length} (${batch.items.length} comments)`);
+    const summary = await generateThemeSummary(ai, theme, batch.items, debug, i + 1, batches.length);
+    summaries.push(summary);
+  }
+  
+  // Merge summaries
+  let currentSummary = summaries[0];
+  if (summaries.length > 1) {
+    for (let i = 1; i < summaries.length; i++) {
+      console.log(`   Merging batch ${i + 1} into main summary`);
+      const mergePrompt = THEME_SUMMARY_MERGE_PROMPT
+        .replace('{SUMMARY1}', currentSummary)
+        .replace('{SUMMARY2}', summaries[i]);
+      
+      currentSummary = await ai.generateContent(
+        mergePrompt,
+        debug ? `theme_summary_merge_${theme.code}_${i + 1}` : undefined
       );
-    });
-    
-    batchSummaries.push(summaryText);
+    }
   }
   
-  // Merge batch summaries
-  console.log(`   Merging ${batchSummaries.length} batch summaries...`);
-  
-  let currentSummaryText = batchSummaries[0];
-  
-  for (let i = 1; i < batchSummaries.length; i++) {
-    const nextSummaryText = batchSummaries[i];
-    const prompt = THEME_SUMMARY_MERGE_PROMPT
-      .replace('{SUMMARY1}', currentSummaryText)
-      .replace('{SUMMARY2}', nextSummaryText);
-    
-    const response = await ai.generateContent(
-      prompt,
-      debug ? `theme_summary_merge_${theme.code}_${i}` : undefined
-    );
-    
-    currentSummaryText = response;
-  }
-  
-  return currentSummaryText;
+  return currentSummary;
 } 

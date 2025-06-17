@@ -1,12 +1,15 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Tag, ChevronRight } from 'lucide-react'
+import { Tag, ChevronRight, Copy } from 'lucide-react'
 import useStore from '../store/useStore'
+import CopyCommentsModal from './CopyCommentsModal'
 
 function EntityBrowser() {
-  const { entities } = useStore()
+  const { entities, comments, getCommentsForEntity } = useStore()
   const [selectedCategory, setSelectedCategory] = useState<string>(Object.keys(entities)[0] || '')
-  
+  const [showCopyModal, setShowCopyModal] = useState(false)
+  const [copyEntity, setCopyEntity] = useState<{category: string, label: string} | null>(null)
+
   const categories = Object.keys(entities).sort()
   
   // User-friendly category names
@@ -84,38 +87,50 @@ function EntityBrowser() {
           </div>
           <div className="divide-y divide-gray-200 max-h-[600px] overflow-y-auto">
             {selectedCategory && entities[selectedCategory]?.map(entity => (
-              <Link
-                key={entity.label}
-                to={`/entities/${encodeURIComponent(selectedCategory)}/${encodeURIComponent(entity.label)}`}
-                className="block p-4 hover:bg-gray-50 transition-colors group"
-              >
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <h4 className="font-medium text-gray-900 group-hover:text-green-600 transition-colors">
-                      {entity.label}
-                    </h4>
-                    <p className="text-sm text-gray-600 mt-1">{entity.definition}</p>
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {entity.terms.slice(0, 3).map((term, i) => (
-                        <span key={i} className="text-xs bg-gray-100 px-2 py-1 rounded">
-                          "{term}"
-                        </span>
-                      ))}
-                      {entity.terms.length > 3 && (
-                        <span className="text-xs text-gray-500 px-2 py-1">
-                          +{entity.terms.length - 3} more
-                        </span>
-                      )}
+              <div key={entity.label} className="flex items-stretch group hover:bg-gray-50 transition-colors">
+                <Link
+                  to={`/entities/${encodeURIComponent(selectedCategory)}/${encodeURIComponent(entity.label)}`}
+                  className="flex-1 block p-4"
+                >
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <h4 className="font-medium text-gray-900 group-hover:text-green-600 transition-colors">
+                        {entity.label}
+                      </h4>
+                      <p className="text-sm text-gray-600 mt-1">{entity.definition}</p>
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {entity.terms.slice(0, 3).map((term, i) => (
+                          <span key={i} className="text-xs bg-gray-100 px-2 py-1 rounded">
+                            "{term}"
+                          </span>
+                        ))}
+                        {entity.terms.length > 3 && (
+                          <span className="text-xs text-gray-500 px-2 py-1">
+                            +{entity.terms.length - 3} more
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2 ml-4">
+                      <span className="text-sm text-gray-500">
+                        {entity.mentionCount} {entity.mentionCount === 1 ? 'mention' : 'mentions'}
+                      </span>
+                      <button
+                        className="p-2 hover:bg-gray-200 rounded-lg"
+                        title="Copy comments mentioning this entity for LLM"
+                        onClick={e => {
+                          e.preventDefault();
+                          setCopyEntity({category: selectedCategory, label: entity.label});
+                          setShowCopyModal(true);
+                        }}
+                      >
+                        <Copy className="h-4 w-4 text-gray-500" />
+                      </button>
+                      <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-green-600 transition-colors" />
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2 ml-4">
-                    <span className="text-sm text-gray-500">
-                      {entity.mentionCount} {entity.mentionCount === 1 ? 'mention' : 'mentions'}
-                    </span>
-                    <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-green-600 transition-colors" />
-                  </div>
-                </div>
-              </Link>
+                </Link>
+              </div>
             ))}
             
             {(!selectedCategory || !entities[selectedCategory] || entities[selectedCategory].length === 0) && (
@@ -126,8 +141,15 @@ function EntityBrowser() {
           </div>
         </div>
       </div>
+      {/* Copy Modal for entity */}
+      <CopyCommentsModal
+        isOpen={showCopyModal && !!copyEntity}
+        onClose={() => { setShowCopyModal(false); setCopyEntity(null); }}
+        title={copyEntity ? `Copy comments mentioning "${copyEntity.label}" for LLM` : ''}
+        comments={copyEntity ? getCommentsForEntity(copyEntity.category, copyEntity.label) : []}
+      />
     </div>
   )
 }
 
-export default EntityBrowser 
+export default EntityBrowser

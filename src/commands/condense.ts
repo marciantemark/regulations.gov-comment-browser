@@ -165,9 +165,9 @@ async function condenseComments(documentId: string, options: any) {
   
   // Run pool
   await runPool(comments, concurrency, async (comment, index) => {
-    activeWorkers.add('w');
+    activeWorkers.add(comment.id);
     await processComment(comment);
-    activeWorkers.delete('w');
+    activeWorkers.delete(comment.id);
   });
   
   // Final summary

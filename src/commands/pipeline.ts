@@ -149,14 +149,41 @@ export const pipelineCommand = new Command("pipeline")
         
       } catch (error) {
         crashCount++;
-        console.error(`\n💥 Pipeline crashed at step ${currentStep} (crash ${crashCount}/${maxCrashes}):`, error);
+        console.error(`💥 Pipeline crashed at step ${currentStep} (crash ${crashCount}/${maxCrashes}):`, error);
         
         if (crashCount >= maxCrashes) {
-          console.error(`\n❌ Pipeline failed after ${maxCrashes} crashes. Giving up.`);
+          console.error(`❌ Pipeline failed after ${maxCrashes} crashes. Giving up.`);
           process.exit(1);
         } else {
-          console.log(`\n🔄 Restarting from step ${currentStep} in 5 seconds...`);
-          await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds before retry
+          let retryDelaySeconds = 5; // Default retry delay
+          try {
+            const errorMessage = (error as Error).message || '';
+            if (errorMessage.includes('429')) {
+              const jsonMatch = errorMessage.match(/{.*}/s);
+              if (jsonMatch) {
+                const outerJson = JSON.parse(jsonMatch[0]);
+                if (outerJson.error && typeof outerJson.error.message === 'string') {
+                  const innerJson = JSON.parse(outerJson.error.message);
+                  if (innerJson.error && Array.isArray(innerJson.error.details)) {
+                    const retryInfo = innerJson.error.details.find(
+                      (detail: any) => detail['@type'] === 'type.googleapis.com/google.rpc.RetryInfo'
+                    );
+                    if (retryInfo && typeof retryInfo.retryDelay === 'string') {
+                      const seconds = parseInt(retryInfo.retryDelay.replace('s', ''), 10);
+                      if (!isNaN(seconds)) {
+                        retryDelaySeconds = seconds + 2; // Add a small buffer
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          } catch (e) {
+            console.warn('Could not parse retry delay from 429 error, using default 5s.');
+          }
+          
+          console.log(`🔄 Restarting from step ${currentStep} in ${retryDelaySeconds} seconds...`);
+          await new Promise(resolve => setTimeout(resolve, retryDelaySeconds * 1000)); // Wait before retry
         }
       }
     }
