@@ -185,7 +185,7 @@ async function exportAllComments(db: any, outputDir: string, documentId: string)
       }
     }
     
-    const wordCount = c.word_count ?? null
+    const wordCount = c.word_count ?? 0
 
     // Parse structured sections if available
     let structuredSections = null;
