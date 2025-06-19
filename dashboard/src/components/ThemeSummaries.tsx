@@ -207,9 +207,7 @@ function ThemeSummaries() {
                           {sections.noteworthyInsights!.length} key insights
                         </p>
                         <p className="text-xs text-gray-600 line-clamp-2">
-                          {typeof sections.noteworthyInsights![0] === 'string' 
-                            ? sections.noteworthyInsights![0] 
-                            : sections.noteworthyInsights![0].insight}
+                          {sections.noteworthyInsights![0].insight}
                         </p>
                       </div>
                     </div>

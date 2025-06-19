@@ -42,6 +42,7 @@ interface StoreState {
   getCommentsForTheme: (themeCode: string) => { direct: Comment[], touches: Comment[] }
   getCommentsForEntity: (category: string, label: string) => Comment[]
   getFilteredComments: () => Comment[]
+  getCommentById: (commentId: string) => Comment | undefined
 }
 
 const useStore = create<StoreState>((set, get) => ({
@@ -104,22 +105,17 @@ const useStore = create<StoreState>((set, get) => ({
           detailedDescription
         }
       })
+      console.log(parsedThemes);
       
       // After loading themeSummaries and entities
       // Determine the organization category by sampling
       const orgCategory = determineOrganizationCategory(themeSummaries, entities)
       
       // Compute wordCount for each comment (use .wordCount if present, else fallback)
-      const getWordCount = (c: any): number => {
-        if (typeof c.wordCount === 'number' && !isNaN(c.wordCount)) return c.wordCount
-        const sections = c.structuredSections || {}
-        const text = Object.values(sections).filter(Boolean).join(' ')
-        return text.trim() === '' ? 0 : text.trim().split(/\s+/).length
-      }
-      const wordCounts = comments.map(getWordCount)
+      const wordCounts = comments.map((c: Comment) => c.wordCount || 0)
       const sortedCounts = [...wordCounts].sort((a, b) => a - b)
-      const commentsWithCounts = comments.map((c, i) => {
-        const wc = getWordCount(c)
+      const commentsWithCounts = comments.map((c: Comment) => {
+        const wc = c.wordCount || 0
         const rank = sortedCounts.findIndex(x => x === wc)
         const percentile = sortedCounts.length > 1 ? Math.round((rank / (sortedCounts.length - 1)) * 100) : 100
         return { ...c, wordCount: wc, percentile }
@@ -229,6 +225,11 @@ const useStore = create<StoreState>((set, get) => ({
     return commentIds
       .map(id => state.comments.find(c => c.id === id))
       .filter((c): c is Comment => c !== undefined)
+  },
+  
+  getCommentById: (commentId: string) => {
+    const state = get()
+    return state.comments.find(c => c.id === commentId)
   }
 }))
 
@@ -236,79 +237,11 @@ export default useStore
 
 // Helper function to determine organization category
 function determineOrganizationCategory(
-  themeSummaries: Record<string, ThemeSummary>, 
-  entities: Record<string, Entity[]>
+  _themeSummaries: Record<string, ThemeSummary>, 
+  _entities: Record<string, Entity[]>
 ): string | null {
-  // Collect a sample of organizations from theme summaries
-  const organizationSample = new Set<string>()
-  const maxSample = 200
-  
-  for (const summary of Object.values(themeSummaries)) {
-    if (organizationSample.size >= maxSample) break
-    
-    const { sections } = summary
-    
-    // Extract from consensus points
-    if (sections.consensusPoints) {
-      for (const point of sections.consensusPoints) {
-        if (point.organizations) {
-          point.organizations.forEach((org: string) => organizationSample.add(org))
-        }
-      }
-    }
-    
-    // Extract from areas of debate
-    if (sections.areasOfDebate) {
-      for (const debate of sections.areasOfDebate) {
-        if (debate.positions) {
-          for (const position of debate.positions) {
-            if (position.organizations) {
-              position.organizations.forEach((org: string) => organizationSample.add(org))
-            }
-          }
-        }
-      }
-    }
-    
-    // Extract from stakeholder perspectives
-    if (sections.stakeholderPerspectives) {
-      for (const stakeholder of sections.stakeholderPerspectives) {
-        if (stakeholder.organizations) {
-          stakeholder.organizations.forEach((org: string) => organizationSample.add(org))
-        }
-      }
-    }
-  }
-  
-  // Now check which category has the most matches
-  const categoryMatches: Record<string, number> = {}
-  
-  for (const [category, entityList] of Object.entries(entities)) {
-    let matchCount = 0
-    for (const entity of entityList) {
-      for (const term of entity.terms) {
-        if (organizationSample.has(term)) {
-          matchCount++
-          break // Count each entity only once
-        }
-      }
-    }
-    if (matchCount > 0) {
-      categoryMatches[category] = matchCount
-    }
-  }
-  
-  // Find the category with most matches
-  let bestCategory: string | null = null
-  let maxMatches = 0
-  
-  for (const [category, count] of Object.entries(categoryMatches)) {
-    if (count > maxMatches) {
-      maxMatches = count
-      bestCategory = category
-    }
-  }
-  
-  // Default fallback
-  return bestCategory || 'Organizations'
+  // Organizations are now kept in narrative text, not separate arrays
+  // This function could be enhanced to parse organization names from narrative text if needed
+  // For now, just return default
+  return 'Organizations'
 } 

@@ -1,12 +1,13 @@
 import { Command } from "commander";
 import { openDb, withTransaction } from "../lib/database";
 import type { Database } from "bun:sqlite";
-import { initDebug, debugSave } from "../lib/debug";
+import { initDebug } from "../lib/debug";
 import { AIClient } from "../lib/ai-client";
 import { loadCondensedComments, parseThemeHierarchy } from "../lib/comment-processing";
 import { createEvenBatches, DEFAULT_BATCH_OPTIONS } from "../lib/batch-processor";
 import { THEME_DISCOVERY_PROMPT, THEME_MERGE_PROMPT } from "../prompts/theme-discovery";
-import type { EnrichedComment } from "../types";
+import { TaskQueue, buildHierarchicalTasks, type Task } from "../lib/task-queue";
+import { getTaskConfig, getBatchOptions, getTaskModel } from "../lib/batch-config";
 
 export const discoverThemesCommand = new Command("discover-themes")
   .description("Discover theme hierarchy from condensed comments")
@@ -15,22 +16,28 @@ export const discoverThemesCommand = new Command("discover-themes")
   .option("--batch-limit <n>", "Word limit to trigger batching (default: 250000)", parseInt)
   .option("--batch-size <n>", "Target words per batch (default: 150000)", parseInt)
   .option("-d, --debug", "Enable debug output")
-  .option("-c, --concurrency <n>", "Number of parallel batch API calls (default: 3)", parseInt)
+  .option("-c, --concurrency <n>", "Number of parallel API calls (default: 5)", parseInt)
+  .option("-m, --model <model>", "AI model to use (overrides config)")
+  .option("--merge-width <n>", "Number of taxonomies to merge at once (default: 10)", parseInt)
   .action(discoverThemes);
 
 async function discoverThemes(documentId: string, options: any) {
   await initDebug(options.debug);
   
   const db = openDb(documentId);
-  const ai = new AIClient();
+  
+  // Get the effective model from config
+  const effectiveModel = getTaskModel('discoverThemes', options.model);
+  const ai = new AIClient(effectiveModel, db);
   
   console.log(`🔍 Discovering themes for document ${documentId}`);
+  console.log(`   Using model: ${effectiveModel}`);
   
   // Check if themes already exist
   const existingThemes = db.prepare("SELECT COUNT(*) as count FROM theme_hierarchy").get() as { count: number };
   if (existingThemes.count > 0) {
     console.log(`⚠️  Themes already discovered (${existingThemes.count} themes in hierarchy)`);
-    console.log("   To re-run, clear theme_hierarchy and theme_batches tables first");
+    console.log("   To re-run, clear theme_hierarchy table first");
     return;
   }
   
@@ -43,161 +50,121 @@ async function discoverThemes(documentId: string, options: any) {
   
   console.log(`📊 Loaded ${comments.length} condensed comments`);
   
-  // Create batches based on word count
-  const batchOptions = {
-    totalWordLimit: options.batchLimit || DEFAULT_BATCH_OPTIONS.totalWordLimit,
-    batchWordLimit: options.batchSize || DEFAULT_BATCH_OPTIONS.batchWordLimit
-  };
+  // Load task configuration
+  const taskConfig = getTaskConfig('discoverThemes', options.model);
+  const batchOptions = getBatchOptions('discoverThemes');
   
-  const batches = createEvenBatches(comments, batchOptions);
-  console.log(`📦 Created ${batches.length} batch(es) for processing`);
+  // Calculate total word count
+  const totalWords = comments.reduce((sum, c) => sum + (c.wordCount || 0), 0);
+  console.log(`📊 Total words: ${totalWords}`);
   
-  // Load any previously completed batch results
-  const completedBatchRows = db.prepare(`SELECT batch_number, themes_text FROM theme_batches WHERE status = 'completed'`).all() as { batch_number: number; themes_text: string }[];
-  const completedMap = new Map<number,string>();
-  for (const row of completedBatchRows){
-    completedMap.set(row.batch_number, row.themes_text);
+  // Determine batching strategy
+  const batchLimit = options.batchLimit || batchOptions?.triggerWordLimit || DEFAULT_BATCH_OPTIONS.totalWordLimit;
+  const batchWordLimit = options.batchSize || batchOptions?.batchWordLimit || DEFAULT_BATCH_OPTIONS.batchWordLimit;
+  
+  // Create batches
+  let batches;
+  if (totalWords <= batchLimit) {
+    console.log(`✅ Small dataset (${totalWords} ≤ ${batchLimit}) - processing as single batch`);
+    batches = [{
+      items: comments,
+      wordCount: totalWords,
+      number: 1
+    }];
+  } else {
+    console.log(`📦 Large dataset (${totalWords} > ${batchLimit}) - will create batches of ~${batchWordLimit} words`);
+    batches = createEvenBatches(comments, { 
+      batchWordLimit,
+      totalWordLimit: 0 // Force batching
+    });
   }
   
-  // Process each batch
-  const batchResults: string[] = [];
-  const concurrency = options.concurrency || 3;
+  console.log(`📋 Created ${batches.length} batch(es)`);
   
-  // Prepare batch statement outside of parallel processing
-  const batchStmt = db.prepare(`
-    INSERT INTO theme_batches (batch_number, word_count, comment_count, themes_text)
-    VALUES (?, ?, ?, ?)
-  `);
+  // Build tasks using the hierarchical helper
+  // Always force a final merge to apply reshaping/optimization logic
+  const mergeWidth = options.mergeWidth || taskConfig.mergeWidth;
+  const tasks: Task[] = buildHierarchicalTasks(
+    batches,
+    (_, i) => `batch_${i}`,
+    'merge',
+    mergeWidth,
+    true  // forceFinalize - ensures merge prompt runs even for single batch
+  );
   
-  async function processBatch(batch: any): Promise<string> {
-    console.log(`\n🔄 Processing batch ${batch.number}/${batches.length}`);
-    console.log(`   Comments: ${batch.items.length}, Words: ${batch.wordCount}`);
-    
-    try {
-      if (completedMap.has(batch.number)) {
-        console.log(`   [Batch ${batch.number}] ✅ Previously completed – skipping`);
-        return completedMap.get(batch.number)!;
+  if (mergeWidth !== taskConfig.mergeWidth) {
+    console.log(`🔀 Using ${mergeWidth}-way merges`);
+  }
+  
+  // Update batch tasks with actual data
+  tasks.forEach(task => {
+    if (task.data.type === 'initial') {
+      task.data = task.data.item; // The batch data
+    }
+  });
+  
+  const totalTasks = tasks.length;
+  const mergeTasks = totalTasks - batches.length;
+  console.log(`📊 Total tasks: ${totalTasks} (batches: ${batches.length}, merges: ${mergeTasks})`);
+  
+  if (batches.length === 1 && mergeTasks > 0) {
+    console.log(`🔀 Single batch will be finalized through merge for optimization`);
+  }
+  
+  // Find the final task (highest level merge or single batch)
+  const finalTaskId = tasks[tasks.length - 1].id;
+  
+  // Process using TaskQueue
+  const concurrency = options.concurrency || taskConfig.concurrency;
+  console.log(`\n🚀 Processing with concurrency ${concurrency}`);
+  
+  const taskQueue = new TaskQueue(tasks, {
+    concurrency,
+    onTaskStart: (task) => {
+      const queueInfo = `${taskQueue['running'].size}/${concurrency} workers`;
+      console.log(`   🚀 [${task.id}] Starting (${queueInfo} active)`);
+    },
+    onTaskComplete: (task) => {
+      const progress = `${taskQueue.getCompleted().size}/${totalTasks}`;
+      console.log(`   ✅ [${task.id}] Completed (${progress} total)`);
+    },
+    onTaskError: (task, error) => {
+      console.error(`   ❌ [${task.id}] Failed:`, error);
+    },
+    onQueueUpdate: (queueSize, runningSize, completedSize) => {
+      if (queueSize > 0) {
+        console.log(`   📋 Queue update: ${queueSize} ready, ${runningSize} running, ${completedSize} completed`);
       }
-      
-      // Build prompt with structured comment sections
-      const commentBlocks = batch.items.map((c: any) => {
-        const sections = c.structuredSections;
-        const metadata = c.metadata || {};
-        
-        if (!sections) {
-          return `<comment id="${c.id}">
-<submitter>${metadata.submitter || 'Anonymous'}</submitter>
-<submitter_type>${metadata.submitterType || 'Individual'}</submitter_type>
-<note>No structured content available</note>
-</comment>`;
+    }
+  });
+  
+  const results = await taskQueue.process(async (task, getResult) => {
+    // Determine task type and process accordingly
+    if (task.id.startsWith('batch_')) {
+      return processBatch(task, ai, options.debug);
+    } else {
+      // Merge task - handle N-way merges
+      const inputResults = task.data.inputs.map((id: string) => {
+        const result = getResult(id);
+        if (!result) {
+          throw new Error(`Missing dependency ${id} for ${task.id}`);
         }
-        
-        let content = `<comment id="${c.id}">
-<submitter>${metadata.submitter || 'Anonymous'}</submitter>
-<submitter_type>${metadata.submitterType || 'Individual'}</submitter_type>`;
-        
-        if (sections.commenterProfile) {
-          content += `
-<commenter_profile>${sections.commenterProfile}</commenter_profile>`;
-        }
-        
-        if (sections.corePosition) {
-          content += `
-<core_position>${sections.corePosition}</core_position>`;
-        }
-        
-        if (sections.keyRecommendations && sections.keyRecommendations !== "No specific recommendations provided") {
-          content += `
-<key_recommendations>${sections.keyRecommendations}</key_recommendations>`;
-        }
-        
-        if (sections.mainConcerns && sections.mainConcerns !== "No specific concerns raised") {
-          content += `
-<main_concerns>${sections.mainConcerns}</main_concerns>`;
-        }
-        
-        content += `
-</comment>`;
-        
-        return content;
-      }).join("\n\n");
-      
-      const prompt = THEME_DISCOVERY_PROMPT.replace("{COMMENTS}", commentBlocks);
-      
-      // Generate themes
-      const response = await ai.generateContent(
-        prompt,
-        options.debug ? `themes_batch_${batch.number}` : undefined
-      );
-      
-      // Parse response
-      const resultText = response.trim();
-      if (options.debug) {
-        await debugSave(`themes_batch_${batch.number}_text.txt`, resultText);
-      }
-      
-      // Save batch result
-      withTransaction(db, () => {
-        batchStmt.run(
-          batch.number,
-          batch.wordCount,
-          batch.items.length,
-          resultText
-        );
+        return result;
       });
       
-      console.log(`   [Batch ${batch.number}] ✅ Processed successfully`);
-      return resultText;
-      
-    } catch (error) {
-      console.error(`   [Batch ${batch.number}] ❌ Error:`, error);
-      throw error;
+      return processMerge(task, inputResults, ai, options.debug);
     }
+  });
+  
+  // Get final result
+  const finalThemesText = results.get(finalTaskId);
+  if (!finalThemesText) {
+    throw new Error("Failed to get final result");
   }
   
-  // Process batches in parallel chunks
-  for (let i = 0; i < batches.length; i += concurrency) {
-    const chunk = batches.slice(i, i + concurrency);
-    const results = await Promise.all(chunk.map(processBatch));
-    batchResults.push(...results);
-  }
-  
-  // Merge results if multiple batches
-  let finalThemesText: string;
-  
-  // Sort batch results by batch number
-  const allBatchTexts: string[] = [];
-  const batchNumToIndex = new Map<number, number>();
-  
-  // Collect all batch texts in order
-  for (let i = 0; i < batches.length; i++) {
-    const batch = batches[i];
-    batchNumToIndex.set(batch.number, i);
-    if (completedMap.has(batch.number)) {
-      allBatchTexts[i] = completedMap.get(batch.number)!;
-    } else {
-      // Find in batchResults - need to map back
-      const newBatchIndex = batches.filter(b => !completedMap.has(b.number)).findIndex(b => b.number === batch.number);
-      allBatchTexts[i] = batchResults[newBatchIndex];
-    }
-  }
-  
-  if (allBatchTexts.length === 1) {
-    finalThemesText = allBatchTexts[0];
-    console.log("\n✅ Single batch - no merging needed");
-  } else {
-    console.log("\n🔄 Merging batch results hierarchically...");
-    finalThemesText = await hierarchicalMerge(ai, allBatchTexts, options.debug, concurrency);
-  }
-  
-  // Save final hierarchy only if not already saved
-  const existingFinal = db.prepare("SELECT COUNT(*) as count FROM theme_hierarchy").get() as { count:number };
-  if (existingFinal.count ===0){
-    console.log("\n💾 Saving theme hierarchy...");
-    saveThemeHierarchy(db, finalThemesText);
-  } else {
-    console.log("\n⚠️  Theme hierarchy already exists – skipping save");
-  }
+  // Save theme hierarchy
+  console.log("\n💾 Saving theme hierarchy...");
+  saveThemeHierarchy(db, finalThemesText);
   
   // Summary
   const themeCount = db.prepare("SELECT COUNT(*) as count FROM theme_hierarchy").get() as { count: number };
@@ -208,59 +175,113 @@ async function discoverThemes(documentId: string, options: any) {
   db.close();
 }
 
-// Hierarchical parallel merge
-async function hierarchicalMerge(
+async function processBatch(
+  task: Task,
   ai: AIClient,
-  texts: string[],
-  debug: boolean,
-  concurrency: number
+  debug: boolean
 ): Promise<string> {
-  let currentLevel = [...texts];
-  let round = 0;
+  const batch = task.data;
+  console.log(`   🔄 [${task.id}] Processing batch (${batch.items.length} comments, ${batch.wordCount} words)`);
   
-  while (currentLevel.length > 1) {
-    round++;
-    console.log(`   Round ${round}: Merging ${currentLevel.length} texts into ${Math.ceil(currentLevel.length / 2)}`);
+  // Build prompt with structured comment sections
+  const commentBlocks = batch.items.map((c: any) => {
+    const sections = c.structuredSections;
+    const metadata = c.metadata || {};
     
-    const nextLevel: string[] = [];
-    const mergeTasks: Promise<string>[] = [];
+    if (!sections) {
+      return `<comment id="${c.id}">
+<submitter>${metadata.submitter || 'Anonymous'}</submitter>
+<submitter_type>${metadata.submitterType || 'Individual'}</submitter_type>
+<note>No structured content available</note>
+</comment>`;
+    }
     
-    // Create merge tasks for pairs
-    for (let i = 0; i < currentLevel.length; i += 2) {
-      if (i + 1 < currentLevel.length) {
-        // Merge pair
-        const task = (async () => {
-          const prompt = THEME_MERGE_PROMPT
-            .replace("{TAXONOMY1}", currentLevel[i])
-            .replace("{TAXONOMY2}", currentLevel[i + 1]);
-          
-          const response = await ai.generateContent(
-            prompt,
-            debug ? `themes_merge_r${round}_p${i/2}` : undefined
-          );
-          
-          console.log(`     ✓ Merged pair ${i/2 + 1}`);
-          return response.trim();
-        })();
-        
-        mergeTasks.push(task);
-      } else {
-        // Odd one out, carry forward
-        nextLevel.push(currentLevel[i]);
+    let content = `<comment id="${c.id}">
+<submitter>${metadata.submitter || 'Anonymous'}</submitter>
+<submitter_type>${metadata.submitterType || 'Individual'}</submitter_type>`;
+    
+    if (sections.commenterProfile) {
+      content += `
+<commenter_profile>${sections.commenterProfile}</commenter_profile>`;
+    }
+    
+    if (sections.corePosition) {
+      content += `
+<core_position>${sections.corePosition}</core_position>`;
+    }
+    
+    if (sections.keyRecommendations && sections.keyRecommendations !== "No specific recommendations provided") {
+      content += `
+<key_recommendations>${sections.keyRecommendations}</key_recommendations>`;
+    }
+    
+    if (sections.mainConcerns && sections.mainConcerns !== "No specific concerns raised") {
+      content += `
+<main_concerns>${sections.mainConcerns}</main_concerns>`;
+    }
+    
+    content += `
+</comment>`;
+    
+    return content;
+  }).join("\n\n");
+  
+  const prompt = THEME_DISCOVERY_PROMPT.replace("{COMMENTS}", commentBlocks);
+  
+  // Generate themes with caching
+  const response = await ai.generateContent(
+    prompt,
+    debug ? `themes_${task.id}` : undefined,
+    task.id,
+    {
+      taskType: 'theme_discovery',
+      taskLevel: 0, // Batch tasks are level 0
+      params: { 
+        taskId: task.id,
+        commentCount: batch.items.length,
+        wordCount: batch.wordCount
       }
     }
-    
-    // Execute merges in parallel batches
-    for (let i = 0; i < mergeTasks.length; i += concurrency) {
-      const batch = mergeTasks.slice(i, i + concurrency);
-      const results = await Promise.all(batch);
-      nextLevel.push(...results);
-    }
-    
-    currentLevel = nextLevel;
-  }
+  );
   
-  return currentLevel[0];
+  return response.trim();
+}
+
+async function processMerge(
+  task: Task,
+  inputContents: string[],
+  ai: AIClient,
+  debug: boolean
+): Promise<string> {
+  console.log(`   🔄 [${task.id}] Merging ${task.data.inputs.join(' + ')}`);
+  
+  // Build the prompt with N taxonomies
+  const taxonomySections = inputContents.map((content, i) => 
+    `--- INPUT TAXONOMY ${i + 1} ---\n${content}\n--- END OF INPUT TAXONOMY ${i + 1} ---`
+  ).join('\n\n');
+  
+  const prompt = THEME_MERGE_PROMPT.replace("{TAXONOMIES}", taxonomySections);
+  
+  // Extract level from task id (e.g., "merge_L1_P0" -> level 1)
+  const levelMatch = task.id.match(/_L(\d+)_/);
+  const level = levelMatch ? parseInt(levelMatch[1]) : 0;
+  
+  const response = await ai.generateContent(
+    prompt,
+    debug ? `themes_${task.id}` : undefined,
+    task.id,
+    {
+      taskType: 'theme_discovery_merge',
+      taskLevel: level,
+      params: {
+        taskId: task.id,
+        inputIds: task.data.inputs,
+        mergeCount: inputContents.length
+      }
+    }
+  );
+  
+  return response.trim();
 }
 
 // Save theme hierarchy to database
@@ -268,8 +289,8 @@ function saveThemeHierarchy(db: Database, themesText: string) {
   const themes = parseThemeHierarchy(themesText);
   
   const insertTheme = db.prepare(`
-    INSERT INTO theme_hierarchy (code, description, level, parent_code)
-    VALUES (?, ?, ?, ?)
+    INSERT INTO theme_hierarchy (code, description, level, parent_code, detailed_guidelines)
+    VALUES (?, ?, ?, ?, ?)
   `);
   
   withTransaction(db, () => {
@@ -278,7 +299,8 @@ function saveThemeHierarchy(db: Database, themesText: string) {
         theme.code,
         theme.description,
         theme.level,
-        theme.parent_code
+        theme.parent_code,
+        theme.detailed_guidelines || null
       );
     }
   });

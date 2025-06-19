@@ -4,9 +4,11 @@ import type { Database } from "bun:sqlite";
 import { initDebug, debugSave } from "../lib/debug";
 import { AIClient } from "../lib/ai-client";
 import { createEvenBatches, DEFAULT_BATCH_OPTIONS } from "../lib/batch-processor";
-import { THEME_SUMMARY_PROMPT, THEME_SUMMARY_MERGE_PROMPT, THEME_SUMMARY_STRUCTURE_PROMPT } from "../prompts/theme-summary";
+import { THEME_SUMMARY_PROMPT, THEME_SUMMARY_MERGE_NWAY_PROMPT, THEME_SUMMARY_STRUCTURE_PROMPT } from "../prompts/theme-summary";
 import { parseJsonResponse } from "../lib/json-parser";
 import { runPool } from "../lib/worker-pool";
+import { TaskQueue, buildHierarchicalTasks } from "../lib/task-queue";
+import { getTaskConfig, getBatchOptions, getTaskModel } from "../lib/batch-config";
 
 export const summarizeThemesCommand = new Command("summarize-themes")
   .description("Generate narrative summaries for themes based on relevant comments")
@@ -18,35 +20,44 @@ export const summarizeThemesCommand = new Command("summarize-themes")
   .option("--depth <n>", "Maximum theme hierarchy depth to summarize (default: 2)", parseInt)
   .option("-d, --debug", "Enable debug output")
   .option("-c, --concurrency <n>", "Number of parallel API calls (default: 3)", parseInt)
+  .option("-m, --model <model>", "AI model to use (overrides config)")
+  .option("--merge-width <n>", "Number of summaries to merge at once (default: 10)", parseInt)
   .action(summarizeThemes);
 
 async function summarizeThemes(documentId: string, options: any) {
   await initDebug(options.debug);
   
   const db = openDb(documentId);
-  const ai = new AIClient();
+  
+  // Get the effective model from config
+  const effectiveModel = getTaskModel('summarizeThemes', options.model);
+  const ai = new AIClient(effectiveModel, db);
   
   console.log(`📝 Summarizing themes for document ${documentId}`);
+  console.log(`   Using model: ${effectiveModel}`);
+  
+  // Load task configuration  
+  const taskConfig = getTaskConfig('summarizeThemes', effectiveModel);
   
   // Get themes to analyze
-  const maxDepth = options.depth || 2;
+  const maxDepth = options.depth || taskConfig.thresholds?.maxHierarchyDepth || 2;
+  const minComments = options.minComments || taskConfig.thresholds?.minCommentsPerTheme || 5;
   
   // Build depth filter - e.g. for depth 2, match codes like "1", "1.1", but not "1.1.1"
-  const depthFilter = `LENGTH(th.code) - LENGTH(REPLACE(th.code, '.', '')) < ?`;
+  const depthFilter = `th.level <= ?`;
   
   let themeQuery = `
     SELECT 
       th.code,
       th.description,
+      th.detailed_guidelines,
       COUNT(DISTINCT ct.comment_id) as comment_count
     FROM theme_hierarchy th
-    LEFT JOIN comment_themes ct ON th.code = ct.theme_code AND ct.score IN (1, 2)
+    LEFT JOIN comment_themes ct ON th.code = ct.theme_code AND ct.score = 1
     WHERE ${depthFilter}
-    GROUP BY th.code
+    GROUP BY th.code, th.description, th.detailed_guidelines
     HAVING comment_count >= ?
   `;
-  
-  const minComments = options.minComments || 5;
   const queryParams: any[] = [maxDepth, minComments];
   
   if (options.themes) {
@@ -57,10 +68,12 @@ async function summarizeThemes(documentId: string, options: any) {
   }
   
   themeQuery += ` ORDER BY comment_count DESC`;
+  console.log(themeQuery, queryParams);
   
   const themes = db.prepare(themeQuery).all(...queryParams) as {
     code: string;
     description: string;
+    detailed_guidelines?: string;
     comment_count: number;
   }[];
   
@@ -85,15 +98,43 @@ async function summarizeThemes(documentId: string, options: any) {
   console.log(`🆕 ${themesToProcess.length} themes need summarization`);
   console.log(`📏 Max depth: ${maxDepth}`);
   
-  // Process themes using worker pool
-  const concurrency = options.concurrency || 3;
+  // Log all themes to process
+  console.log(`📋 Themes to process:`);
+  themesToProcess.forEach((theme, idx) => {
+    console.log(`   ${idx + 1}. ${theme.code}: ${theme.description} (${theme.comment_count} comments)`);
+  });
+  
+  // Check for duplicates in themes to process
+  const themeCodeSet = new Set<string>();
+  const uniqueThemes = themesToProcess.filter(theme => {
+    if (themeCodeSet.has(theme.code)) {
+      console.warn(`⚠️  Duplicate theme found in query results: ${theme.code}`);
+      return false;
+    }
+    themeCodeSet.add(theme.code);
+    return true;
+  });
+  
+  if (uniqueThemes.length !== themesToProcess.length) {
+    console.warn(`⚠️  Removed ${themesToProcess.length - uniqueThemes.length} duplicate themes`);
+    console.log(`📋 Unique themes after deduplication:`);
+    uniqueThemes.forEach((theme, idx) => {
+      console.log(`   ${idx + 1}. ${theme.code}: ${theme.description}`);
+    });
+  }
+  
+  // Use task configuration for concurrency
+  const concurrency = options.concurrency || taskConfig.concurrency;
+  console.log(`🔄 Using concurrency: ${concurrency}`);
   
   await runPool(
-    themesToProcess,
+    uniqueThemes,
     concurrency,
     async (theme, index, total) => {
-      console.log(`\n[${index}/${total}] Processing theme ${theme.code}: ${theme.description}`);
-      console.log(`   Comments: ${theme.comment_count}`);
+      const workerId = `worker-${index}`;
+      console.log(`\n[${workerId}][${index}/${total}] Starting to process theme ${theme.code}: ${theme.description}`);
+      console.log(`   [${workerId}] Comments: ${theme.comment_count}`);
+      console.log(`   [${workerId}] Worker started at: ${new Date().toISOString()}`);
       
       try {
       // Get comments for this theme with structured sections
@@ -104,7 +145,7 @@ async function summarizeThemes(documentId: string, options: any) {
           ct.score
         FROM comment_themes ct
         JOIN condensed_comments cc ON ct.comment_id = cc.comment_id
-        WHERE ct.theme_code = ? AND ct.score IN (1, 2)
+        WHERE ct.theme_code = ? AND ct.score = 1
         ORDER BY ct.score ASC, cc.comment_id
       `).all(theme.code) as {
         comment_id: string;
@@ -128,9 +169,10 @@ async function summarizeThemes(documentId: string, options: any) {
       console.log(`   Total word count: ${totalWords}`);
       
       // Determine if batching is needed
+      const batchConfig = getBatchOptions('summarizeThemes');
       const batchOptions = {
-        totalWordLimit: options.batchLimit || 150000,
-        batchWordLimit: options.batchSize || 75000
+        totalWordLimit: options.batchLimit || batchConfig?.triggerWordLimit || 200000,
+        batchWordLimit: options.batchSize || batchConfig?.batchWordLimit || 125000
       };
       
       let finalSummaryText: string;
@@ -145,54 +187,87 @@ async function summarizeThemes(documentId: string, options: any) {
         // Multiple batches needed
         console.log(`   Large theme - using batching`);
         finalSummaryText = await processThemeInBatches(
-          db, ai, theme, comments, batchOptions, options.debug
+          db, ai, theme, comments, batchOptions, 1, options.debug, options.mergeWidth || taskConfig.mergeWidth
         );
       }
       
       // Structure the final summary into JSON
       console.log(`   Structuring final summary...`);
+      const fullThemeDescription = theme.detailed_guidelines 
+        ? `${theme.description}. ${theme.detailed_guidelines}`
+        : theme.description;
+        
       const structurePrompt = THEME_SUMMARY_STRUCTURE_PROMPT
-        .replace('{THEME_ANALYSIS}', finalSummaryText);
+        .replace('{THEME_ANALYSIS}', finalSummaryText)
+        .replace('{THEME_CODE}', theme.code)
+        .replace('{THEME_DESCRIPTION}', fullThemeDescription);
       
       await debugSave(
         `theme_summary_structured_${theme.code}_final_prompt.txt`, 
         structurePrompt
       );
 
-      const structuredResponse = await ai.generateContent(
+      const finalSections = await ai.generateContent<any>(
         structurePrompt,
-        options.debug ? `theme_summary_structured_${theme.code}_final_response` : undefined
+        options.debug ? `theme_summary_structured_${theme.code}_final` : undefined,
+        undefined,
+        {
+          taskType: 'theme_summary_structure',
+          taskLevel: 0,
+          params: {
+            themeCode: theme.code,
+            commentCount: comments.length,
+            wordCount: totalWords
+          }
+        },
+        parseJsonResponse  // postProcess function
       );
-      
-      let finalSections: any;
-      try {
-        finalSections = parseJsonResponse(structuredResponse);
-      } catch (error) {
-        console.error(`Failed to parse structured response for theme ${theme.code}:`, error);
-        throw error;
-      }
       
       // Save summary
       withTransaction(db, () => {
-        db.prepare(`
-          INSERT INTO theme_summaries (
-            theme_code, structured_sections, 
-            comment_count, word_count
-          )
-          VALUES (?, ?, ?, ?)
-        `).run(
-          theme.code,
-          JSON.stringify(finalSections),
-          comments.length,
-          totalWords
-        );
+        // Log the write attempt
+        console.log(`   📝 [${theme.code}] Attempting to write to theme_summaries (summarize-themes.ts:203)`);
+        console.log(`      Caller: runPool worker processing theme ${theme.code}`);
+        console.log(`      Comment count: ${comments.length}, Word count: ${totalWords}`);
+        
+        // Double-check if already exists
+        const existing = db.prepare(
+          "SELECT theme_code FROM theme_summaries WHERE theme_code = ?"
+        ).get(theme.code);
+        
+        if (existing) {
+          console.log(`   [${theme.code}] ⚠️  Theme already exists in database, skipping insert`);
+          return;
+        }
+        
+        try {
+          db.prepare(`
+            INSERT INTO theme_summaries (
+              theme_code, structured_sections, 
+              comment_count, word_count
+            )
+            VALUES (?, ?, ?, ?)
+          `).run(
+            theme.code,
+            JSON.stringify(finalSections),
+            comments.length,
+            totalWords
+          );
+          console.log(`   ✅ [${theme.code}] Successfully wrote to theme_summaries`);
+        } catch (insertError) {
+          console.error(`   ❌ [${theme.code}] Failed to write to theme_summaries:`, insertError);
+          throw insertError;
+        }
       });
       
-        console.log(`   [${theme.code}] ✅ Summary generated successfully`);
+        console.log(`   [${workerId}][${theme.code}] ✅ Summary generated successfully`);
+        console.log(`   [${workerId}] Worker completed at: ${new Date().toISOString()}`);
         
       } catch (error) {
-        console.error(`   [${theme.code}] ❌ Error:`, error);
-        throw error;
+        console.error(`   [${workerId}][${theme.code}] ❌ Error:`, error);
+        console.log(`   [${workerId}] Worker failed at: ${new Date().toISOString()}`);
+        // Don't rethrow - just log and continue
+        // This prevents one theme's failure from affecting others
       }
     }
   );
@@ -209,7 +284,7 @@ async function summarizeThemes(documentId: string, options: any) {
 // Generate summary for a single batch of comments
 async function generateThemeSummary(
   ai: AIClient,
-  theme: { code: string; description: string },
+  theme: { code: string; description: string; detailed_guidelines?: string },
   comments: any[],
   debug: boolean,
   batchNum?: number,
@@ -219,7 +294,7 @@ async function generateThemeSummary(
   const commentBlocks = comments.map(c => {
     const sections = JSON.parse(c.structured_sections || '{}');
     
-    let block = `<comment id="${c.comment_id}" relevance="${c.score === 1 ? 'direct' : 'touches'}">`;
+    let block = `<comment id="${c.comment_id}">`;
     
     if (sections.commenterProfile) {
       block += `\n<commenter_profile>\n${sections.commenterProfile}\n</commenter_profile>`;
@@ -250,9 +325,14 @@ async function generateThemeSummary(
     return block;
   }).join('\n\n');
   
+  // Combine description with detailed guidelines for the prompt
+  const fullThemeDescription = theme.detailed_guidelines 
+    ? `${theme.description}. ${theme.detailed_guidelines}`
+    : theme.description;
+    
   const prompt = THEME_SUMMARY_PROMPT
     .replace('{THEME_CODE}', theme.code)
-    .replace('{THEME_DESCRIPTION}', theme.description)
+    .replace('{THEME_DESCRIPTION}', fullThemeDescription)
     .replace('{COMMENTS}', commentBlocks);
   
   const debugId = batchNum 
@@ -261,7 +341,18 @@ async function generateThemeSummary(
 
   const response = await ai.generateContent(
     prompt,
-    debug ? debugId : undefined
+    debug ? debugId : undefined,
+    undefined,
+    {
+      taskType: 'theme_summary',
+      taskLevel: 0,
+      params: {
+        themeCode: theme.code,
+        batchNum: batchNum || 1,
+        totalBatches: totalBatches || 1,
+        commentCount: comments.length
+      }
+    }
   );
   
   return response;
@@ -269,12 +360,14 @@ async function generateThemeSummary(
 
 // Process large theme in batches
 async function processThemeInBatches(
-  db: Database,
+  _db: Database,
   ai: AIClient,
-  theme: { code: string; description: string },
+  theme: { code: string; description: string; detailed_guidelines?: string },
   comments: any[],
   batchOptions: any,
-  debug: boolean
+  concurrency: number,
+  debug: boolean,
+  mergeWidth: number = 20
 ): Promise<string> {
   // Create comment items with word counts
   const items = comments.map(c => {
@@ -296,34 +389,123 @@ async function processThemeInBatches(
   // Create batches based on word count
   const batches = createEvenBatches(items, {
     batchWordLimit: batchOptions.batchWordLimit,
+    totalWordLimit: 0 // Force batching
   });
   
   console.log(`   Split into ${batches.length} batches`);
   
-  const summaries: string[] = [];
-  
-  for (let i = 0; i < batches.length; i++) {
-    const batch = batches[i];
-    console.log(`   Processing batch ${i + 1}/${batches.length} (${batch.items.length} comments)`);
-    const summary = await generateThemeSummary(ai, theme, batch.items, debug, i + 1, batches.length);
-    summaries.push(summary);
+  if (batches.length === 1) {
+    // Single batch - no merging needed
+    return await generateThemeSummary(ai, theme, batches[0].items, debug, 1, 1);
   }
   
-  // Merge summaries
-  let currentSummary = summaries[0];
-  if (summaries.length > 1) {
-    for (let i = 1; i < summaries.length; i++) {
-      console.log(`   Merging batch ${i + 1} into main summary`);
-      const mergePrompt = THEME_SUMMARY_MERGE_PROMPT
-        .replace('{SUMMARY1}', currentSummary)
-        .replace('{SUMMARY2}', summaries[i]);
-      
-      currentSummary = await ai.generateContent(
-        mergePrompt,
-        debug ? `theme_summary_merge_${theme.code}_${i + 1}` : undefined
-      );
+  if (mergeWidth !== 20) {
+    console.log(`   Using ${mergeWidth}-way merges`);
+  }
+  
+  // Build tasks using the hierarchical helper
+  const tasks = buildHierarchicalTasks(
+    batches,
+    (_, i) => `batch_${i}`,
+    `summary_${theme.code}`,
+    mergeWidth
+  );
+  
+  // Update batch tasks with actual data
+  tasks.forEach((task, i) => {
+    if (task.data.type === 'initial') {
+      task.data = {
+        batch: task.data.item,
+        batchNum: i + 1,
+        totalBatches: batches.length,
+        theme
+      };
     }
+  });
+  
+  const finalTaskId = tasks[tasks.length - 1].id;
+  
+  console.log(`   Using hierarchical merging with ${tasks.length} tasks`);
+  
+  // Process using TaskQueue
+  const taskQueue = new TaskQueue(tasks, {
+    concurrency,
+    onTaskStart: (task) => {
+      if (task.id.startsWith('batch_')) {
+        console.log(`   🔄 Processing ${task.id}`);
+      } else {
+        console.log(`   🔄 Merging: ${task.id}`);
+      }
+    },
+    onTaskComplete: (task) => {
+      console.log(`   ✅ ${task.id} completed`);
+    },
+    onTaskError: (task, error) => {
+      console.error(`   ❌ ${task.id} failed:`, error);
+    }
+  });
+  
+  const results = await taskQueue.process(async (task, getResult) => {
+    if (task.id.startsWith('batch_')) {
+      // Process batch
+      const { batch, batchNum, totalBatches, theme } = task.data;
+      return await generateThemeSummary(ai, theme, batch.items, debug, batchNum, totalBatches);
+    } else {
+      // Merge task - handle N-way merges
+      const inputResults = task.data.inputs.map((id: string) => {
+        const result = getResult(id);
+        if (!result) {
+          throw new Error(`Missing dependency ${id} for ${task.id}`);
+        }
+        return result;
+      });
+      
+      // Check if we need to update the merge prompt for N-way merges
+      let prompt: string;
+
+      // Build N-way merge prompt
+      const summariesSection = inputResults.map((summary: string, i: number) => 
+        `=== SUMMARY ${i + 1} ===\n${summary}\n=== END OF SUMMARY ${i + 1} ===`
+      ).join('\n\n');
+      
+      // Use N-way merge prompt
+      const fullThemeDescription = theme.detailed_guidelines 
+        ? `${theme.description}. ${theme.detailed_guidelines}`
+        : theme.description;
+      
+      // First create the original prompt with substitutions
+      const originalPromptWithSubstitutions = THEME_SUMMARY_PROMPT
+        .replace(/{THEME_CODE}/g, theme.code)
+        .replace(/{THEME_DESCRIPTION}/g, fullThemeDescription);
+        
+      prompt = THEME_SUMMARY_MERGE_NWAY_PROMPT
+        .replace("{ORIGINAL_PROMPT}", originalPromptWithSubstitutions)
+        .replace("{SUMMARIES}", summariesSection);
+      
+      const response = await ai.generateContent(
+        prompt,
+        debug ? `theme_summary_merge_${theme.code}_${task.id}` : undefined,
+        undefined,
+        {
+          taskType: `theme_summary_merge`,
+          taskLevel: 0,
+          params: {
+            themeCode: theme.code,
+            taskId: task.id,
+            inputCount: inputResults.length
+          }
+        }
+      );
+      
+      return response.trim();
+    }
+  });
+  
+  // Get final merged result
+  const finalResult = results.get(finalTaskId);
+  if (!finalResult) {
+    throw new Error("Failed to get final merged summary");
   }
   
-  return currentSummary;
+  return finalResult;
 } 

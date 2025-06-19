@@ -1,4 +1,4 @@
-import { ExternalLink, Paperclip, Calendar, MapPin, User, Quote, FileText } from 'lucide-react'
+import { ExternalLink, Paperclip, Calendar, MapPin, User, Building2, Quote, FileText } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -13,8 +13,6 @@ interface CommentCardProps {
   showThemes?: boolean
   showEntities?: boolean
   clickable?: boolean
-  wordCount?: number
-  percentile?: number
   sections?: {
     oneLineSummary?: boolean
     corePosition?: boolean
@@ -39,8 +37,6 @@ function CommentCard({
   showThemes = true, 
   showEntities = true, 
   clickable = true,
-  wordCount = comment.wordCount,
-  percentile = comment.percentile,
   sections = defaultSections 
 }: CommentCardProps) {
   const navigate = useNavigate()
@@ -71,7 +67,15 @@ function CommentCard({
         <div className="flex justify-between items-start">
           <div className="flex-1">
             <div className="flex items-center space-x-2">
-              <User className="h-4 w-4 text-gray-500" />
+              {(comment.submitterType === 'Organization' || 
+                comment.submitterType === 'Business' ||
+                comment.submitterType === 'Healthcare Organization' ||
+                comment.submitterType === 'Government Agency' ||
+                comment.submitterType === 'Trade Association') ? (
+                <Building2 className="h-4 w-4 text-gray-500" />
+              ) : (
+                <User className="h-4 w-4 text-gray-500" />
+              )}
               <h4 className="font-semibold text-gray-900">{comment.submitter}</h4>
               <span className="text-sm text-gray-600">• {comment.submitterType}</span>
             </div>
@@ -101,12 +105,12 @@ function CommentCard({
             <span className="text-xs font-mono text-gray-500 bg-gray-200 px-2 py-1 rounded" title="Comment ID">
               #{comment.id}
             </span>
-            {typeof wordCount === 'number' && !isNaN(wordCount) && (
-              <div className="flex flex-col items-end space-y-0.5" title={`${wordCount.toLocaleString()} words · ${percentile ?? 0}th percentile`}>
-                <span className="text-[10px] leading-none text-gray-600">{wordCount.toLocaleString()} words</span>
-                {percentile !== undefined && (
+            {typeof comment.wordCount === 'number' && !isNaN(comment.wordCount) && (
+              <div className="flex flex-col items-end space-y-0.5" title={`${comment.wordCount.toLocaleString()} words · ${(comment as any).percentile ?? 0}th percentile`}>
+                <span className="text-[10px] leading-none text-gray-600">{comment.wordCount.toLocaleString()} words</span>
+                {(comment as any).percentile !== undefined && (
                   <div className="w-16 h-1 bg-gray-200 rounded overflow-hidden">
-                    <div className="bg-blue-500 h-full" style={{ width: `${percentile}%` }} />
+                    <div className="bg-blue-500 h-full" style={{ width: `${(comment as any).percentile}%` }} />
                   </div>
                 )}
               </div>

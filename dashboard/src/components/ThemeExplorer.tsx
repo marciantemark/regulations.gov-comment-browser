@@ -7,6 +7,7 @@ import CopyThemeListModal from './CopyThemeListModal'
 
 function ThemeExplorer() {
   const { themes, themeSummaries } = useStore()
+  console.log('Rendering ThemeExplorer with themes:', themes)
   const navigate = useNavigate()
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set())
   const [searchQuery, setSearchQuery] = useState('')
@@ -18,15 +19,37 @@ function ThemeExplorer() {
     const tree: Record<string, Theme[]> = {}
     
     // Group by parent - only show themes with direct mentions
-    themes.filter(t => t.direct_count > 0).forEach(theme => {
+    themes.filter(t => true || t.direct_count > 0).forEach(theme => {
       const parent = theme.parent_code || 'root'
       if (!tree[parent]) tree[parent] = []
       tree[parent].push(theme)
     })
     
-    // Sort each group by code
+    // Sort each group by code with natural numeric ordering
+    const naturalSort = (a: string, b: string) => {
+      // Split codes into parts (numbers and non-numbers)
+      const aParts = a.split(/(\d+)/)
+      const bParts = b.split(/(\d+)/)
+      
+      for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {
+        const aPart = aParts[i] || ''
+        const bPart = bParts[i] || ''
+        
+        // If both parts are numbers, compare numerically
+        if (/^\d+$/.test(aPart) && /^\d+$/.test(bPart)) {
+          const diff = parseInt(aPart) - parseInt(bPart)
+          if (diff !== 0) return diff
+        } else {
+          // Otherwise compare as strings
+          const diff = aPart.localeCompare(bPart)
+          if (diff !== 0) return diff
+        }
+      }
+      return 0
+    }
+    
     Object.values(tree).forEach(children => {
-      children.sort((a, b) => a.code.localeCompare(b.code))
+      children.sort((a, b) => naturalSort(a.code, b.code))
     })
     
     return tree

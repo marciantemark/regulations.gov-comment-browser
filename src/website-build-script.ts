@@ -63,7 +63,11 @@ function getStats(db: any) {
 function getThemeHierarchy(db: any) {
   const themes = db.prepare(`
     SELECT 
-      t.*,
+      t.code,
+      t.description,
+      t.level,
+      t.parent_code,
+      t.detailed_guidelines,
       COUNT(DISTINCT CASE WHEN ct.score = 1 THEN ct.comment_id END) as comment_count,
       COUNT(DISTINCT CASE WHEN ct.score = 1 THEN ct.comment_id END) as direct_count,
       0 as touch_count

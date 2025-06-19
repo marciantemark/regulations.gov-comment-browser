@@ -28,6 +28,12 @@ export function parseCondensedSections(text: string): {
   const errors: string[] = [];
   const missingHeaders: string[] = [];
   
+  // Create a map for case-insensitive header matching
+  const headerMap = new Map<string, string>();
+  for (const [header, key] of Object.entries(SECTION_HEADERS)) {
+    headerMap.set(header.toUpperCase(), key);
+  }
+  
   // Split by ### headers
   const parts = text.split(/^###\s+/m);
   
@@ -46,10 +52,19 @@ export function parseCondensedSections(text: string): {
     const header = lines[0].trim();
     const content = lines.slice(1).join('\n').trim();
     
-    if (header in SECTION_HEADERS) {
-      const key = SECTION_HEADERS[header as keyof typeof SECTION_HEADERS];
+    // Canonicalize header for matching
+    const canonicalHeader = header.toUpperCase();
+    
+    if (headerMap.has(canonicalHeader)) {
+      const key = headerMap.get(canonicalHeader)!;
       sections[key] = content;
-      foundHeaders.add(header);
+      // Store the exact header found (for checking missing headers)
+      for (const [originalHeader, _] of Object.entries(SECTION_HEADERS)) {
+        if (originalHeader.toUpperCase() === canonicalHeader) {
+          foundHeaders.add(originalHeader);
+          break;
+        }
+      }
     } else {
       errors.push(`Unknown section header: "${header}"`);
     }

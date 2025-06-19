@@ -7,6 +7,7 @@ import { CONDENSE_PROMPT } from "../prompts/condense";
 import { parseCondensedSections } from "../lib/parse-condensed-sections";
 import type { RawComment } from "../types";
 import { runPool } from "../lib/worker-pool";
+import { getTaskConfig, getTaskModel } from "../lib/batch-config";
 
 export const condenseCommand = new Command("condense")
   .description("Generate condensed versions of comments")
@@ -15,15 +16,20 @@ export const condenseCommand = new Command("condense")
   .option("--retry-failed", "Retry previously failed comments")
   .option("-d, --debug", "Enable debug output")
   .option("-c, --concurrency <n>", "Number of parallel API calls (default: 5)", parseInt)
+  .option("-m, --model <model>", "AI model to use (overrides config)")
   .action(condenseComments);
 
 async function condenseComments(documentId: string, options: any) {
   await initDebug(options.debug);
   
   const db = openDb(documentId);
-  const ai = new AIClient();
+  
+  // Get the effective model from config
+  const effectiveModel = getTaskModel('condense', options.model);
+  const ai = new AIClient(effectiveModel, db);
   
   console.log(`📝 Condensing comments for document ${documentId}`);
+  console.log(`   Using model: ${effectiveModel}`);
   
   // Get processing status
   const status = getProcessingStatus(db, "condensed_comments");
@@ -101,7 +107,8 @@ async function condenseComments(documentId: string, options: any) {
   let successful = 0;
   let failed = 0;
   
-  const concurrency = options.concurrency || 5;
+  const taskConfig = getTaskConfig('condense', options.model);
+  const concurrency = options.concurrency || taskConfig.concurrency;
   
   const activeWorkers = new Set<string>();
   
@@ -126,10 +133,16 @@ async function condenseComments(documentId: string, options: any) {
       // Build prompt using the enriched content only (already contains a concise metadata block)
       const prompt = CONDENSE_PROMPT.replace("{COMMENT_TEXT}", enriched.content);
       
-      // Generate condensed version
+      // Generate condensed version with caching metadata
       const response = await ai.generateContent(
         prompt,
-        options.debug ? `condense_${comment.id}` : undefined
+        options.debug ? `condense_${comment.id}` : undefined,
+        `condense_${comment.id}`,
+        {
+          taskType: 'condense',
+          taskLevel: 0,
+          params: { commentId: comment.id }
+        }
       );
       
       // Parse the response into sections

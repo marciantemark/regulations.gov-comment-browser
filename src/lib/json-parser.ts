@@ -9,6 +9,7 @@ export function parseJsonResponse(text: string): any {
     try {
       return JSON.parse(jsonContent);
     } catch (e) {
+      console.error("Failed to parse JSON from code block:", jsonContent);
       throw new Error(`Invalid JSON in code block: ${e instanceof Error ? e.message : String(e)}`);
     }
   }

@@ -33,6 +33,19 @@ export interface Attachment {
   blob_data: Uint8Array | null;
 }
 
+// Structured sections produced by the condense step
+export interface StructuredSections {
+  detailedContent?: string;
+  oneLineSummary?: string;
+  commenterProfile?: string;
+  corePosition?: string;
+  keyRecommendations?: string;
+  mainConcerns?: string;
+  notableExperiences?: string;
+  keyQuotations?: string;
+  [key: string]: unknown; // allow for future fields while avoiding 'any'
+}
+
 // Enriched comment with metadata and content
 export interface EnrichedComment {
   id: string;
@@ -45,7 +58,7 @@ export interface EnrichedComment {
     location?: string;
     date?: string;
   };
-  structuredSections?: any; // Optional structured sections from condensed comments
+  structuredSections?: StructuredSections; // Parsed structured sections
 }
 
 // Theme discovery parsed theme row
@@ -54,6 +67,7 @@ export interface ParsedTheme {
   description: string;
   level: number;
   parent_code: string | null;
+  detailed_guidelines?: string;
 }
 
 // Entity discovery types

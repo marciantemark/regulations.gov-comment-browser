@@ -6,6 +6,7 @@ import { AIClient } from "../lib/ai-client";
 import { loadCondensedComments } from "../lib/comment-processing";
 import { THEME_SCORING_PROMPT } from "../prompts/theme-scoring";
 import { parseJsonResponse } from "../lib/json-parser";
+import { getTaskConfig, getTaskModel } from "../lib/batch-config";
 
 export const scoreThemesCommand = new Command("score-themes")
   .description("Score comments against the theme hierarchy")
@@ -14,18 +15,23 @@ export const scoreThemesCommand = new Command("score-themes")
   .option("--retry-failed", "Retry previously failed comments")
   .option("-d, --debug", "Enable debug output")
   .option("-c, --concurrency <n>", "Number of parallel API calls (default: 5)", parseInt)
+  .option("-m, --model <model>", "AI model to use (overrides config)")
   .action(scoreThemes);
 
 async function scoreThemes(documentId: string, options: any) {
   await initDebug(options.debug);
   
   const db = openDb(documentId);
-  const ai = new AIClient();
+  
+  // Get the effective model from config
+  const effectiveModel = getTaskModel('scoreThemes', options.model);
+  const ai = new AIClient(effectiveModel);
   
   console.log(`🎯 Scoring comments against themes for document ${documentId}`);
+  console.log(`   Using model: ${effectiveModel}`);
   
   // Load theme hierarchy
-  const themes = db.prepare("SELECT code, description FROM theme_hierarchy ORDER BY code").all() as { code: string; description: string }[];
+  const themes = db.prepare("SELECT code, description, detailed_guidelines FROM theme_hierarchy ORDER BY code").all() as { code: string; description: string; detailed_guidelines?: string }[];
   if (themes.length === 0) {
     console.log("❌ No theme hierarchy found. Run 'discover-themes' first.");
     return;
@@ -33,7 +39,12 @@ async function scoreThemes(documentId: string, options: any) {
   console.log(`📊 Loaded ${themes.length} themes`);
   
   // Build hierarchy text for prompt
-  const hierarchyText = themes.map(t => `${t.code}. ${t.description}`).join("\n");
+  const hierarchyText = themes.map(t => {
+    const fullDescription = t.detailed_guidelines 
+      ? `${t.description}. ${t.detailed_guidelines}`
+      : t.description;
+    return `${t.code}. ${fullDescription}`;
+  }).join("\n");
   const themeCount = themes.length;
   
   // Get processing status
@@ -120,7 +131,8 @@ async function scoreThemes(documentId: string, options: any) {
   let successful = 0;
   let failed = 0;
   
-  const concurrency = options.concurrency || 5;
+  const taskConfig = getTaskConfig('scoreThemes', options.model);
+  const concurrency = options.concurrency || taskConfig.concurrency;
   
   // Create a queue of comments
   const queue = [...comments];
@@ -146,25 +158,20 @@ async function scoreThemes(documentId: string, options: any) {
         .replace("{COMMENT}", commentText);
       
       // Get scores from LLM
-      const response = await ai.generateContent(
+      const scores = await ai.generateContent<Record<string, number>>(
         prompt,
-        options.debug ? `score_themes_${comment.comment_id}` : undefined
+        options.debug ? `score_themes_${comment.comment_id}` : undefined,
+        undefined,  // jobId
+        undefined,  // metadata
+        parseJsonResponse  // postProcess function
       );
-      
-      // Parse JSON response
-      let scores: Record<string, number>;
-      try {
-        scores = parseJsonResponse(response);
-      } catch (e) {
-        throw new Error(`Invalid JSON response: ${e instanceof Error ? e.message : String(e)}`);
-      }
       
       // Validate scores
       const validScores = Object.entries(scores).filter(([_, score]) => score === 1 || score === 2 || score === 3);
       const totalThemes = themeCount;
       const scoredThemes = validScores.length;
       
-      const GRACE = 5;
+      const GRACE = taskConfig.validation?.scoringGrace || 5;
       // Check if we got exactly the right number of scores
       if (scoredThemes < totalThemes - GRACE) {
         throw new Error(`Expected at least ${totalThemes-GRACE} theme scores, but got ${scoredThemes}. Missing themes: ${themes.map(t => t.code).filter(code => !(code in scores)).join(', ')}`);

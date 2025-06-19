@@ -38,16 +38,6 @@ function ThemeDetail() {
     return hierarchy
   }, [theme, themes])
   
-  // Compute word counts and max for percentile
-  const getWordCount = (c: typeof displayedComments[number]): number => {
-    if (c.wordCount !== undefined) return c.wordCount
-    const sections = c.structuredSections || {}
-    const text = Object.values(sections).filter(Boolean).join(' ')
-    return text.trim() === '' ? 0 : text.trim().split(/\s+/).length
-  }
-
-  const wordCounts = displayedComments.map(getWordCount)
-  const sortedCounts = [...wordCounts].sort((a,b)=>a-b)
   
  
   if (!theme) {
@@ -211,21 +201,14 @@ function ThemeDetail() {
         
         {displayedComments.length > 0 ? (
           <div className="space-y-4">
-            {displayedComments.map(comment => {
-              const wc = getWordCount(comment)
-              const rank = sortedCounts.findIndex(x=>x===wc)
-              const pct = sortedCounts.length>1 ? Math.round((rank /(sortedCounts.length-1))*100) : 100
-              return (
-                <CommentCard 
-                  key={comment.id} 
-                  comment={comment} 
-                  showThemes={false}
-                  showEntities={false}
-                  wordCount={wc}
-                  percentile={pct}
-                />
-              )
-            })}
+            {displayedComments.map(comment => (
+              <CommentCard 
+                key={comment.id} 
+                comment={comment} 
+                showThemes={false}
+                showEntities={false}
+              />
+            ))}
           </div>
         ) : (
           <p className="text-gray-500 italic">No comments found addressing this theme</p>

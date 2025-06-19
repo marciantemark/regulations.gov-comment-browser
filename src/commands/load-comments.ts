@@ -49,7 +49,7 @@ async function loadFromApi(documentId: string, options: any) {
       throw new Error(`Failed to fetch document: ${docResponse.status} ${docResponse.statusText}`);
     }
     
-    const docData = await docResponse.json();
+    const docData: any = await docResponse.json();
     const objectId = docData.data.attributes.objectId;
     debugLog(`Object ID: ${objectId}`);
     
@@ -70,7 +70,7 @@ async function loadFromApi(documentId: string, options: any) {
         throw new Error(`Failed to fetch comments: ${response.status} ${response.statusText}`);
       }
       
-      const data = await response.json();
+      const data: any = await response.json();
       if (!data.data || data.data.length === 0) break;
       
       commentIds.push(...data.data.map((c: any) => c.id));
@@ -103,35 +103,97 @@ async function loadFromApi(documentId: string, options: any) {
     
     for (const commentId of idsToLoad) {
       try {
-        // Fetch comment details
+        // 1️⃣ Fetch comment details with relationships to attachments
         const url = `https://api.regulations.gov/v4/comments/${commentId}?include=attachments`;
         const response = await fetch(url, { headers });
-        
         if (!response.ok) {
           console.error(`❌ Failed to fetch comment ${commentId}: ${response.status}`);
           continue;
         }
-        
-        const data = await response.json();
-        
-        // Save comment
+
+        const data: any = await response.json();
+
+        // 2️⃣ Gather attachment metadata (+ optional binary)
+        type APIAttachment = {
+          id: string;
+        };
+
+        type AttachmentRecord = {
+          id: string;
+          fmt: string;
+          fileName: string;
+          url: string;
+          size: number | null;
+          blob: Uint8Array | null;
+        };
+
+        const attachments: AttachmentRecord[] = [];
+
+        const relationshipData: APIAttachment[] = data.data.relationships?.attachments?.data || [];
+
+        for (const rel of relationshipData) {
+          const attUrl = `https://api.regulations.gov/v4/attachments/${rel.id}?include=fileFormats`;
+          const attResp = await fetch(attUrl, { headers });
+          if (!attResp.ok) {
+            debugLog(`Failed to fetch attachment ${rel.id}: ${attResp.status}`);
+            continue;
+          }
+
+          const attData: any = await attResp.json();
+
+          for (const format of attData.data.attributes.fileFormats || []) {
+            const fileUrl: string | undefined = format.downloadUrl || format.fileUrl;
+            if (!fileUrl) continue;
+
+            const fmt = (format.fileFormat || format.format || "bin").toLowerCase();
+            const fileName = `${rel.id}.${fmt}`;
+
+            let blob: Uint8Array | null = null;
+            let size: number | null = format.size || null;
+
+            if (!options.skipAttachments) {
+              try {
+                const binResp = await fetch(fileUrl, { headers });
+                if (binResp.ok) {
+                  const buffer = new Uint8Array(await binResp.arrayBuffer());
+                  blob = buffer;
+                  size = buffer.length;
+                  debugLog(`Downloaded ${fileName}: ${size} bytes`);
+                } else {
+                  debugLog(`Failed to download ${fileUrl}: ${binResp.status}`);
+                }
+              } catch (e) {
+                debugLog(`Error downloading ${fileUrl}:`, e);
+              }
+            }
+
+            attachments.push({ id: format.formatId || rel.id, fmt, fileName, url: fileUrl, size, blob });
+          }
+
+          // modest delay to respect rate limits
+          await sleep(1000);
+        }
+
+        // 3️⃣ Save comment and its attachments together
         withTransaction(db, () => {
           insertComment.run(commentId, JSON.stringify(data.data.attributes));
-          
-          // Handle attachments
-          if (!options.skipAttachments && data.data.relationships?.attachments?.data) {
-            for (const att of data.data.relationships.attachments.data) {
-              processAttachment(db, insertAttachment, commentId, att.id, headers, options).catch(
-                err => console.error(`⚠️  Error processing attachment ${att.id}:`, err)
-              );
-            }
+          for (const att of attachments) {
+            insertAttachment.run(
+              att.id,
+              commentId,
+              att.fmt,
+              att.fileName,
+              att.url,
+              att.size,
+              att.blob
+            );
           }
         });
-        
+
         loaded++;
         process.stdout.write(`\r✅ Loaded ${loaded}/${idsToLoad.length} comments`);
-        
-        await sleep(1200); // Rate limiting
+
+        await sleep(1200); // Rate limiting between comments
       } catch (error) {
         console.error(`\n❌ Error loading comment ${commentId}:`, error);
       }
@@ -144,72 +206,13 @@ async function loadFromApi(documentId: string, options: any) {
   }
 }
 
-// Process attachment
-async function processAttachment(
-  db: Database,
-  stmt: any,
-  commentId: string,
-  attachmentId: string,
-  headers: any,
-  options: any
-) {
-  const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
-  
-  try {
-    const url = `https://api.regulations.gov/v4/attachments/${attachmentId}?include=fileFormats`;
-    const response = await fetch(url, { headers });
-    
-    if (!response.ok) {
-      debugLog(`Failed to fetch attachment ${attachmentId}: ${response.status}`);
-      return;
-    }
-    
-    const data = await response.json();
-    
-    for (const format of data.data.attributes.fileFormats || []) {
-      const fileUrl = format.downloadUrl || format.fileUrl;
-      if (!fileUrl) continue;
-      
-      const fmt = format.fileFormat || format.format || "bin";
-      const fileName = `${attachmentId}.${fmt}`;
-      
-      let blobData = null;
-      let size = format.size || null;
-      
-      if (!options.skipAttachments) {
-        const binResponse = await fetch(fileUrl, { headers });
-        if (binResponse.ok) {
-          const buffer = new Uint8Array(await binResponse.arrayBuffer());
-          blobData = buffer;
-          size = buffer.length;
-          debugLog(`Downloaded ${fileName}: ${size} bytes`);
-        }
-      }
-      
-      stmt.run(
-        format.formatId || attachmentId,
-        commentId,
-        fmt,
-        fileName,
-        fileUrl,
-        size,
-        blobData
-      );
-      
-      await sleep(1000);
-    }
-  } catch (error) {
-    debugLog(`Error processing attachment ${attachmentId}:`, error);
-  }
-}
-
 // Load from CSV file
 async function loadFromCsv(csvPath: string, options: any) {
   console.log(`📥 Loading comments from CSV file: ${csvPath}`);
   
   // Extract document ID from CSV filename or use generic ID
   const csvBasename = basename(csvPath, extname(csvPath));
-  const documentId = /([A-Z]+-\d{4}-\d{4})/.exec(csvBasename)?.[1] || csvBasename;
+  const documentId =  csvBasename;
   
   console.log(`📄 Using document ID: ${documentId}`);
   
@@ -278,7 +281,10 @@ async function loadFromCsv(csvPath: string, options: any) {
       for (const [csvField, attrField] of Object.entries(fieldMap)) {
         if (row[csvField]) {
           if (attrField === "pageCount") {
-            attributes[attrField] = parseInt(row[csvField]) || null;
+            const parsed = parseInt(row[csvField]);
+            if (!isNaN(parsed)) {
+              attributes[attrField] = parsed;
+            }
           } else {
             attributes[attrField] = row[csvField];
           }
@@ -298,28 +304,67 @@ async function loadFromCsv(csvPath: string, options: any) {
           });
       }
       
-      // Save comment
+      // Gather attachment info (and optionally download files)
+      const urls = (
+        (row["Attachment Files"] || "") + ";" + (row["Content Files"] || "")
+      )
+        .split(/[\s;,|]+/)
+        .map(u => u.trim())
+        .filter(Boolean);
+
+      type AttachmentData = {
+        attachId: string;
+        fmt: string;
+        fileName: string;
+        url: string;
+        size: number | null;
+        blob: Uint8Array | null;
+      };
+
+      const attachments: AttachmentData[] = [];
+
+      for (let i = 0; i < urls.length; i++) {
+        const url = urls[i];
+        const fmt = extname(url).replace(".", "").toLowerCase() || "bin";
+        const attachId = `${commentId}-att${i + 1}`;
+        const fileName = basename(url);
+
+        let size: number | null = null;
+        let blob: Uint8Array | null = null;
+
+        if (!options.skipAttachments) {
+          try {
+            const resp = await fetch(url);
+            if (resp.ok) {
+              const buffer = new Uint8Array(await resp.arrayBuffer());
+              blob = buffer;
+              size = buffer.length;
+              debugLog(`Downloaded ${fileName}: ${size} bytes`);
+            } else {
+              debugLog(`Failed to download ${url}: ${resp.status}`);
+            }
+          } catch (e) {
+            debugLog(`Error downloading attachment ${url}:`, e);
+          }
+        }
+
+        attachments.push({ attachId, fmt, fileName, url, size, blob });
+      }
+
+      // Save comment & attachments inside a single transaction (sync)
       withTransaction(db, () => {
         insertComment.run(commentId, JSON.stringify(attributes));
-        
-        // Handle attachment URLs
-        if (!options.skipAttachments) {
-          const urls = (
-            (row["Attachment Files"] || "") + ";" + (row["Content Files"] || "")
-          )
-            .split(/[\s;,|]+/)
-            .map(u => u.trim())
-            .filter(Boolean);
-          
-          for (let i = 0; i < urls.length; i++) {
-            const url = urls[i];
-            const fmt = extname(url).replace(".", "").toLowerCase() || "bin";
-            const attachId = `${commentId}-att${i + 1}`;
-            const fileName = basename(url);
-            
-            // For CSV, we just store the URL reference
-            insertAttachment.run(attachId, commentId, fmt, fileName, url, null, null);
-          }
+
+        for (const att of attachments) {
+          insertAttachment.run(
+            att.attachId,
+            commentId,
+            att.fmt,
+            att.fileName,
+            att.url,
+            att.size,
+            att.blob
+          );
         }
       });
       

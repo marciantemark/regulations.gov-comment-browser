@@ -1,11 +1,10 @@
 import { Database } from "bun:sqlite";
 import type { RawComment, CommentAttributes, Attachment, EnrichedComment, ParsedTheme } from "../types";
 import { countWords } from "./batch-processor";
-// Importing via the top-level entry of pdf-parse triggers a built-in debug block
-// that attempts to read a non-existent fixture file when the module has no parent
-// (the case for Bun + ESM). Instead, import the actual implementation directly.
-// @ts-ignore – sub-path has no typings, but runtime API is identical.
-import { PDFExtract } from 'pdf.js-extract';
+import { mkdtemp, writeFile, unlink } from "fs/promises";
+import { join } from "path";
+import { tmpdir } from "os";
+import { $ } from "bun";
 
 // Load comments and attachments from database
 export function loadComments(db: Database, limit?: number): {
@@ -77,6 +76,58 @@ export function loadCondensedComments(db: Database, limit?: number): EnrichedCom
       content,
       wordCount: countWords(content),
       metadata: extractMetadata(attrs),
+      structuredSections: sections
+    };
+  });
+}
+
+// Load condensed comments for entity extraction (metadata + detailed content only)
+export function loadCondensedCommentsForEntities(db: Database, limit?: number): EnrichedComment[] {
+  const query = limit
+    ? `SELECT c.id, cc.structured_sections, c.attributes_json 
+       FROM comments c 
+       JOIN condensed_comments cc ON c.id = cc.comment_id 
+       WHERE cc.status = 'completed' 
+       LIMIT ?`
+    : `SELECT c.id, cc.structured_sections, c.attributes_json 
+       FROM comments c 
+       JOIN condensed_comments cc ON c.id = cc.comment_id 
+       WHERE cc.status = 'completed'`;
+  
+  const rows = limit
+    ? db.prepare(query).all(limit)
+    : db.prepare(query).all();
+  
+  return rows.map((row: any) => {
+    const attrs = JSON.parse(row.attributes_json) as CommentAttributes;
+    const sections = JSON.parse(row.structured_sections || '{}');
+    const metadata = extractMetadata(attrs);
+    
+    // Build a condensed representation with metadata and detailed content only
+    const parts: string[] = [];
+    
+    // Add metadata
+    parts.push(`[${metadata.submitterType}] ${metadata.submitter}`);
+    if (metadata.organization) {
+      parts.push(`Organization: ${metadata.organization}`);
+    }
+    if (metadata.location) {
+      parts.push(`Location: ${metadata.location}`);
+    }
+    parts.push('');
+    
+    // Add detailed content (the bulletized version)
+    if (sections.detailedContent) {
+      parts.push(sections.detailedContent);
+    }
+    
+    const content = parts.join('\n');
+    
+    return {
+      id: row.id,
+      content,
+      wordCount: countWords(content),
+      metadata,
       structuredSections: sections
     };
   });
@@ -186,15 +237,42 @@ function extractMetadata(attrs: CommentAttributes) {
 export function parseThemeHierarchy(text: string): ParsedTheme[] {
   const themes: ParsedTheme[] = [];
   
-  const lines = text.split("\n");
+  // New approach: split by theme patterns to get full paragraphs
+  // Match pattern: number at start of line followed by dot and space
+  const themePattern = /^(\d+(?:\.\d+)*)\.\s+/gm;
   
-  for (const line of lines) {
-    // Match lines like "1. Theme Label. Description text."
-    const m = line.match(/^(\s*)(\d+(?:\.\d+)*)(?:\.)?\s+([^.]+)\.\s*(.+)$/);
-    if (!m) continue;
-
-    const [ , indent, codeRaw, label, description ] = m;
-    const code = codeRaw; // without trailing dot
+  // Find all theme starts
+  const themeStarts: Array<{index: number, code: string}> = [];
+  let match;
+  while ((match = themePattern.exec(text)) !== null) {
+    themeStarts.push({
+      index: match.index,
+      code: match[1]
+    });
+  }
+  
+  // Process each theme by extracting its full content
+  for (let i = 0; i < themeStarts.length; i++) {
+    const start = themeStarts[i];
+    const end = i < themeStarts.length - 1 ? themeStarts[i + 1].index : text.length;
+    
+    // Get the full theme content
+    const themeContent = text.substring(start.index, end).trim();
+    
+    // Parse the content: "1.2. Label. Brief description || Detailed guidelines"
+    // First match the theme code, then handle the label separately to avoid issues with "vs."
+    const codeMatch = themeContent.match(/^(\d+(?:\.\d+)*)\.\s+/);
+    if (!codeMatch) continue;
+    
+    const code = codeMatch[1];
+    const afterCode = themeContent.substring(codeMatch[0].length);
+    
+    // Find first ". " that's not part of "vs. "
+    const labelMatch = afterCode.match(/^(.*?)(?<!vs)\.\s(.*)$/s);
+    if (!labelMatch) continue;
+    
+    const label = labelMatch[1];
+    const restOfContent = labelMatch[2];
     const level = code.split(".").length;
     
     // Determine parent code
@@ -205,18 +283,43 @@ export function parseThemeHierarchy(text: string): ParsedTheme[] {
       parent_code = parts.join(".");
     }
     
-    // Clean up description (remove trailing period if present)
-    let desc = description.trim();
-    if (desc.endsWith('.')) desc = desc.slice(0, -1);
+    // Parse the rest of the content
+    let briefDescription = '';
+    let detailedGuidelines = '';
     
-    // Combine label and description for the full description field
-    const fullDescription = `${label.trim()}. ${desc}`;
+    // Check if we have the delimiter format
+    if (restOfContent.includes(' || ')) {
+      // New delimiter format - split on double pipe
+      const parts = restOfContent.split(' || ');
+      briefDescription = parts[0].trim();
+      detailedGuidelines = parts.slice(1).join(' || ').trim();
+    } else {
+      // Fallback: everything after the label is the description
+      // The label is already captured separately, so use all remaining content
+      const fullText = restOfContent.trim();
+      
+      // If there's a clear sentence boundary after the first sentence, split there
+      const firstPeriodIndex = fullText.indexOf('. ');
+      if (firstPeriodIndex > 0 && firstPeriodIndex < 200) {
+        briefDescription = fullText.substring(0, firstPeriodIndex);
+        detailedGuidelines = fullText.substring(firstPeriodIndex + 2).trim();
+      } else {
+        // Use the entire content as description
+        briefDescription = fullText;
+      }
+    }
+    
+    // Clean up brief description (remove trailing period if present)
+    if (briefDescription.endsWith('.')) {
+      briefDescription = briefDescription.slice(0, -1);
+    }
 
     themes.push({
       code,
-      description: fullDescription,
+      description: label.trim(),  // Just the label for the description field
       level,
-      parent_code
+      parent_code,
+      detailed_guidelines: briefDescription + (detailedGuidelines ? '. ' + detailedGuidelines : '')
     });
   }
   
@@ -277,15 +380,31 @@ export function parseEntityTaxonomy(text: string): Record<string, Array<{
 }
 
 async function extractPdfText(buffer: Buffer | Uint8Array): Promise<string> {
-  const pdfExtract = new PDFExtract();
-  const options = { normalizeWhitespace: true, disableCombineTextItems: false };
-  return new Promise((resolve, reject) => {
-    pdfExtract.extractBuffer(buffer, options, (err, data) => {
-      if (err) return reject(err);
-      const allText = data.pages
-        .map(page => page.content.map(item => item.str).join(' '))
-        .join('\n\n');
-      resolve(allText);
-    });
-  });
+  // Create a temporary directory and file
+  const tempDir = await mkdtemp(join(tmpdir(), 'pdf-extract-'));
+  const tempPdfPath = join(tempDir, 'temp.pdf');
+  
+  try {
+    // Write PDF buffer to temporary file
+    await writeFile(tempPdfPath, buffer);
+    
+    // Use pdftotext to extract text
+    // -layout preserves the layout, -enc UTF-8 ensures proper encoding
+    const result = await $`pdftotext -layout -enc UTF-8 ${tempPdfPath} -`.text();
+    
+    return result.trim();
+  } catch (error) {
+    console.error('Error extracting PDF text:', error);
+    // Fallback to empty string if pdftotext fails
+    return '';
+  } finally {
+    // Clean up temporary file
+    try {
+      await unlink(tempPdfPath);
+      // Remove the temporary directory
+      await $`rmdir ${tempDir}`.quiet();
+    } catch {
+      // Ignore cleanup errors
+    }
+  }
 }

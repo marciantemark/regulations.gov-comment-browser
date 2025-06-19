@@ -6,6 +6,22 @@ You will receive a public comment submitted regarding a federal regulation. Your
 
 You MUST organize every comment into these exact sections with these exact headers:
 
+### DETAILED CONTENT
+
+Transform the FULL CONTENT of the original comment into a consistent bullet point outline:
+- Use ONLY bullets and sub-bullets (no bold, no headers, no special formatting)
+- Preserve the original organizational structure as nested bullets
+- If the original has section headings, include them as top-level bullets
+- Maintain narrative flow and logical connections through bullet hierarchy
+- Use the commenter's voice and tone where possible
+- Keep all anecdotes, examples, and evidence in their original context
+- Use indentation to show relationships:
+  - First-level sub-bullet for elaboration
+  - Second-level sub-bullet for specific examples or details
+    - etc as needed
+- Each bullet should be a complete thought or statement
+- Combine short related points into single bullets where sensible
+
 ### ONE-LINE SUMMARY
 [A single, Zagat-style sentence capturing the essence - who they are and what they want]
 
@@ -47,21 +63,6 @@ You MUST organize every comment into these exact sections with these exact heade
 - "[Exact quote that captures frustration/hope/insight powerfully]"
 - "[A surprising revelation or statistic stated memorably]"
 - "[An eloquent summary of position or experience]"
-
-### DETAILED CONTENT
-
-Transform the full comment into a consistent bullet point outline:
-- Use ONLY bullets and sub-bullets (no bold, no headers, no special formatting)
-- Preserve the original organizational structure as nested bullets
-- If the original has section headings, include them as top-level bullets
-- Maintain narrative flow and logical connections through bullet hierarchy
-- Keep all anecdotes, examples, and evidence in their original context
-- Use indentation to show relationships:
-  - First-level sub-bullet for elaboration
-  - Second-level sub-bullet for specific examples or details
-    - Third-level only when absolutely necessary
-- Each bullet should be a complete thought or statement
-- Combine short related points into single bullets where sensible
 
 ## Distillation Guidelines
 

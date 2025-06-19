@@ -5,37 +5,41 @@ You will analyze public comments that address a specific theme. Your task is to 
 ## Theme Being Analyzed
 {THEME_CODE}: {THEME_DESCRIPTION}
 
+You *must* restric your analysis to this theme.
+
+## Important: Comment ID Format
+Comment IDs in the input are provided as attributes in comment tags: <comment id="CMS-ABC">. When referencing comments in your analysis, use the full ID.
+
+## Important: Mention commenters and Comment IDs in consistent format
+Commenter Name (Comment ID) -- this is a good reliable way to refer
+
 ## Output Structure
 
 You MUST organize your analysis into these exact sections with these exact headers:
-
-### EXECUTIVE SUMMARY
-[A 2-3 sentence overview capturing the essence of public sentiment on this theme - what's the big picture?]
 
 ### CONSENSUS POINTS
 [If no clear consensus exists, write "No clear consensus points identified"]
 - [Each point where commenters broadly agree, regardless of their overall position]
 - [Include the approximate proportion who agree, e.g., "Nearly all commenters agree..." or "A strong majority believe..."]
-  - [Supporting evidence or common reasoning]
-  - [Notable exceptions if any]
+  - [Supporting evidence or common reasoning, mentioning specific organizations or stakeholders when notable]
+  - [Notable exceptions if any, with key stakeholders and comment IDs where specific counter-examples are cited]
 
 ### AREAS OF DEBATE
 [If no significant debates exist, write "No significant areas of debate identified"]
 - **[Debate Topic]:** [Brief description of the disagreement]
-  - **Position A:** [First perspective with approximate support level]
-    - [Key arguments or evidence]
-  - **Position B:** [Opposing perspective with approximate support level]
-    - [Key arguments or evidence]
-  - **Middle Ground:** [If applicable, describe any compromise positions]
+  - **[Brief label for Position]:** [First perspective with approximate support level, noting key organizations/stakeholders who hold this view]
+    - [Key arguments or evidence, referencing specific comment IDs for particularly articulate examples]
+  - **[Brief label for Position]:** [Opposing perspective with approximate support level, noting key organizations/stakeholders who hold this view]
+    - [Key arguments or evidence, referencing specific comment IDs for particularly articulate examples]
 
 ### STAKEHOLDER PERSPECTIVES
 [Group commenters by their type/role and summarize their distinct viewpoints]
 - **[Stakeholder Type]:** [Their primary concerns and positions]
-  - [Specific points unique to this group]
+  - [Specific points unique to this group, with stakeholder and comment IDs for exemplary statements]
   - [How their experience shapes their view]
 
 ### NOTEWORTHY INSIGHTS
-[Unique, surprising, or particularly well-articulated points that illuminate the issue]
+[Unique, surprising, or particularly well-articulated points that illuminate the issue -- be sure to identify the comment ID and name associated with the insight]
 - [Unexpected consequences or connections raised by commenters]
 - [Creative solutions or alternatives proposed]
 - [Compelling personal experiences that illustrate broader issues]
@@ -43,17 +47,17 @@ You MUST organize your analysis into these exact sections with these exact heade
 - [Particularly eloquent articulations of complex issues]
 
 ### EMERGING PATTERNS
-[Patterns or trends that become visible across multiple comments]
-- [Geographic variations in perspectives]
-- [Correlations between commenter types and positions]
-- [Recurring concerns that may not be explicitly connected by commenters]
+[Patterns or trends that become visible across multiple comments-- be sure to identify key comment IDs and commenter types associated with the insight]
+- [Geographic variations in perspectives, with example comment IDs showing regional differences]
+- [Correlations between commenter types and positions, citing specific examples]
+- [Recurring concerns that may not be explicitly connected by commenters, with representative comment IDs]
 - [Gaps or blind spots - what's NOT being discussed?]
 
 ### KEY QUOTATIONS
 [Extract 3-5 verbatim quotes that powerfully capture different aspects of the debate]
-- "[Quote that crystallizes the main concern]" - [Commenter Type]
-- "[Quote that offers unique insight]" - [Commenter Type]
-- "[Quote that humanizes the policy impact]" - [Commenter Type]
+- "[Quote that crystallizes the main concern]" - [Commenter Type/Organization, Comment ID]
+- "[Quote that offers unique insight]" - [Commenter Type/Organization, Comment ID]
+- "[Quote that humanizes the policy impact]" - [Commenter Type/Organization, Comment ID]
 
 ### ANALYTICAL NOTES
 [Your observations about the quality and nature of the discourse]
@@ -61,6 +65,10 @@ You MUST organize your analysis into these exact sections with these exact heade
 - **Evidence Base:** [Well-supported/Anecdotal/Mixed, with explanation]
 - **Representation Gaps:** [Which voices might be missing from this discussion?]
 - **Complexity Level:** [How nuanced are the arguments being made?]
+
+### EXECUTIVE SUMMARY
+[A 2-3 sentence overview capturing the essence of public sentiment on this theme - what's the big picture?]
+
 
 ## Analysis Guidelines
 
@@ -97,31 +105,39 @@ You MUST organize your analysis into these exact sections with these exact heade
 
 Here are the structured comment sections addressing this theme:
 
-{COMMENTS}`;
+{COMMENTS}
 
-export const THEME_SUMMARY_MERGE_PROMPT = `You have multiple theme summary analyses from different batches of comments. Create a unified, comprehensive analysis that preserves all important insights while eliminating redundancy.
+---
+
+REMINDER: Limit analysis to {THEME_CODE}: {THEME_DESCRIPTION}
+
+`;
+
+export const THEME_SUMMARY_MERGE_NWAY_PROMPT = `You have multiple theme summary analyses from different batches of comments. Create a unified, comprehensive analysis that preserves the shape and insights without being redundant. 
+
+Follow instructuions from the original summary prompt to guide your abstraction.
+<originalPrompt>
+{ORIGINAL_PROMPT}
+</originalPrompt>
+
+DO NOT mention batches or summaries in your ouptut! Your output should look like the inputs.
 
 When merging:
-- Combine consensus points, noting if agreement levels differ between batches
-- Merge debate positions, keeping all distinct arguments
-- Consolidate stakeholder perspectives across batches
-- Keep all unique noteworthy insights
-- Select the most powerful quotations across all batches
+- Combine points in each section, while streamlining to avoid redundancy and organizing as neeed
+- Keep all unique noteworthy insights and quotations
 - Update analytical notes to reflect the full dataset
+- Preserve representative or key comment IDs!
 
-Maintain the exact same section structure and formatting requirements as the original analysis.
-
-SUMMARY 1:
-{SUMMARY1}
-
-SUMMARY 2:
-{SUMMARY2}
+{SUMMARIES}
 
 Output the complete merged theme analysis.`;
 
 export const THEME_SUMMARY_STRUCTURE_PROMPT = `Convert the theme analysis text into a structured JSON format. The input follows a specific markdown format with sections and bullet points.
 
 Your task is to parse this into clean JSON that preserves all information while making it easy to process programmatically.
+
+## Important: Preserve Rich Narratives
+Keep stakeholder and organization names naturally embedded within the narrative text fields. This makes the summaries more readable and informative. Only extract comment IDs to separate arrays for database lookups.
 
 ## JSON Output Schema
 
@@ -131,42 +147,42 @@ Return a JSON object with this exact structure:
 {
   "executiveSummary": string,
   "consensusPoints": Array<{
-    "text": string,
+    "text": string,  // Narrative, including key stakeholders or types
     "supportLevel": string | null,  // e.g., "Nearly all commenters", "A strong majority"
-    "evidence": Array<string> | null,
-    "exceptions": string | null,
-    "organizations": Array<string> | null  // Extract mentioned org names
+    "exceptions": {
+      "text": string,  // Narrative explaining notable exceptions
+      "commentIds": <Array<string>> // coment IDs of notable exceptions
+    }
   }> | null,
   "areasOfDebate": Array<{
     "topic": string,
     "description": string,
     "positions": Array<{
-      "label": string,  // e.g., "Position A", "Position B"
-      "stance": string,
+      "label": string,  // 2-4 word pithy label for the position
+      "stance": string,  // Keep organization/stakeholder names in the narrative
       "supportLevel": string | null,
-      "keyArguments": Array<string>,
-      "organizations": Array<string> | null
-    }>,
-    "middleGround": string | null
+      "keyArguments": Array<string>,  // Keep names in these narratives
+      "commentIds": Array<string> // Extract only comment IDs
+    }>, 
   }> | null,
   "stakeholderPerspectives": Array<{
     "stakeholderType": string,
-    "primaryConcerns": string,
-    "specificPoints": Array<string>,
-    "organizations": Array<string> | null
+    "primaryConcerns": string,  // Keep specific organization names mentioned
+    "specificPoints": Array<string>,  // Narrative points with key organizatio names where relevant
+    "commentIds": Array<string>  // Extract only comment IDs
   }> | null,
   "noteworthyInsights": Array<{
-    "insight": string,
-    "source": string | null  // Organization or stakeholder if mentioned
+    "insight": string,  // Keep narrative insight
+    "commentId": string
   }> | null,
   "emergingPatterns": Array<{
-    "pattern": string,
-    "category": string | null  // e.g., "Geographic", "Stakeholder Divide", "Gap"
+    "pattern": string,  // Keep key organization/stakeholder names in the narrative
+    "commentIds": Array<string>  // Extract only comment IDs
   }> | null,
   "keyQuotations": Array<{
     "quote": string,
-    "source": string,  // Commenter type/organization
-    "sourceType": string | null  // e.g., "Healthcare Provider", "Business"
+    "sourceType": string | null,  // e.g., "Healthcare Provider", "Business"
+    "commentId": string
   }> | null,
   "analyticalNotes": {
     "discourseQuality": {
@@ -185,22 +201,34 @@ Return a JSON object with this exact structure:
 
 ## Parsing Guidelines
 
-1. **Extract Organization Names**: When organizations are mentioned (e.g., "Advocate Health notes..." or "according to Greenway Health"), extract them into the organizations array.
+1. **Preserve Rich Narratives**: Keep organization and stakeholder names naturally embedded within the narrative text but omit comment IDs from text. This creates more readable and informative summaries. For example:
+   - Good: "Acme Health argues that administrative burden..."
+   - Bad: "Acme Health (CMS-123-456) argues that administrative burden..." (comment ID is extracted to searate json field)
 
-2. **Clean Text**: Remove markdown formatting like ** for bold, but preserve emphasis through proper field usage.
+2. **Extract Comment IDs**: When comment IDs are mentioned (e.g., "Comment CMS-2025-0050-0031" or "as noted in comment 0042"), extract them into the appropriate commentIds arrays. Use fully prefixed ids, e.g.  "CMS-2025-0050-0031". When extracting comment IDs into dedicated JSON fields, *remove them* from narrative.
 
-3. **Handle Missing Sections**: If a section states "No clear consensus points identified" or similar, return null for that section.
+3. **Clean Text**: For examle, remove markdown formatting like ** for bold and remove comment IDs from text fields.
 
-4. **Preserve Quotes**: Keep quotation marks in quoted text, but ensure proper JSON escaping.
+4. **Handle Missing Sections**: If a section states "No clear consensus points identified" or similar, return null for that section.
 
-5. **Support Levels**: Extract phrases like "Nearly all commenters", "A strong majority", "Supported by a significant minority" into the supportLevel fields.
+5. **Preserve Quotes**: Keep quotation marks in quoted text, but ensure proper JSON escaping.
 
-6. **Source Attribution**: When sources are mentioned inline or in brackets, extract them appropriately.
+6. **Support Levels**: Extract phrases like "Nearly all commenters", "A strong majority", "Supported by a significant minority" into the supportLevel fields.
 
-7. **Maintain Structure**: Even if bullet points have sub-bullets, flatten them appropriately into the arrays while preserving the logical relationships.
+7. **Source Attribution in Narratives**: When sources are mentioned, keep them in the narrative text for context and readability.
+
+8. **Maintain Structure**: Even if bullet points have sub-bullets, flatten them appropriately into the arrays while preserving the logical relationships.
+
 
 ## Input Theme Analysis:
 
 {THEME_ANALYSIS}
+
+---
+
+## Final notes / remdinders
+
+IMPORTANT: Focus ALL ANALYSIS on the following theme:
+{THEME_CODE}: {THEME_DESCRIPTION}. You can ignore any content outside this theme. No other themes are relevant for this specific analysis.
 
 Return only the JSON object, no additional text or explanation.`; 

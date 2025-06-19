@@ -21,195 +21,7 @@ export function openDb(documentId: string): Database {
   // Initialize schema
   initSchema(db);
   
-  // Run migrations
-  runMigrations(db);
-  
   return db;
-}
-
-function runMigrations(db: Database) {
-  // Migration 1: Update comment_themes table to allow score 3
-  try {
-    // Check if we need to migrate by trying to insert a score 3
-    const testStmt = db.prepare("INSERT INTO comment_themes (comment_id, theme_code, score) VALUES (?, ?, ?)");
-    try {
-      testStmt.run("__test__", "__test__", 3);
-      // If this succeeds, we already support score 3
-      db.prepare("DELETE FROM comment_themes WHERE comment_id = ? AND theme_code = ?").run("__test__", "__test__");
-    } catch (e) {
-      if (e instanceof Error && e.message.includes("CHECK constraint failed")) {
-        console.log("🔄 Migrating database to support score 3...");
-        
-        // SQLite doesn't support ALTER TABLE to modify constraints, so we need to recreate the table
-        db.exec(`
-          -- Create new table with updated constraint
-          CREATE TABLE comment_themes_new (
-            comment_id TEXT NOT NULL,
-            theme_code TEXT NOT NULL,
-            score INTEGER NOT NULL CHECK(score IN (1, 2, 3)),
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY (comment_id, theme_code),
-            FOREIGN KEY (comment_id) REFERENCES comments(id),
-            FOREIGN KEY (theme_code) REFERENCES theme_hierarchy(code)
-          );
-          
-          -- Copy existing data
-          INSERT INTO comment_themes_new (comment_id, theme_code, score, created_at)
-          SELECT comment_id, theme_code, score, created_at FROM comment_themes;
-          
-          -- Drop old table and rename new one
-          DROP TABLE comment_themes;
-          ALTER TABLE comment_themes_new RENAME TO comment_themes;
-          
-          -- Recreate index if it existed
-          CREATE INDEX IF NOT EXISTS idx_comment_themes_comment ON comment_themes(comment_id);
-          CREATE INDEX IF NOT EXISTS idx_comment_themes_theme ON comment_themes(theme_code);
-        `);
-        
-        console.log("✅ Database migration completed");
-      } else {
-        throw e;
-      }
-    }
-  } catch (e) {
-    // If table doesn't exist yet, that's fine - it will be created with the correct constraint
-    if (!(e instanceof Error && e.message.includes("no such table"))) {
-      console.warn("Migration warning:", e);
-    }
-  }
-  
-  // Migration 2: Add structured_sections column to condensed_comments
-  try {
-    // Check if column exists by trying to select it
-    db.prepare("SELECT structured_sections FROM condensed_comments LIMIT 1").get();
-  } catch (e) {
-    if (e instanceof Error && e.message.includes("no such column")) {
-      console.log("🔄 Adding structured_sections column to condensed_comments...");
-      db.exec("ALTER TABLE condensed_comments ADD COLUMN structured_sections TEXT");
-      console.log("✅ Added structured_sections column");
-    }
-  }
-  
-  // Migration 3: Remove condensed_text column (migrate data first if needed)
-  try {
-    // Check if we still have condensed_text column
-    const hasCondensedText = db.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='condensed_comments'").get() as any;
-    if (hasCondensedText && hasCondensedText.sql.includes('condensed_text')) {
-      console.log("🔄 Migrating away from condensed_text column...");
-      
-      // SQLite doesn't support DROP COLUMN directly, so we need to recreate the table
-      db.exec(`
-        -- Create new table without condensed_text
-        CREATE TABLE condensed_comments_new (
-          comment_id TEXT PRIMARY KEY,
-          structured_sections TEXT NOT NULL,
-          status TEXT DEFAULT 'pending' CHECK(status IN ('pending', 'processing', 'completed', 'failed')),
-          error_message TEXT,
-          attempt_count INTEGER DEFAULT 0,
-          last_attempt_at DATETIME,
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          FOREIGN KEY (comment_id) REFERENCES comments(id)
-        );
-        
-        -- Copy data (structured_sections should already have the content)
-        INSERT INTO condensed_comments_new (comment_id, structured_sections, status, error_message, attempt_count, last_attempt_at, created_at)
-        SELECT comment_id, 
-               COALESCE(structured_sections, json_object('detailedContent', condensed_text)),
-               status, error_message, attempt_count, last_attempt_at, created_at
-        FROM condensed_comments;
-        
-        -- Drop old table and rename new one
-        DROP TABLE condensed_comments;
-        ALTER TABLE condensed_comments_new RENAME TO condensed_comments;
-        
-        -- Recreate indexes
-        CREATE INDEX IF NOT EXISTS idx_condensed_status ON condensed_comments(status);
-        CREATE INDEX IF NOT EXISTS idx_condensed_attempts ON condensed_comments(attempt_count);
-      `);
-      
-      console.log("✅ Removed condensed_text column");
-    }
-  } catch (e) {
-    console.warn("Migration 3 warning:", e);
-  }
-  
-  // Migration 4: Remove summary_text from theme_summaries table
-  try {
-    const hasThemeSummaries = db.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='theme_summaries'").get() as any;
-    if (hasThemeSummaries && hasThemeSummaries.sql.includes('summary_text')) {
-      console.log("🔄 Removing summary_text column from theme_summaries...");
-      
-      db.exec(`
-        -- Create new table without summary_text
-        CREATE TABLE theme_summaries_new (
-          theme_code TEXT PRIMARY KEY,
-          structured_sections TEXT NOT NULL,
-          comment_count INTEGER NOT NULL,
-          word_count INTEGER NOT NULL,
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          FOREIGN KEY (theme_code) REFERENCES theme_hierarchy(code)
-        );
-        
-        -- Copy data (structured_sections should already have the content)
-        INSERT INTO theme_summaries_new (theme_code, structured_sections, comment_count, word_count, created_at)
-        SELECT theme_code, structured_sections, comment_count, word_count, created_at
-        FROM theme_summaries;
-        
-        -- Drop old table and rename new one
-        DROP TABLE theme_summaries;
-        ALTER TABLE theme_summaries_new RENAME TO theme_summaries;
-      `);
-      
-      // Also update theme_summary_batches
-      const hasBatches = db.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='theme_summary_batches'").get() as any;
-      if (hasBatches && hasBatches.sql.includes('summary_text')) {
-        db.exec(`
-          -- Create new batch table
-          CREATE TABLE theme_summary_batches_new (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            theme_code TEXT NOT NULL,
-            batch_number INTEGER NOT NULL,
-            word_count INTEGER NOT NULL,
-            comment_count INTEGER NOT NULL,
-            structured_sections TEXT NOT NULL,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (theme_code) REFERENCES theme_hierarchy(code)
-          );
-          
-          -- Drop old table (batch data is temporary anyway)
-          DROP TABLE theme_summary_batches;
-          ALTER TABLE theme_summary_batches_new RENAME TO theme_summary_batches;
-        `);
-      }
-      
-      console.log("✅ Removed summary_text columns");
-    }
-  } catch (e) {
-    console.warn("Migration 4 warning:", e);
-  }
-  
-  // Migration 5: Drop obsolete theme_analysis table
-  try {
-    const hasThemeAnalysis = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='theme_analysis'").get();
-    if (hasThemeAnalysis) {
-      console.log("🔄 Dropping obsolete theme_analysis table...");
-      db.exec("DROP TABLE theme_analysis");
-      console.log("✅ Dropped theme_analysis table");
-    }
-  } catch (e) {
-    console.warn("Migration 5 warning:", e);
-  }
-  
-  // Migration 6: Add word_count to condensed_comments
-  try {
-    db.prepare("SELECT word_count FROM condensed_comments LIMIT 1").get();
-  } catch (e) {
-    if (e instanceof Error && e.message.includes("no such column")) {
-      console.log("🔄 Adding word_count column to condensed_comments...");
-      db.exec("ALTER TABLE condensed_comments ADD COLUMN word_count INTEGER");
-      console.log("✅ Added word_count column");
-    }
-  }
 }
 
 export function initSchema(db: Database) {
@@ -238,23 +50,13 @@ export function initSchema(db: Database) {
     CREATE TABLE IF NOT EXISTS condensed_comments (
       comment_id TEXT PRIMARY KEY,
       structured_sections TEXT NOT NULL,
+      word_count INTEGER,
       status TEXT DEFAULT 'pending' CHECK(status IN ('pending', 'processing', 'completed', 'failed')),
       error_message TEXT,
       attempt_count INTEGER DEFAULT 0,
       last_attempt_at DATETIME,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (comment_id) REFERENCES comments(id)
-    );
-    
-    -- Theme discovery results (per batch)
-    CREATE TABLE IF NOT EXISTS theme_batches (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      batch_number INTEGER NOT NULL,
-      word_count INTEGER NOT NULL,
-      comment_count INTEGER NOT NULL,
-      themes_text TEXT NOT NULL,
-      status TEXT DEFAULT 'completed',
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
     
     -- Merged theme hierarchy
@@ -264,27 +66,9 @@ export function initSchema(db: Database) {
       level INTEGER NOT NULL,
       parent_code TEXT,
       quotes_json TEXT,
+      detailed_guidelines TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (parent_code) REFERENCES theme_hierarchy(code)
-    );
-    
-    -- Checkpoint for long-running merge operations in theme discovery
-    CREATE TABLE IF NOT EXISTS theme_merge_state (
-      id INTEGER PRIMARY KEY CHECK(id = 1),
-      merged_up_to INTEGER NOT NULL,
-      merged_text TEXT NOT NULL,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
-    
-    -- Entity discovery results (per batch)
-    CREATE TABLE IF NOT EXISTS entity_batches (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      batch_number INTEGER NOT NULL,
-      word_count INTEGER NOT NULL,
-      comment_count INTEGER NOT NULL,
-      entities_json TEXT NOT NULL,
-      status TEXT DEFAULT 'completed',
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
     
     -- Merged entity taxonomy
@@ -312,18 +96,6 @@ export function initSchema(db: Database) {
       structured_sections TEXT NOT NULL, -- JSON
       comment_count INTEGER NOT NULL,
       word_count INTEGER NOT NULL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (theme_code) REFERENCES theme_hierarchy(code)
-    );
-    
-    -- Theme summary batches (for large themes)
-    CREATE TABLE IF NOT EXISTS theme_summary_batches (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      theme_code TEXT NOT NULL,
-      batch_number INTEGER NOT NULL,
-      word_count INTEGER NOT NULL,
-      comment_count INTEGER NOT NULL,
-      structured_sections TEXT NOT NULL, -- JSON
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (theme_code) REFERENCES theme_hierarchy(code)
     );
@@ -356,6 +128,37 @@ export function initSchema(db: Database) {
     CREATE INDEX IF NOT EXISTS idx_attachments_comment ON attachments(comment_id);
     CREATE INDEX IF NOT EXISTS idx_comment_themes_comment ON comment_themes(comment_id);
     CREATE INDEX IF NOT EXISTS idx_comment_themes_theme ON comment_themes(theme_code);
+    
+    -- LLM cache for prompt-level caching
+    CREATE TABLE IF NOT EXISTS llm_cache (
+      prompt_hash TEXT PRIMARY KEY,
+      task_type TEXT NOT NULL,
+      task_level INTEGER DEFAULT 0,
+      task_params TEXT, -- JSON metadata
+      
+      result TEXT NOT NULL,
+      model TEXT,
+      
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+    
+    -- Indexes for LLM cache
+    CREATE INDEX IF NOT EXISTS idx_llm_cache_task_type_level ON llm_cache(task_type, task_level);
+    CREATE INDEX IF NOT EXISTS idx_llm_cache_created_at ON llm_cache(created_at);
+    
+    -- Theme-specific content extracts from comments
+    CREATE TABLE IF NOT EXISTS comment_theme_extracts (
+      comment_id TEXT NOT NULL,
+      theme_code TEXT NOT NULL,
+      extract_json TEXT NOT NULL, -- JSON with positions, concerns, recommendations specific to theme
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (comment_id, theme_code),
+      FOREIGN KEY (comment_id) REFERENCES comments(id),
+      FOREIGN KEY (theme_code) REFERENCES theme_hierarchy(code)
+    );
+    
+    -- Index for efficient theme-based queries
+    CREATE INDEX IF NOT EXISTS idx_theme_extracts_theme ON comment_theme_extracts(theme_code);
   `);
 }
 

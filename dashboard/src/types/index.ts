@@ -16,6 +16,7 @@ export interface Theme {
   description: string
   label?: string  // Brief theme label (parsed from description)
   detailedDescription?: string  // Detailed description (parsed from description)
+  detailed_guidelines?: string  // Comprehensive guidelines about what's included/excluded
   comment_count: number
   direct_count: number
   touch_count: number
@@ -30,9 +31,12 @@ export interface ThemeSummary {
     consensusPoints?: Array<{
       text: string
       supportLevel?: string | null
-      evidence?: string[] | null
-      exceptions?: string | null
-      organizations?: string[] | null
+      exceptions?: {
+        text: string
+        commentIds: string[]
+      } | null
+      evidence?: string[] | null  // Kept for backward compatibility
+      commentIds?: string[] | null  // Kept for backward compatibility
     }> | null
     areasOfDebate?: Array<{
       topic: string
@@ -42,28 +46,27 @@ export interface ThemeSummary {
         stance: string
         supportLevel?: string | null
         keyArguments: string[]
-        organizations?: string[] | null
+        commentIds?: string[] | null
       }>
-      middleGround?: string | null
     }> | null
     stakeholderPerspectives?: Array<{
       stakeholderType: string
       primaryConcerns: string
       specificPoints: string[]
-      organizations?: string[] | null
+      commentIds?: string[] | null
     }> | null
     noteworthyInsights?: Array<{
       insight: string
-      source?: string | null
+      commentId?: string | null
     }> | null
     emergingPatterns?: Array<{
       pattern: string
-      category?: string | null
+      commentIds?: string[] | null
     }> | null
     keyQuotations?: Array<{
       quote: string
-      source: string
       sourceType?: string | null
+      commentId?: string | null
     }> | null
     analyticalNotes?: {
       discourseQuality?: {
@@ -170,4 +173,5 @@ export interface StoreState {
   getFilteredComments: () => Comment[]
   getCommentsForTheme: (themeCode: string) => { direct: Comment[], touches: Comment[] }
   getCommentsForEntity: (category: string, label: string) => Comment[]
+  getCommentById: (commentId: string) => Comment | undefined
 } 

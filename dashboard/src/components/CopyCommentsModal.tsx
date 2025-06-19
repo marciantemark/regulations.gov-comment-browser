@@ -236,7 +236,6 @@ function CopyCommentsModal({
             if (pos.supportLevel) content += `  Support Level: ${pos.supportLevel}\n`
             pos.keyArguments.forEach(arg => content += `  - ${arg}\n`)
           })
-          if (debate.middleGround) content += `- **Middle Ground:** ${debate.middleGround}\n`
         })
         content += '\n'
       }
@@ -253,13 +252,9 @@ function CopyCommentsModal({
       if (themeSections.noteworthyInsights && sumSections.noteworthyInsights) {
         content += `## Noteworthy Insights\n`
         sumSections.noteworthyInsights.forEach(insight => {
-          if (typeof insight === 'string') {
-            content += `- ${insight}\n`
-          } else {
-            content += `- ${insight.insight}`
-            if (insight.source) content += ` (Source: ${insight.source})`
-            content += '\n'
-          }
+          content += `- ${insight.insight}`
+          if (insight.commentId) content += ` (Comment: ${insight.commentId})`
+          content += '\n'
         })
         content += '\n'
       }
@@ -281,13 +276,10 @@ function CopyCommentsModal({
       if (themeSections.keyQuotations && sumSections.keyQuotations) {
         content += `## Key Quotations\n`
         sumSections.keyQuotations.forEach(quote => {
-          if (typeof quote === 'string') {
-            content += `- ${quote}\n`
-          } else {
-            content += `- "${quote.quote}" - ${quote.source}`
-            if (quote.sourceType) content += ` (${quote.sourceType})`
-            content += '\n'
-          }
+          content += `- "${quote.quote}"`
+          if (quote.commentId) content += ` - Comment ${quote.commentId}`
+          if (quote.sourceType) content += `, ${quote.sourceType}`
+          content += '\n'
         })
         content += '\n'
       }

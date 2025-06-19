@@ -5,9 +5,13 @@ import { condenseCommand } from "./commands/condense";
 import { discoverThemesCommand } from "./commands/discover-themes";
 import { scoreThemesCommand } from "./commands/score-themes";
 import { summarizeThemesCommand } from "./commands/summarize-themes";
+import { extractThemeContentCommand } from "./commands/extract-theme-content";
+import { summarizeThemesV2Command } from "./commands/summarize-themes-v2";
 import { discoverEntitiesCommand } from "./commands/discover-entities";
 import { buildWebsiteCommand } from "./website-build-script";
 import { pipelineCommand } from "./commands/pipeline";
+import { generateLandingPageCommand } from "./commands/generate-landing-page";
+import { cacheCommand } from "./commands/cache";
 
 const program = new Command()
   .name("regulations-comment-analysis")
@@ -20,9 +24,13 @@ program.addCommand(condenseCommand);
 program.addCommand(discoverThemesCommand);
 program.addCommand(scoreThemesCommand);
 program.addCommand(summarizeThemesCommand);
+program.addCommand(extractThemeContentCommand);
+program.addCommand(summarizeThemesV2Command);
 program.addCommand(discoverEntitiesCommand);
 program.addCommand(buildWebsiteCommand);
 program.addCommand(pipelineCommand);
+program.addCommand(generateLandingPageCommand);
+program.addCommand(cacheCommand);
 
 // Parse and execute
 program.parse();

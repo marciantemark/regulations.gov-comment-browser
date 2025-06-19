@@ -1,7 +1,8 @@
-import { CheckCircle, AlertCircle, Users, Lightbulb, TrendingUp, Quote, BarChart3, MessageSquare, Building2 } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { CheckCircle, AlertCircle, Users, Lightbulb, TrendingUp, Quote, BarChart3, MessageSquare } from 'lucide-react'
 import type { ThemeSummary } from '../types'
-import useStore from '../store/useStore'
+import CommentAuthorLink from './CommentAuthorLink'
+import CommentAuthorsList from './CommentAuthorsList'
+import CommentLink from './CommentLink'
 
 interface ThemeSummaryViewProps {
   summary: ThemeSummary
@@ -10,49 +11,6 @@ interface ThemeSummaryViewProps {
 
 function ThemeSummaryView({ summary }: ThemeSummaryViewProps) {
   const { sections } = summary
-  const { entities } = useStore()
-  
-  // Helper function to find entity link for an organization
-  const getEntityLink = (orgName: string): string | null => {
-    // Search through all entity categories
-    for (const [category, entityList] of Object.entries(entities)) {
-      for (const entity of entityList) {
-        // Check if any term matches the organization name (case-insensitive)
-        const orgNameLower = orgName.toLowerCase()
-        for (const term of entity.terms) {
-          if (term.toLowerCase() === orgNameLower) {
-            return `/entities/${encodeURIComponent(category)}/${encodeURIComponent(entity.label)}`
-          }
-        }
-      }
-    }
-    return null
-  }
-  
-  // Helper to render organization link or plain text
-  const renderOrganization = (org: string, key: string | number) => {
-    const link = getEntityLink(org)
-    if (link) {
-      return (
-        <Link
-          key={key}
-          to={link}
-          className="inline-flex items-center text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded hover:bg-gray-200 hover:text-gray-700 transition-colors"
-        >
-          <Building2 className="h-3 w-3 mr-1" />
-          {org}
-        </Link>
-      )
-    } else {
-      // No matching entity found - render as plain text
-      return (
-        <span key={key} className="inline-flex items-center text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-          <Building2 className="h-3 w-3 mr-1" />
-          {org}
-        </span>
-      )
-    }
-  }
   
   return (
     <div className="space-y-8">
@@ -101,15 +59,24 @@ function ThemeSummaryView({ summary }: ThemeSummaryViewProps) {
                       ))}
                     </div>
                   )}
-                  {point.organizations && point.organizations.length > 0 && (
-                    <div className="flex items-center flex-wrap gap-2 mt-2">
-                      {point.organizations.map((org, i) => renderOrganization(org, i))}
+                  {point.commentIds && point.commentIds.length > 0 && (
+                    <div className="mt-2">
+                      <span className="text-xs text-gray-500 mr-2">Referenced in:</span>
+                      <CommentAuthorsList commentIds={point.commentIds} className="inline" />
                     </div>
                   )}
                   {point.exceptions && (
-                    <p className="text-sm text-amber-700 bg-amber-50 px-3 py-2 rounded-lg inline-block mt-2">
-                      ⚠️ {point.exceptions}
-                    </p>
+                    <div className="mt-2">
+                      <p className="text-sm text-amber-700 bg-amber-50 px-3 py-2 rounded-lg">
+                        ⚠️ {typeof point.exceptions === 'string' ? point.exceptions : point.exceptions.text}
+                      </p>
+                      {typeof point.exceptions !== 'string' && point.exceptions.commentIds && point.exceptions.commentIds.length > 0 && (
+                        <div className="mt-1 ml-3">
+                          <span className="text-xs text-gray-500">Exception examples: </span>
+                          <CommentAuthorsList commentIds={point.exceptions.commentIds} className="inline" />
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>
@@ -159,43 +126,24 @@ function ThemeSummaryView({ summary }: ThemeSummaryViewProps) {
                           </ul>
                         </div>
                       )}
-                      {position.organizations && position.organizations.length > 0 && (
-                        <div className="flex items-center flex-wrap gap-1 mt-3">
-                          {position.organizations.map((org, i) => {
-                            const link = getEntityLink(org)
-                            if (link) {
-                              return (
-                                <Link
-                                  key={i}
-                                  to={link}
-                                  className="text-xs text-gray-500 hover:text-gray-700 transition-colors"
-                                >
-                                  <Building2 className="h-3 w-3 inline mr-1" />
-                                  {org}
-                                </Link>
-                              )
-                            } else {
-                              return (
-                                <span key={i} className="text-xs text-gray-500">
-                                  <Building2 className="h-3 w-3 inline mr-1" />
-                                  {org}
-                                </span>
-                              )
-                            }
-                          })}
+                      {position.commentIds && position.commentIds.length > 0 && (
+                        <div className="mt-3 pt-3 border-t border-gray-100">
+                          <span className="text-xs text-gray-500 block mb-1">Example comments:</span>
+                          <div className="flex flex-wrap gap-2">
+                            {position.commentIds.map((commentId, idx) => (
+                              <CommentLink 
+                                key={idx}
+                                commentId={commentId} 
+                                className="text-indigo-600 hover:text-indigo-800"
+                                showIcon={true}
+                              />
+                            ))}
+                          </div>
                         </div>
                       )}
                     </div>
                   ))}
                 </div>
-                
-                {debate.middleGround && (
-                  <div className="mt-4 bg-purple-50 rounded-lg p-4">
-                    <p className="text-sm text-purple-900">
-                      <span className="font-medium">Middle Ground:</span> {debate.middleGround}
-                    </p>
-                  </div>
-                )}
               </div>
             ))}
           </div>
@@ -237,29 +185,10 @@ function ThemeSummaryView({ summary }: ThemeSummaryViewProps) {
                         </ul>
                       </div>
                     )}
-                    {stakeholder.organizations && stakeholder.organizations.length > 0 && (
-                      <div className="flex items-center flex-wrap gap-1 mt-2">
-                        <span className="text-xs text-gray-500">Organizations:</span>
-                        {stakeholder.organizations.map((org, i) => {
-                          const link = getEntityLink(org)
-                          if (link) {
-                            return (
-                              <Link
-                                key={i}
-                                to={link}
-                                className="text-xs text-gray-600 font-medium hover:text-blue-600 transition-colors"
-                              >
-                                {org}
-                              </Link>
-                            )
-                          } else {
-                            return (
-                              <span key={i} className="text-xs text-gray-600 font-medium">
-                                {org}
-                              </span>
-                            )
-                          }
-                        })}
+                    {stakeholder.commentIds && stakeholder.commentIds.length > 0 && (
+                      <div className="mt-2 pt-2 border-t border-gray-100">
+                        <span className="text-xs text-gray-500 block mb-1">Key contributors:</span>
+                        <CommentAuthorsList commentIds={stakeholder.commentIds} />
                       </div>
                     )}
                   </div>
@@ -290,8 +219,13 @@ function ThemeSummaryView({ summary }: ThemeSummaryViewProps) {
                     </span>
                     <div className="flex-1">
                       <span className="text-gray-700 text-sm">{item.insight}</span>
-                      {item.source && (
-                        <span className="ml-2 text-xs text-gray-500">— {item.source}</span>
+                      {item.commentId && (
+                        <span className="ml-2 text-xs">
+                          — <CommentAuthorLink 
+                              commentId={item.commentId} 
+                              className="text-gray-500 hover:text-amber-600"
+                            />
+                        </span>
                       )}
                     </div>
                   </li>
@@ -319,8 +253,14 @@ function ThemeSummaryView({ summary }: ThemeSummaryViewProps) {
                     </span>
                     <div className="flex-1">
                       <span className="text-gray-700 text-sm">{item.pattern}</span>
-                      {item.category && (
-                        <span className="ml-2 text-xs text-purple-600 font-medium">({item.category})</span>
+                      {item.commentIds && item.commentIds.length > 0 && (
+                        <div className="mt-1">
+                          <span className="text-xs text-gray-500">Examples: </span>
+                          <CommentAuthorsList 
+                            commentIds={item.commentIds} 
+                            className="inline"
+                          />
+                        </div>
                       )}
                     </div>
                   </li>
@@ -346,9 +286,19 @@ function ThemeSummaryView({ summary }: ThemeSummaryViewProps) {
                 <p className="text-gray-800 italic mb-2">"{quotation.quote}"</p>
                 <cite className="text-sm text-gray-600 not-italic flex items-center">
                   <span className="mr-2">—</span>
-                  <span>{quotation.source}</span>
-                  {quotation.sourceType && (
-                    <span className="ml-2 text-xs text-gray-500">[{quotation.sourceType}]</span>
+                  {quotation.commentId ? (
+                    <>
+                      <CommentLink 
+                        commentId={quotation.commentId} 
+                        className="text-indigo-600 hover:text-indigo-800"
+                        showIcon={true}
+                      />
+                      {quotation.sourceType && (
+                        <span className="ml-1 text-gray-500">, {quotation.sourceType}</span>
+                      )}
+                    </>
+                  ) : (
+                    <span className="text-gray-500">Unknown source</span>
                   )}
                 </cite>
               </blockquote>

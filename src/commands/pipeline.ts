@@ -1,23 +1,30 @@
 import { Command } from "commander";
+import { basename, extname } from "path";
 import { loadCommentsCommand } from "./load-comments";
 import { condenseCommand } from "./condense";
 import { discoverThemesCommand } from "./discover-themes";
-import { scoreThemesCommand } from "./score-themes";
-import { summarizeThemesCommand } from "./summarize-themes";
+import { extractThemeContentCommand } from "./extract-theme-content";
+import { summarizeThemesV2Command } from "./summarize-themes-v2";
 import { discoverEntitiesCommand } from "./discover-entities";
 import { buildWebsiteCommand } from "../website-build-script";
 
 export const pipelineCommand = new Command("pipeline")
-  .description("Run the complete analysis pipeline: load, condense, discover themes, score themes, summarize themes, discover entities, and build website")
-  .argument("<document-id>", "Document ID (e.g., CMS-2025-0050-0031)")
+  .description("Run the complete analysis pipeline: load, condense, discover themes, extract theme content, summarize themes, discover entities, and build website")
+  .argument("<source-arg>", "Source argument (e.g., CMS-2025-0050-0031 or path to CSV)")
   .option("-s, --skip-attachments", "Skip downloading attachments")
   .option("-d, --debug", "Enable debug mode for all steps")
   .option("-o, --output <dir>", "Output directory for website files", "dist/data")
   .option("-l, --limit-total-comment-load <N>", "Limit initial number of comments loaded")
-  .option("--start-at <step>", "Start at a specific step (1-7): 1=load, 2=condense, 3=discover-themes, 4=score-themes, 5=summarize-themes, 6=discover-entities, 7=build-website")
+  .option("--start-at <step>", "Start at a specific step (1-7): 1=load, 2=condense, 3=discover-themes, 4=extract-theme-content, 5=summarize-themes, 6=discover-entities, 7=build-website")
   .option("-c, --concurrency <N>", "Number of concurrent operations")
   .option("--max-crashes <N>", "Maximum number of crashes before giving up (default: 10)", parseInt)
-  .action(async (documentId: string, options: any) => {
+  .option("-m, --model <model>", "AI model to use (gemini-pro, gemini-flash, gemini-flash-lite, claude)")
+  .action(async (sourceArg: string, options: any) => {
+    // Detect if first argument is a CSV path (contains '.' or '/' or ends with .csv)
+    const isCsv = sourceArg.includes("/") || sourceArg.toLowerCase().endsWith(".csv");
+    const loadSource = sourceArg; // Passed to load-comments
+    const documentId = isCsv ? basename(sourceArg, extname(sourceArg)) : sourceArg;
+
     const startStep = options.startAt ? parseInt(options.startAt) : 1;
     const maxCrashes = options.maxCrashes || 10;
     
@@ -26,7 +33,7 @@ export const pipelineCommand = new Command("pipeline")
       process.exit(1);
     }
     
-    console.log(`🚀 Starting pipeline for ${documentId} at step ${startStep}\n`);
+    console.log(`🚀 Starting pipeline for ${documentId} (source: ${loadSource}) at step ${startStep}\n`);
     console.log(`🛡️  Max crashes allowed: ${maxCrashes}`);
     
     const steps = [
@@ -37,7 +44,7 @@ export const pipelineCommand = new Command("pipeline")
         execute: async () => {
           await loadCommentsCommand.parseAsync([
             'bun', 'cli.ts', 
-            documentId,
+            loadSource,
             ...(options.skipAttachments ? ['--skip-attachments'] : []),
             ...(options.debug ? ['--debug'] : []),
             ...(options.limitTotalCommentLoad ? ['--limit', options.limitTotalCommentLoad] : []),
@@ -54,6 +61,7 @@ export const pipelineCommand = new Command("pipeline")
             documentId,
             ...(options.debug ? ['--debug'] : []),
             ...(options.concurrency ? ['--concurrency', options.concurrency] : []),
+            ...(options.model ? ['--model', options.model] : []),
           ]);
         }
       },
@@ -67,19 +75,21 @@ export const pipelineCommand = new Command("pipeline")
             documentId,
             ...(options.debug ? ['--debug'] : []),
             ...(options.concurrency ? ['--concurrency', options.concurrency] : []),
+            ...(options.model ? ['--model', options.model] : []),
           ]);
         }
       },
       {
         num: 4,
-        name: "Scoring themes",
-        icon: "📊",
+        name: "Extracting theme content",
+        icon: "🎯",
         execute: async () => {
-          await scoreThemesCommand.parseAsync([
+          await extractThemeContentCommand.parseAsync([
             'bun', 'cli.ts', 
             documentId,
             ...(options.debug ? ['--debug'] : []),
             ...(options.concurrency ? ['--concurrency', options.concurrency] : []),
+            ...(options.model ? ['--model', options.model] : []),
           ]);
         }
       },
@@ -88,11 +98,12 @@ export const pipelineCommand = new Command("pipeline")
         name: "Summarizing themes",
         icon: "📄",
         execute: async () => {
-          await summarizeThemesCommand.parseAsync([
+          await summarizeThemesV2Command.parseAsync([
             'bun', 'cli.ts', 
             documentId,
             ...(options.debug ? ['--debug'] : []),
             ...(options.concurrency ? ['--concurrency', options.concurrency] : []),
+            ...(options.model ? ['--model', options.model] : []),
           ]);
         }
       },
@@ -106,6 +117,7 @@ export const pipelineCommand = new Command("pipeline")
             documentId,
             ...(options.debug ? ['--debug'] : []),
             ...(options.concurrency ? ['--concurrency', options.concurrency] : []),
+            ...(options.model ? ['--model', options.model] : []),
           ]);
         }
       },

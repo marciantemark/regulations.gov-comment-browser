@@ -141,7 +141,7 @@ function EntityDetail() {
                 key={comment.id} 
                 comment={comment} 
                 showThemes={false} 
-                showEntities={false} 
+                showEntities={false}
               />
             ))}
           </div>

@@ -5,7 +5,7 @@ import useStore from '../store/useStore'
 import CopyCommentsModal from './CopyCommentsModal'
 
 function EntityBrowser() {
-  const { entities, comments, getCommentsForEntity } = useStore()
+  const { entities, getCommentsForEntity } = useStore()
   const [selectedCategory, setSelectedCategory] = useState<string>(Object.keys(entities)[0] || '')
   const [showCopyModal, setShowCopyModal] = useState(false)
   const [copyEntity, setCopyEntity] = useState<{category: string, label: string} | null>(null)
