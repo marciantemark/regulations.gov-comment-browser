@@ -37,6 +37,7 @@ for db_file in dbs/*.sqlite; do
   # Copy data to dashboard public directory
   echo "  - Copying data to dashboard..."
   rm -rf dashboard/public/data
+  mkdir -p dashboard/public
   cp -r temp-data dashboard/public/data
   
   # Build the dashboard
