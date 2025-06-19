@@ -77,6 +77,11 @@ export class AIClient {
       // Get the appropriate generation function
       const generateFn = getGenerationFunction(this.modelKey);
       
+      // Set up streaming options if debug is enabled
+      const streamingOptions = debugPrefix ? { 
+        debugFilename: `${debugPrefix}_response.txt` 
+      } : undefined;
+      
       let rawResult: string;
       if (timeout) {
         // Create a timeout promise
@@ -86,14 +91,15 @@ export class AIClient {
         
         // Race between the actual call and timeout
         rawResult = await Promise.race([
-          generateFn(prompt),
+          generateFn(prompt, streamingOptions),
           timeoutPromise
         ]);
       } else {
-        rawResult = await generateFn(prompt);
+        rawResult = await generateFn(prompt, streamingOptions);
       }
       
-      if (debugPrefix) {
+      // No need to save response again if we streamed it
+      if (debugPrefix && !streamingOptions) {
         await debugSave(`${debugPrefix}_response.txt`, rawResult);
       }
       

@@ -25,6 +25,8 @@ MECE Requirements:
 • Mutually Exclusive: Each entity should clearly belong to only ONE category
 • Collectively Exhaustive: Every entity from the source lists must have a home
 • Clear boundaries: Category definitions should make it obvious what belongs where
+* SPLIT DON'T LUM{} -- a category like "A, B, and C" should become 3 categories unless A, B, and C are super closely related
+* USE SHORT TERMS -- pick a representative clear term rather that offering a category with several synonyms
 
 Reconciliation guidelines:
 - "Healthcare Organizations" and "Medical Entities" → choose the clearer, more specific name
@@ -33,7 +35,11 @@ Reconciliation guidelines:
 - Combine overly narrow categories that could confuse placement
 
 Return a JSON array of category names:
-["Category 1", "Category 2", "Category 3", ...]
+[
+"Category 1: Brief explanation of what belongs and doesn't",
+"Category 2: Brief explanation of what belongs and doesn't", 
+"Category 3: Brief explanation of what belongs and doesn't",
+...]
 
 {CATEGORY_LISTS}
 

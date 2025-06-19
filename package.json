@@ -5,15 +5,7 @@
   "type": "module",
   "main": "src/cli.ts",
   "scripts": {
-    "start": "bun run src/cli.ts",
-    "load": "bun run src/cli.ts load",
-    "condense": "bun run src/cli.ts condense",
-    "discover-themes": "bun run src/cli.ts discover-themes",
-    "score-themes": "bun run src/cli.ts score-themes",
-    "summarize-themes": "bun run src/cli.ts summarize-themes",
-    "discover-entities": "bun run src/cli.ts discover-entities",
-    "build-website": "bun run src/cli.ts build-website",
-    "pipeline": "bun run src/cli.ts pipeline",
+    "cli": "bun run src/cli.ts",
     "clean": "rm -rf dbs/* debug/*",
     "typecheck": "bunx tsc --noEmit"
   },

@@ -5,7 +5,11 @@ import useStore from '../store/useStore'
 import type { Theme } from '../types'
 import CopyThemeListModal from './CopyThemeListModal'
 
-function ThemeExplorer() {
+interface ThemeExplorerProps {
+  hideTopLevelMetrics?: boolean
+}
+
+function ThemeExplorer({ hideTopLevelMetrics = true }: ThemeExplorerProps = {}) {
   const { themes, themeSummaries } = useStore()
   console.log('Rendering ThemeExplorer with themes:', themes)
   const navigate = useNavigate()
@@ -122,6 +126,8 @@ function ThemeExplorer() {
     const isFiltered = searchQuery && !filteredThemes.includes(theme)
     const isDescriptionExpanded = expandedDescriptions.has(theme.code)
     const hasSummary = !!themeSummaries[theme.code]
+    const isTopLevel = !theme.parent_code
+    const shouldHideMetrics = hideTopLevelMetrics && isTopLevel
     
     if (isFiltered) return null
     
@@ -152,18 +158,22 @@ function ThemeExplorer() {
               <div className="flex-1 flex items-center">
                 <span className="font-medium text-gray-900">{theme.code}</span>
                 <span className="text-gray-600 ml-2">{theme.label || theme.description}</span>
-                {hasSummary ? (
-                  <span className="ml-2 text-purple-600" title="Theme analysis available">
-                    <FileText className="h-3 w-3" />
-                  </span>
-                ) : (
-                  theme.code.split('.').length > 2 && (
-                    <span className="ml-2 text-amber-500" title="Analysis at parent level">
-                      <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-                      </svg>
-                    </span>
-                  )
+                {!shouldHideMetrics && (
+                  <>
+                    {hasSummary ? (
+                      <span className="ml-2 text-purple-600" title="Theme analysis available">
+                        <FileText className="h-3 w-3" />
+                      </span>
+                    ) : (
+                      theme.code.split('.').length > 2 && (
+                        <span className="ml-2 text-amber-500" title="Analysis at parent level">
+                          <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                          </svg>
+                        </span>
+                      )
+                    )}
+                  </>
                 )}
                 {theme.detailedDescription && (
                   <button
@@ -177,9 +187,11 @@ function ThemeExplorer() {
               </div>
               
               <div className="flex items-center space-x-4 text-sm">
-                <span className="text-blue-600 font-medium" title="Direct mentions">
-                  {theme.direct_count} {theme.direct_count === 1 ? 'comment' : 'comments'}
-                </span>
+                {!shouldHideMetrics && (
+                  <span className="text-blue-600 font-medium" title="Direct mentions">
+                    {theme.direct_count} {theme.direct_count === 1 ? 'comment' : 'comments'}
+                  </span>
+                )}
                 <ChevronRight className="h-4 w-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
             </div>

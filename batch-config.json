@@ -70,10 +70,11 @@
           "description": "Uses hierarchical merging to combine category lists from multiple batches"
         },
         "entityExtraction": {
-          "model": "gemini-flash",
+          "model": "gemini-flash-lite",
+          "concurrency": 20,  
           "batching": {
-            "triggerWordLimit": 5000,
-            "batchWordLimit": 5000,
+            "triggerWordLimit": 1000,
+            "batchWordLimit": 1000,
             "description": "Small batches for precise entity extraction"
           },
           "timeoutPerBatch": 60000,

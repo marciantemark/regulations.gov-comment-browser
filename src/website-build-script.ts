@@ -55,7 +55,7 @@ function getStats(db: any) {
     condensedComments: db.prepare("SELECT COUNT(*) as count FROM condensed_comments WHERE status = 'completed'").get().count,
     totalThemes: db.prepare("SELECT COUNT(*) as count FROM theme_hierarchy").get().count,
     totalEntities: db.prepare("SELECT COUNT(*) as count FROM entity_taxonomy").get().count,
-    scoredComments: db.prepare("SELECT COUNT(DISTINCT comment_id) as count FROM comment_themes").get().count,
+    scoredComments: db.prepare("SELECT COUNT(DISTINCT comment_id) as count FROM comment_theme_extracts").get().count,
     themeSummaries: db.prepare("SELECT COUNT(*) as count FROM theme_summaries").get().count,
   };
 }
@@ -68,11 +68,11 @@ function getThemeHierarchy(db: any) {
       t.level,
       t.parent_code,
       t.detailed_guidelines,
-      COUNT(DISTINCT CASE WHEN ct.score = 1 THEN ct.comment_id END) as comment_count,
-      COUNT(DISTINCT CASE WHEN ct.score = 1 THEN ct.comment_id END) as direct_count,
+      COUNT(DISTINCT cte.comment_id) as comment_count,
+      COUNT(DISTINCT cte.comment_id) as direct_count,
       0 as touch_count
     FROM theme_hierarchy t
-    LEFT JOIN comment_themes ct ON t.code = ct.theme_code
+    LEFT JOIN comment_theme_extracts cte ON t.code = cte.theme_code
     GROUP BY t.code
     ORDER BY t.code
   `).all();
@@ -150,12 +150,12 @@ async function exportAllComments(db: any, outputDir: string, documentId: string)
       c.attributes_json,
       cc.structured_sections,
       cc.word_count,
-      GROUP_CONCAT(DISTINCT ct.theme_code || ':' || ct.score) as theme_scores,
+      GROUP_CONCAT(DISTINCT cte.theme_code) as theme_codes,
       GROUP_CONCAT(DISTINCT ce.category || '|' || ce.entity_label) as entities,
       COUNT(DISTINCT a.id) as attachment_count
     FROM comments c
     LEFT JOIN condensed_comments cc ON c.id = cc.comment_id
-    LEFT JOIN comment_themes ct ON c.id = ct.comment_id
+    LEFT JOIN comment_theme_extracts cte ON c.id = cte.comment_id
     LEFT JOIN comment_entities ce ON c.id = ce.comment_id
     LEFT JOIN attachments a ON c.id = a.comment_id
     GROUP BY c.id
@@ -166,15 +166,11 @@ async function exportAllComments(db: any, outputDir: string, documentId: string)
   const processedComments = comments.map((c: any) => {
     const attrs = JSON.parse(c.attributes_json);
     
-    // Parse theme scores - only include scores of 1 (strongest)
+    // Parse theme codes - all themes that have extracts for this comment
     const themeScores: any = {};
-    if (c.theme_scores) {
-      for (const score of c.theme_scores.split(',')) {
-        const [code, value] = score.split(':');
-        const scoreValue = parseInt(value);
-        if (scoreValue === 1) {  // Only export strongest scores
-          themeScores[code] = scoreValue;
-        }
+    if (c.theme_codes) {
+      for (const code of c.theme_codes.split(',')) {
+        themeScores[code] = 1;  // Use 1 to indicate presence
       }
     }
     
@@ -221,11 +217,10 @@ async function exportAllComments(db: any, outputDir: string, documentId: string)
 }
 
 async function generateIndexes(db: any, outputDir: string) {
-  // Theme -> Comment index (only direct mentions with score = 1)
+  // Theme -> Comment index (all comments with theme extracts)
   const themeIndex = db.prepare(`
-    SELECT theme_code, comment_id, score
-    FROM comment_themes
-    WHERE score = 1
+    SELECT theme_code, comment_id
+    FROM comment_theme_extracts
     ORDER BY theme_code, comment_id
   `).all();
   

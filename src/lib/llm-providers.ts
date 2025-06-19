@@ -1,9 +1,46 @@
 import { GoogleGenAI } from "@google/genai";
+import { debugStreamStart, debugStreamWrite, debugStreamEnd } from "./debug";
 
 // Simple provider functions that just handle the generation call
 // Cache logic remains in AIClient
 
-export async function generateWithGeminiPro(prompt: string): Promise<string> {
+export interface StreamingOptions {
+  debugFilename?: string;
+}
+
+// Helper to handle streaming with optional debug
+async function processStream<T>(
+  stream: AsyncIterable<T>,
+  getText: (chunk: T) => string,
+  options?: StreamingOptions
+): Promise<string> {
+  // Start debug stream if requested
+  if (options?.debugFilename) {
+    debugStreamStart(options.debugFilename);
+  }
+  
+  let result = "";
+  try {
+    for await (const chunk of stream) {
+      const chunkText = getText(chunk);
+      result += chunkText;
+      
+      // Stream to debug file if active
+      if (options?.debugFilename && chunkText) {
+        debugStreamWrite(options.debugFilename, chunkText);
+      }
+    }
+  } finally {
+    // Close debug stream
+    if (options?.debugFilename) {
+      debugStreamEnd(options.debugFilename);
+    }
+  }
+  
+  return result;
+}
+
+export async function generateWithGeminiPro(prompt: string, options?: StreamingOptions): Promise<string> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     throw new Error("GEMINI_API_KEY environment variable is required");
@@ -23,15 +60,10 @@ export async function generateWithGeminiPro(prompt: string): Promise<string> {
     contents,
   });
   
-  let result = "";
-  for await (const chunk of response) {
-    result += chunk.text;
-  }
-  
-  return result;
+  return processStream(response, chunk => chunk.text || '', options);
 }
 
-export async function generateWithGeminiFlash(prompt: string): Promise<string> {
+export async function generateWithGeminiFlash(prompt: string, options?: StreamingOptions): Promise<string> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     throw new Error("GEMINI_API_KEY environment variable is required");
@@ -56,15 +88,10 @@ export async function generateWithGeminiFlash(prompt: string): Promise<string> {
     contents,
   });
   
-  let result = "";
-  for await (const chunk of response) {
-    result += chunk.text;
-  }
-  
-  return result;
+  return processStream(response, chunk => chunk.text || '', options);
 }
 
-export async function generateWithGeminiFlashLite(prompt: string): Promise<string> {
+export async function generateWithGeminiFlashLite(prompt: string, options?: StreamingOptions): Promise<string> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     throw new Error("GEMINI_API_KEY environment variable is required");
@@ -89,15 +116,10 @@ export async function generateWithGeminiFlashLite(prompt: string): Promise<strin
     contents,
   });
   
-  let result = "";
-  for await (const chunk of response) {
-    result += chunk.text;
-  }
-  
-  return result;
+  return processStream(response, chunk => chunk.text || '', options);
 }
 
-export async function generateWithClaude(prompt: string): Promise<string> {
+export async function generateWithClaude(prompt: string, options?: StreamingOptions): Promise<string> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
     throw new Error("ANTHROPIC_API_KEY environment variable is required");
@@ -126,8 +148,17 @@ export async function generateWithClaude(prompt: string): Promise<string> {
     throw new Error(`Claude API error: ${response.status} - ${error}`);
   }
   
-  const data = await response.json();
-  return data.content[0].text;
+  const data = await response.json() as { content: Array<{ text: string }> };
+  const result = data.content[0].text;
+  
+  // Save to debug file if requested (Claude doesn't stream)
+  if (options?.debugFilename) {
+    debugStreamStart(options.debugFilename);
+    debugStreamWrite(options.debugFilename, result);
+    debugStreamEnd(options.debugFilename);
+  }
+  
+  return result;
 }
 
 // Map of model names to generation functions
@@ -140,8 +171,10 @@ export const MODEL_FUNCTIONS = {
 
 export type ModelName = keyof typeof MODEL_FUNCTIONS;
 
+export type GenerationFunction = (prompt: string, options?: StreamingOptions) => Promise<string>;
+
 // Get the appropriate generation function based on model selection
-export function getGenerationFunction(model: string = "gemini-pro") {
+export function getGenerationFunction(model: string = "gemini-pro"): GenerationFunction {
   const fn = MODEL_FUNCTIONS[model as ModelName];
   if (!fn) {
     throw new Error(`Unknown model: ${model}. Available: ${Object.keys(MODEL_FUNCTIONS).join(", ")}`);

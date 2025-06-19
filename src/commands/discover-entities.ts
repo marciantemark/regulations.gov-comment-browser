@@ -14,7 +14,7 @@ import type { EntityTaxonomy, EnrichedComment } from "../types";
 import { runPool } from "../lib/worker-pool";
 import { parseJsonResponse } from "../lib/json-parser";
 import { TaskQueue, buildHierarchicalTasks, type Task } from "../lib/task-queue";
-import { getTaskConfig, getStageConfig, getBatchOptions } from "../lib/batch-config";
+import { getTaskConfig, getStageConfig, getBatchOptions, getTaskModel } from "../lib/batch-config";
 
 export const discoverEntitiesCommand = new Command("discover-entities")
   .description("Discover named entities using two-stage approach (categories first)")
@@ -24,7 +24,7 @@ export const discoverEntitiesCommand = new Command("discover-entities")
   .option("--batch-size <n>", "Target words per batch (default: 50000 for entity extraction)", parseInt)
   .option("-d, --debug", "Enable debug output")
   .option("-c, --concurrency <n>", "Number of parallel batch API calls (default: 3)", parseInt)
-  .option("-m, --model <model>", "AI model to use (gemini-pro, gemini-flash, gemini-flash-lite, claude)", "gemini-pro")
+  .option("-m, --model <model>", "AI model to use (overrides config)")
   .option("--merge-width <n>", "Number of category lists to merge at once (default: 10)", parseInt)
   .action(discoverEntities);
 
@@ -37,9 +37,13 @@ async function discoverEntities(documentId: string, options: any) {
   await initDebug(options.debug);
   
   const db = openDb(documentId);
-  const ai = new AIClient(options.model, db);
+  
+  // Get the effective model from config
+  const effectiveModel = getTaskModel('discoverEntities', options.model);
+  const ai = new AIClient(effectiveModel, db);
   
   console.log(`🔍 Discovering entities for document ${documentId}`);
+  console.log(`   Using model: ${effectiveModel}`);
   
   // Check if entities already exist
   const existingEntities = db.prepare("SELECT COUNT(*) as count FROM entity_taxonomy").get() as { count: number };
@@ -59,8 +63,9 @@ async function discoverEntities(documentId: string, options: any) {
   console.log(`📊 Loaded ${comments.length} condensed comments`);
   
   // Load task configuration
-  const taskConfig = getTaskConfig('discoverEntities', options.model);
+  const taskConfig = getTaskConfig('discoverEntities', effectiveModel);
   const concurrency = options.concurrency || taskConfig.concurrency;
+  console.log(`   Using concurrency: ${concurrency}`);
   
   // Get stage-specific configurations
   const categoryStageConfig = getStageConfig('discoverEntities', 'categoryDiscovery');
@@ -75,6 +80,13 @@ async function discoverEntities(documentId: string, options: any) {
   
   // STAGE 1: Discover categories using TaskQueue
   console.log("\n🏷️  STAGE 1: Discovering entity categories...");
+  
+  // Get stage-specific model for category discovery
+  const categoryModel = categoryStageConfig?.model || effectiveModel;
+  const categoryAi = categoryModel !== effectiveModel ? new AIClient(categoryModel, db) : ai;
+  if (categoryModel !== effectiveModel) {
+    console.log(`   Using stage model: ${categoryModel}`);
+  }
   
   // Build tasks for category discovery with N-way merging
   const mergeWidth = options.mergeWidth || categoryStageConfig?.mergeWidth || 10;
@@ -133,7 +145,7 @@ async function discoverEntities(documentId: string, options: any) {
       const prompt = ENTITY_CATEGORY_DISCOVERY_PROMPT.replace("{COMMENTS}", commentBlocks);
       
       // Generate categories with caching
-      const response = await ai.generateContent(
+      const response = await categoryAi.generateContent(
         prompt,
         options.debug ? `categories_batch_${batch.number}` : undefined,
         `categories_v2_batch_${batch.number}`,
@@ -165,7 +177,7 @@ async function discoverEntities(documentId: string, options: any) {
         return result as CategoryInfo;
       });
       
-      return await mergeCategoriesNWay(task, inputResults, ai, options.debug);
+      return await mergeCategoriesNWay(task, inputResults, categoryAi, options.debug);
     }
   });
   
@@ -184,6 +196,13 @@ async function discoverEntities(documentId: string, options: any) {
   // Get entity extraction stage configuration
   const entityStageConfig = getStageConfig('discoverEntities', 'entityExtraction');
   const entityBatchOptions = getBatchOptions('discoverEntities', 'entityExtraction');
+  
+  // Get stage-specific model for entity extraction
+  const entityModel = entityStageConfig?.model || effectiveModel;
+  const entityAi = entityModel !== effectiveModel ? new AIClient(entityModel, db) : ai;
+  if (entityModel !== effectiveModel) {
+    console.log(`   Using stage model: ${entityModel}`);
+  }
   
   // Create smaller batches for entity extraction
   const entityBatches = createEvenBatches(comments, {
@@ -217,7 +236,7 @@ async function discoverEntities(documentId: string, options: any) {
           .replace("{COMMENTS}", commentBlocks);
         
         // Generate entities with caching and timeout
-        const entities = await ai.generateContent<EntityTaxonomy>(
+        const entities = await entityAi.generateContent<EntityTaxonomy>(
           prompt,
           options.debug ? `entities_v2_batch_${batch.number}` : undefined,
           `entities_v2_json_batch_${batch.number}`,
@@ -236,6 +255,16 @@ async function discoverEntities(documentId: string, options: any) {
         );
         if (options.debug) {
           await debugSave(`entities_v2_batch_${batch.number}_parsed.json`, entities);
+        }
+        
+        // Validate and fix entities with missing definitions
+        for (const [category, categoryEntities] of Object.entries(entities)) {
+          for (const entity of categoryEntities) {
+            if (!entity.definition || entity.definition.trim() === '') {
+              console.warn(`   ⚠️  Entity "${entity.label}" in category "${category}" has no definition, using default`);
+              entity.definition = `A ${category.toLowerCase()} entity mentioned in comments`;
+            }
+          }
         }
         
         // Count entities
@@ -441,7 +470,19 @@ function mergeCategory(entities: TaxonomyEntity[]) {
         // merge j → i
         const a = entities[i], b = entities[j];
         a.label      = a.label.length <= b.label.length ? a.label : b.label;
-        a.definition = a.definition.length >= b.definition.length ? a.definition : b.definition;
+        
+        // Handle potentially null/undefined definitions
+        if (!a.definition && !b.definition) {
+          a.definition = "No definition available";
+        } else if (!a.definition) {
+          a.definition = b.definition;
+        } else if (!b.definition) {
+          // a.definition is already set, keep it
+        } else {
+          // Both have definitions, keep the longer one
+          a.definition = a.definition.length >= b.definition.length ? a.definition : b.definition;
+        }
+        
         a.terms.push(...b.terms);
 
         // update signature i with everything from j
@@ -520,8 +561,8 @@ async function saveAndAnnotateEntities(
       const entityKey = `${category}|${label}`;
       entityHits.set(entityKey, new Set());
       for (const term of terms) {
-        // Word-boundary, case-insensitive match
-        const regex = new RegExp(`\\b${escapeRegex(term)}\\b`, "i");
+        // Word-boundary, case-sensitive match
+        const regex = new RegExp(`\\b${escapeRegex(term)}\\b`, "g");
         searchEntries.push({ entityKey, category, label, regex });
       }
     }
@@ -543,6 +584,7 @@ async function saveAndAnnotateEntities(
         entityHits.get(entry.entityKey)!.add(comment.id);
       }
     }
+    console.log(comment.id, `(${detailedContent.length} chars)`);
   }
 
   // ─────────────── decide which entities to keep ───────────────
@@ -567,10 +609,16 @@ async function saveAndAnnotateEntities(
       for (const entity of entities) {
         const key = `${category}|${entity.label}`;
         if (entitiesToRemove.has(key)) continue; // skip
+        
+        // Final safeguard: ensure definition is not null/empty
+        const definition = entity.definition && entity.definition.trim() 
+          ? entity.definition 
+          : `A ${category.toLowerCase()} entity mentioned in comments`;
+          
         insertEntity.run(
           category,
           entity.label,
-          entity.definition,
+          definition,
           JSON.stringify(entity.terms)
         );
         saved++;
