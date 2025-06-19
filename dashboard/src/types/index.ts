@@ -135,7 +135,6 @@ export interface Filters {
   themes: string[]
   entities: string[]
   submitterTypes: string[]
-  hasCondensed: 'all' | 'yes' | 'no'
   searchQuery: string
 }
 

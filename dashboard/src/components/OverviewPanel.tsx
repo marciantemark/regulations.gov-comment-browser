@@ -36,7 +36,7 @@ function OverviewPanel() {
     return { totalEntities, totalMentions }
   }, [entities])
 
-  // Calculate stakeholder breakdown
+  // Calculate stakeholder breakdown - filter out types with < 5 comments
   const stakeholderBreakdown = useMemo(() => {
     const breakdown: Record<string, number> = {}
     comments.forEach(c => {
@@ -44,8 +44,19 @@ function OverviewPanel() {
       breakdown[type] = (breakdown[type] || 0) + 1
     })
     return Object.entries(breakdown)
+      .filter(([, count]) => count >= 5) // Filter out types with < 5 comments
       .sort(([,a], [,b]) => b - a)
       .slice(0, 5)
+  }, [comments])
+  
+  // Get total count of stakeholder types with >= 5 comments
+  const totalStakeholderTypes = useMemo(() => {
+    const breakdown: Record<string, number> = {}
+    comments.forEach(c => {
+      const type = c.submitterType || 'Unknown'
+      breakdown[type] = (breakdown[type] || 0) + 1
+    })
+    return Object.entries(breakdown).filter(([, count]) => count >= 5).length
   }, [comments])
 
   // Calculate condensed percentage
@@ -91,7 +102,7 @@ function OverviewPanel() {
           <StatCard
             icon={<Users className="h-6 w-6" />}
             label="Stakeholder Types"
-            value={stakeholderBreakdown.length}
+            value={totalStakeholderTypes}
             subtext={`${stakeholderBreakdown[0]?.[0] || 'N/A'} most common`}
             color="orange"
             clickable
@@ -162,6 +173,18 @@ function OverviewPanel() {
                 </div>
               </Link>
             ))}
+            
+            {totalStakeholderTypes > 5 && (
+              <div className="mt-4 pt-2">
+                <Link
+                  to="/comments?filter=stakeholder"
+                  className="text-sm text-blue-600 hover:text-blue-800 flex items-center space-x-1"
+                >
+                  <span>View all {totalStakeholderTypes} stakeholder types</span>
+                  <ArrowRight className="h-3 w-3" />
+                </Link>
+              </div>
+            )}
             
             {comments.length > 0 && (
               <div className="mt-6 pt-4 border-t border-gray-200">

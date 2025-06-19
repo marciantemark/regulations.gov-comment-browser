@@ -376,7 +376,7 @@ function ThemeSummaryView({ summary }: ThemeSummaryViewProps) {
         </div>
         <div className="flex items-center">
           <BarChart3 className="h-4 w-4 mr-2 text-gray-400" />
-          <span>{summary.wordCount.toLocaleString()} words processed</span>
+          {/* <span>{summary.wordCount.toLocaleString()} words processed</span> */}
         </div>
       </div>
     </div>

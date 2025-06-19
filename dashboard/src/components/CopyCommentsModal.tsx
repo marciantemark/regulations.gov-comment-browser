@@ -265,9 +265,7 @@ function CopyCommentsModal({
           if (typeof pattern === 'string') {
             content += `- ${pattern}\n`
           } else {
-            content += `- ${pattern.pattern}`
-            if (pattern.category) content += ` [${pattern.category}]`
-            content += '\n'
+            content += `- ${pattern.pattern}\n`
           }
         })
         content += '\n'

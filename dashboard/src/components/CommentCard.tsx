@@ -1,5 +1,5 @@
 import { ExternalLink, Paperclip, Calendar, MapPin, User, Building2, Quote, FileText } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { getRegulationsGovUrl, formatDate } from '../utils/helpers'
@@ -39,29 +39,14 @@ function CommentCard({
   clickable = true,
   sections = defaultSections 
 }: CommentCardProps) {
-  const navigate = useNavigate()
   const [showCopyModal, setShowCopyModal] = useState(false)
   const regulationsUrl = getRegulationsGovUrl(comment.documentId || '', comment.id)
   
-  const handleCardClick = (e: React.MouseEvent) => {
-    // Don't navigate if clicking on the external link
-    if ((e.target as HTMLElement).closest('a')) {
-      return
-    }
-    if (clickable) {
-      navigate(`/comments/${comment.id}`)
-    }
-  }
-  
-  return (
-    <>
-    <div 
-      className={clsx(
-        "bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden transition-all",
-        clickable && "cursor-pointer hover:shadow-lg hover:border-blue-300"
-      )}
-      onClick={handleCardClick}
-    >
+  const cardContent = (
+    <div className={clsx(
+      "bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden transition-all",
+      clickable && "hover:shadow-lg hover:border-blue-300"
+    )}>
       {/* Header with Key Information */}
       <div className="bg-gray-50 border-b border-gray-200 px-6 py-4">
         <div className="flex justify-between items-start">
@@ -117,6 +102,7 @@ function CommentCard({
             )}
             <button
               onClick={(e) => {
+                e.preventDefault()
                 e.stopPropagation()
                 setShowCopyModal(true)
               }}
@@ -131,7 +117,6 @@ function CommentCard({
               rel="noopener noreferrer"
               className="text-blue-600 hover:text-blue-800 transition-colors"
               title="View on regulations.gov"
-              onClick={(e) => e.stopPropagation()}
             >
               <ExternalLink className="h-4 w-4" />
             </a>
@@ -315,17 +300,14 @@ function CommentCard({
                   {Object.entries(comment.themeScores)
                     .filter(([_, score]) => score === 1) // Only show direct relevance
                     .map(([code]) => (
-                      <span
+                      <Link
                         key={code}
-                        className="text-xs px-2 py-1 rounded-full border cursor-pointer hover:shadow-md transition-all bg-blue-50 text-blue-700 border-blue-300 hover:bg-blue-100"
+                        to={`/themes/${code}`}
+                        className="inline-block text-xs px-2 py-1 rounded-full border hover:shadow-md transition-all bg-blue-50 text-blue-700 border-blue-300 hover:bg-blue-100"
                         title="Directly addresses this theme"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          navigate(`/themes/${code}`)
-                        }}
                       >
                         {code}
-                      </span>
+                      </Link>
                     ))}
                   {Object.entries(comment.themeScores).filter(([_, score]) => score === 1).length === 0 && (
                     <p className="text-xs text-gray-400 italic">No primary themes identified</p>
@@ -342,17 +324,14 @@ function CommentCard({
                 </h5>
                 <div className="flex flex-wrap gap-1 pl-4">
                   {comment.entities.map((entity, i) => (
-                    <span 
+                    <Link
                       key={i} 
-                      className="text-xs bg-green-50 text-green-700 border border-green-300 px-2 py-1 rounded-full cursor-pointer hover:bg-green-100 hover:shadow-md transition-all"
+                      to={`/entities/${encodeURIComponent(entity.category)}/${encodeURIComponent(entity.label)}`}
+                      className="inline-block text-xs bg-green-50 text-green-700 border border-green-300 px-2 py-1 rounded-full hover:bg-green-100 hover:shadow-md transition-all"
                       title={`Category: ${entity.category}`}
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        navigate(`/entities/${encodeURIComponent(entity.category)}/${encodeURIComponent(entity.label)}`)
-                      }}
                     >
                       {entity.label}
-                    </span>
+                    </Link>
                   ))}
                 </div>
               </div>
@@ -361,17 +340,41 @@ function CommentCard({
         )}
       </div>
     </div>
-    
-    {/* Copy Comment Modal - Outside the clickable card */}
-    {showCopyModal && (
-      <CopyCommentsModal
-        isOpen={showCopyModal}
-        onClose={() => setShowCopyModal(false)}
-        title="Copy Comment for LLM"
-        leadInContent={`# Comment ${comment.id}`}
-        comments={[comment]}
-      />
-    )}
+  )
+  
+  // If clickable, wrap the entire card in a Link
+  if (clickable) {
+    return (
+      <>
+        <Link to={`/comments/${comment.id}`} className="block">
+          {cardContent}
+        </Link>
+        {showCopyModal && (
+          <CopyCommentsModal
+            isOpen={showCopyModal}
+            onClose={() => setShowCopyModal(false)}
+            title="Copy Comment for LLM"
+            leadInContent={`# Comment ${comment.id}`}
+            comments={[comment]}
+          />
+        )}
+      </>
+    )
+  }
+  
+  // If not clickable, just return the card and modal
+  return (
+    <>
+      {cardContent}
+      {showCopyModal && (
+        <CopyCommentsModal
+          isOpen={showCopyModal}
+          onClose={() => setShowCopyModal(false)}
+          title="Copy Comment for LLM"
+          leadInContent={`# Comment ${comment.id}`}
+          comments={[comment]}
+        />
+      )}
     </>
   )
 }

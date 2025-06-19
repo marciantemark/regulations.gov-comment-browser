@@ -6,7 +6,6 @@ interface FilterOptions {
   themes: string[]
   entities: string[]
   submitterTypes: string[]
-  hasCondensed: 'all' | 'yes' | 'no'
   searchQuery: string
 }
 
@@ -31,7 +30,7 @@ interface StoreState {
   
   // Actions
   loadData: () => Promise<void>
-  setFilters: (filters: FilterOptions) => void
+  setFilters: (filters: FilterOptions | ((prev: FilterOptions) => FilterOptions)) => void
   setSearchQuery: (query: string) => void
   setData: (data: any) => void
   setSelectedView: (view: string) => void
@@ -69,7 +68,6 @@ const useStore = create<StoreState>((set, get) => ({
     themes: [],
     entities: [],
     submitterTypes: [],
-    hasCondensed: 'all' as const,
     searchQuery: ''
   },
   
@@ -79,7 +77,9 @@ const useStore = create<StoreState>((set, get) => ({
   setSelectedTheme: (theme: Theme | null) => set({ selectedTheme: theme }),
   setSelectedEntity: (entity: { category: string; label: string } | null) => set({ selectedEntity: entity }),
   setSearchQuery: (query: string) => set({ searchQuery: query }),
-  setFilters: (filters: FilterOptions) => set({ filters }),
+  setFilters: (filters: FilterOptions | ((prev: FilterOptions) => FilterOptions)) => set((state) => ({
+    filters: typeof filters === 'function' ? filters(state.filters) : filters
+  })),
   
   // Load all data
   loadData: async () => {
@@ -141,8 +141,17 @@ const useStore = create<StoreState>((set, get) => ({
   
   // Computed getters
   getFilteredComments: () => {
+    const startTime = performance.now()
     const state = get()
+    
+    // Safety check
+    if (!state.comments || !state.filters) {
+      console.warn('getFilteredComments: Missing comments or filters')
+      return []
+    }
+    
     let filtered = [...state.comments]
+    const originalCount = filtered.length
     
     // Apply search
     if (state.filters.searchQuery) {
@@ -159,20 +168,24 @@ const useStore = create<StoreState>((set, get) => ({
           c.submitter?.toLowerCase().includes(query) ||
           c.id?.toLowerCase().includes(query)
       })
+      console.log(`Search filter applied: ${originalCount} → ${filtered.length} (query: "${query}")`)
     }
     
     // Apply theme filters
-    if (state.filters.themes.length > 0) {
+    if (state.filters.themes?.length > 0) {
+      const beforeThemes = filtered.length
       filtered = filtered.filter(c => {
         if (!c.themeScores) return false
         return state.filters.themes.some((themeCode: string) => 
           c.themeScores![themeCode] && c.themeScores![themeCode] <= 2
         )
       })
+      console.log(`Theme filter applied: ${beforeThemes} → ${filtered.length}`)
     }
     
     // Apply entity filters
-    if (state.filters.entities.length > 0) {
+    if (state.filters.entities?.length > 0) {
+      const beforeEntities = filtered.length
       filtered = filtered.filter(c => {
         if (!c.entities || c.entities.length === 0) return false
         return state.filters.entities.some((entityKey: string) => {
@@ -180,21 +193,21 @@ const useStore = create<StoreState>((set, get) => ({
           return c.entities!.some(e => e.category === category && e.label === label)
         })
       })
+      console.log(`Entity filter applied: ${beforeEntities} → ${filtered.length}`)
     }
     
     // Apply submitter type filters
-    if (state.filters.submitterTypes.length > 0) {
+    if (state.filters.submitterTypes?.length > 0) {
+      const beforeSubmitter = filtered.length
       filtered = filtered.filter(c => 
         state.filters.submitterTypes.includes(c.submitterType)
       )
+      console.log(`Submitter filter applied: ${beforeSubmitter} → ${filtered.length}`)
     }
     
-    // Apply condensed filter (now checks for structured sections)
-    if (state.filters.hasCondensed !== 'all') {
-      filtered = filtered.filter(c => 
-        state.filters.hasCondensed === 'yes' ? c.structuredSections : !c.structuredSections
-      )
-    }
+    
+    const endTime = performance.now()
+    console.log(`Total filtering time: ${(endTime - startTime).toFixed(2)}ms (${originalCount} → ${filtered.length} comments)`)
     
     return filtered
   },
