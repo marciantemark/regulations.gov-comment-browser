@@ -1,0 +1,186 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Batch Configuration Schema",
+  "type": "object",
+  "required": ["global", "tasks"],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "global": {
+      "type": "object",
+      "properties": {
+        "concurrency": {
+          "$ref": "#/definitions/setting"
+        },
+        "mergeWidth": {
+          "$ref": "#/definitions/setting"
+        },
+        "defaultModel": {
+          "type": "string",
+          "description": "Default AI model to use if not specified per-task or via CLI"
+        }
+      }
+    },
+    "tasks": {
+      "type": "object",
+      "properties": {
+        "condense": {
+          "$ref": "#/definitions/taskConfig"
+        },
+        "discoverThemes": {
+          "$ref": "#/definitions/taskConfig"
+        },
+        "extractThemeContent": {
+          "$ref": "#/definitions/taskConfig"
+        },
+        "summarizeThemes": {
+          "$ref": "#/definitions/taskConfig"
+        },
+        "discoverEntities": {
+          "$ref": "#/definitions/entityTaskConfig"
+        },
+        "loadComments": {
+          "$ref": "#/definitions/loadTaskConfig"
+        }
+      }
+    },
+    "pipeline": {
+      "type": "object",
+      "properties": {
+        "errorHandling": {
+          "type": "object",
+          "properties": {
+            "maxCrashes": { "type": "integer" },
+            "defaultRetryDelay": { "type": "integer" },
+            "description": { "type": "string" }
+          }
+        }
+      }
+    },
+    "models": {
+      "type": "object",
+      "patternProperties": {
+        "^.*$": {
+          "type": "object",
+          "properties": {
+            "concurrency": { "type": "number" },
+            "description": { "type": "string" }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "setting": {
+      "type": "object",
+      "required": ["default"],
+      "properties": {
+        "default": {
+          "type": "integer"
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    },
+    "batchConfig": {
+      "type": "object",
+      "required": ["triggerWordLimit", "batchWordLimit"],
+      "properties": {
+        "triggerWordLimit": {
+          "type": "integer",
+          "description": "Total word count that triggers batching"
+        },
+        "batchWordLimit": {
+          "type": "integer",
+          "description": "Target words per batch"
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    },
+    "taskConfig": {
+      "type": "object",
+      "properties": {
+        "concurrency": {
+          "type": "integer"
+        },
+        "mergeWidth": {
+          "type": "integer"
+        },
+        "model": {
+          "type": "string",
+          "description": "AI model to use for this task"
+        },
+        "batching": {
+          "oneOf": [
+            { "type": "boolean" },
+            { "$ref": "#/definitions/batchConfig" }
+          ]
+        },
+        "validation": {
+          "type": "object"
+        },
+        "thresholds": {
+          "type": "object"
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    },
+    "entityTaskConfig": {
+      "type": "object",
+      "properties": {
+        "concurrency": {
+          "type": "integer"
+        },
+        "model": {
+          "type": "string",
+          "description": "AI model to use for this task"
+        },
+        "stages": {
+          "type": "object",
+          "properties": {
+            "categoryDiscovery": {
+              "type": "object",
+              "properties": {
+                "mergeWidth": { "type": "integer" },
+                "model": { "type": "string", "description": "Override model for this stage" },
+                "batching": { "$ref": "#/definitions/batchConfig" },
+                "description": { "type": "string" }
+              }
+            },
+            "entityExtraction": {
+              "type": "object",
+              "properties": {
+                "model": { "type": "string", "description": "Override model for this stage" },
+                "batching": { "$ref": "#/definitions/batchConfig" },
+                "description": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "loadTaskConfig": {
+      "type": "object",
+      "properties": {
+        "rateLimiting": {
+          "type": "object",
+          "properties": {
+            "apiCallDelay": { "type": "integer" },
+            "attachmentDelay": { "type": "integer" },
+            "pageSize": { "type": "integer" },
+            "description": { "type": "string" }
+          }
+        }
+      }
+    }
+  }
+}
