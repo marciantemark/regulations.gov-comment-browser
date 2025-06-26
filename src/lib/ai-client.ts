@@ -66,7 +66,7 @@ export class AIClient {
     const activeCount = AIClient.activeJobs.size;
     const activeList = Array.from(AIClient.activeJobs).join(', ');
     
-    const modelName = this.modelKey || "gemini-pro";
+    const modelName = this.modelKey || "gpt-4o";
     console.log(`🤖 [${workerId}] Starting ${modelName} call (${activeCount} active: ${activeList})`);
     
     try {

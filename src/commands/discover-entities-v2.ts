@@ -13,7 +13,7 @@ export const discoverEntitiesV2Command = new Command("discover-entities-v2")
   .option("-l, --limit <n>", "Process only N comments", parseInt)
   .option("--word-limit <n>", "Target word count for prompt (default: 150000)", parseInt)
   .option("-d, --debug", "Enable debug output")
-  .option("-m, --model <model>", "AI model to use (default: gemini-pro)")
+  .option("-m, --model <model>", "AI model to use (default: gpt-4o)")
   .action(discoverEntitiesV2);
 
 async function discoverEntitiesV2(documentId: string, options: any) {
@@ -21,7 +21,7 @@ async function discoverEntitiesV2(documentId: string, options: any) {
   
   const db = openDb(documentId);
   const targetWords = options.wordLimit || 150000;
-  const model = options.model || 'gemini-pro';
+  const model = options.model || 'gpt-4o';
   
   const ai = new AIClient(model, db);
   

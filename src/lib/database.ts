@@ -46,7 +46,19 @@ export function initSchema(db: Database) {
       FOREIGN KEY (comment_id) REFERENCES comments(id)
     );
     
-    -- Condensed versions of comments
+    -- NEW: Track text extraction status (PDF processing)
+    CREATE TABLE IF NOT EXISTS text_extraction_status (
+      comment_id TEXT PRIMARY KEY,
+      pdf_count INTEGER DEFAULT 0,
+      status TEXT DEFAULT 'pending' CHECK(status IN ('pending', 'processing', 'completed', 'failed')),
+      error_message TEXT,
+      attempt_count INTEGER DEFAULT 0,
+      last_attempt_at DATETIME,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (comment_id) REFERENCES comments(id)
+    );
+    
+    -- Condensed versions of comments (now called analyzed comments)
     CREATE TABLE IF NOT EXISTS condensed_comments (
       comment_id TEXT PRIMARY KEY,
       structured_sections TEXT NOT NULL,
@@ -123,6 +135,7 @@ export function initSchema(db: Database) {
     
     -- Indexes for performance
     CREATE INDEX IF NOT EXISTS idx_comments_created ON comments(created_at);
+    CREATE INDEX IF NOT EXISTS idx_text_extraction_status ON text_extraction_status(status);
     CREATE INDEX IF NOT EXISTS idx_condensed_status ON condensed_comments(status);
     CREATE INDEX IF NOT EXISTS idx_condensed_attempts ON condensed_comments(attempt_count);
     CREATE INDEX IF NOT EXISTS idx_attachments_comment ON attachments(comment_id);

@@ -183,5 +183,5 @@ export function getTaskModel(taskName: keyof BatchConfigFile['tasks'], cliModel?
   if (config.global.defaultModel) return config.global.defaultModel;
   
   // 5. Hardcoded fallback
-  return 'gemini-pro';
+  return 'gpt-4o';
 }

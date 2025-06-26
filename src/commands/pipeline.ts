@@ -1,7 +1,7 @@
 import { Command } from "commander";
 import { basename, extname } from "path";
 import { loadCommentsCommand } from "./load-comments";
-import { condenseCommand } from "./condense";
+import { condenseCommand } from "./analyze";
 import { discoverThemesCommand } from "./discover-themes";
 import { extractThemeContentCommand } from "./extract-theme-content";
 import { summarizeThemesV2Command } from "./summarize-themes-v2";

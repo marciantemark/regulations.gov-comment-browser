@@ -2,24 +2,23 @@ import { Command } from "commander";
 import { openDb, withTransaction, getProcessingStatus } from "../lib/database";
 import { initDebug, debugSave } from "../lib/debug";
 import { AIClient } from "../lib/ai-client";
-import { loadComments, enrichComment } from "../lib/comment-processing";
 import { CONDENSE_PROMPT } from "../prompts/condense";
 import { parseCondensedSections } from "../lib/parse-condensed-sections";
 import type { RawComment } from "../types";
 import { runPool } from "../lib/worker-pool";
 import { getTaskConfig, getTaskModel } from "../lib/batch-config";
 
-export const condenseCommand = new Command("condense")
-  .description("Generate condensed versions of comments")
+export const analyzeCommand = new Command("analyze")
+  .description("Analyze comment structure using AI (8-section breakdown)")
   .argument("<document-id>", "Document ID (e.g., CMS-2025-0050-0031)")
   .option("-l, --limit <n>", "Process only N comments", parseInt)
   .option("--retry-failed", "Retry previously failed comments")
   .option("-d, --debug", "Enable debug output")
   .option("-c, --concurrency <n>", "Number of parallel API calls (default: 5)", parseInt)
   .option("-m, --model <model>", "AI model to use (overrides config)")
-  .action(condenseComments);
+  .action(analyzeComments);
 
-async function condenseComments(documentId: string, options: any) {
+async function analyzeComments(documentId: string, options: any) {
   await initDebug(options.debug);
   
   const db = openDb(documentId);
@@ -28,14 +27,14 @@ async function condenseComments(documentId: string, options: any) {
   const effectiveModel = getTaskModel('condense', options.model);
   const ai = new AIClient(effectiveModel, db);
   
-  console.log(`📝 Condensing comments for document ${documentId}`);
+  console.log(`🧠 Analyzing comments for document ${documentId}`);
   console.log(`   Using model: ${effectiveModel}`);
   
   // Get processing status
   const status = getProcessingStatus(db, "condensed_comments");
   console.log(`📊 Status: ${status.completed} completed, ${status.failed} failed, ${status.pending} pending`);
   
-  // Build query based on options
+  // Build query based on options - only process comments that have been text-extracted
   let query: string;
   let params: any[] = [];
   
@@ -43,16 +42,18 @@ async function condenseComments(documentId: string, options: any) {
     query = `
       SELECT c.id, c.attributes_json 
       FROM comments c
+      JOIN text_extraction_status tes ON c.id = tes.comment_id
       LEFT JOIN condensed_comments cc ON c.id = cc.comment_id
-      WHERE cc.status = 'failed'
+      WHERE tes.status = 'completed' AND cc.status = 'failed'
       ORDER BY cc.attempt_count ASC, c.id
     `;
   } else {
     query = `
       SELECT c.id, c.attributes_json 
       FROM comments c
+      JOIN text_extraction_status tes ON c.id = tes.comment_id
       LEFT JOIN condensed_comments cc ON c.id = cc.comment_id
-      WHERE cc.comment_id IS NULL OR cc.status IN ('pending', 'processing')
+      WHERE tes.status = 'completed' AND (cc.comment_id IS NULL OR cc.status IN ('pending', 'processing'))
       ORDER BY c.id
     `;
   }
@@ -69,9 +70,6 @@ async function condenseComments(documentId: string, options: any) {
     console.log("✅ No comments to process");
     return;
   }
-  
-  // Load attachments
-  const { attachments } = loadComments(db);
   
   // Prepare statements
   const insertCondensed = db.prepare(`
@@ -115,29 +113,31 @@ async function condenseComments(documentId: string, options: any) {
   // Process a single comment
   async function processComment(comment: any): Promise<void> {
     const localProcessed = ++processed;
-    console.log(`\n[${localProcessed}/${comments.length}] Processing comment ${comment.id} (${activeWorkers.size} workers active)`);
+    console.log(`\n[${localProcessed}/${comments.length}] Analyzing comment ${comment.id} (${activeWorkers.size} workers active)`);
     
     try {
       // Mark as processing
       markProcessing.run(comment.id);
       
-      // Enrich comment with attachments
-      const enriched = await enrichComment(comment, attachments);
-      if (!enriched) {
-        console.log(`  [${comment.id}] ⚠️  Skipped (empty content)`);
-        updateFailed.run(comment.id, "Empty comment content");
+      // Get enriched content from the comment's attributes (added by extract-text)
+      const attrs = JSON.parse(comment.attributes_json);
+      const enrichedContent = attrs.enrichedContent;
+      
+      if (!enrichedContent) {
+        console.log(`  [${comment.id}] ⚠️  Skipped (no enriched content - run extract-text first)`);
+        updateFailed.run(comment.id, "No enriched content found");
         failed++;
         return;
       }
       
-      // Build prompt using the enriched content only (already contains a concise metadata block)
-      const prompt = CONDENSE_PROMPT.replace("{COMMENT_TEXT}", enriched.content);
+      // Build prompt using the pre-extracted content
+      const prompt = CONDENSE_PROMPT.replace("{COMMENT_TEXT}", enrichedContent);
       
-      // Generate condensed version with caching metadata
+      // Generate analysis with caching metadata
       const response = await ai.generateContent(
         prompt,
-        options.debug ? `condense_${comment.id}` : undefined,
-        `condense_${comment.id}`,
+        options.debug ? `analyze_${comment.id}` : undefined,
+        `analyze_${comment.id}`,
         {
           taskType: 'condense',
           taskLevel: 0,
@@ -156,16 +156,15 @@ async function condenseComments(documentId: string, options: any) {
       
       // Save result with structured sections
       withTransaction(db, () => {
-        // Don't add the full response as detailedContent - it's already parsed from the response
         insertCondensed.run(
           comment.id, 
           JSON.stringify(sections),
-          enriched.content.trim().split(/\s+/).length
+          enrichedContent.trim().split(/\s+/).length
         );
       });
       
       successful++;
-      console.log(`  [${comment.id}] ✅ Condensed successfully${errors.length > 0 ? ' (with warnings)' : ''}`);
+      console.log(`  [${comment.id}] ✅ Analyzed successfully${errors.length > 0 ? ' (with warnings)' : ''}`);
       
     } catch (error) {
       failed++;
@@ -184,7 +183,7 @@ async function condenseComments(documentId: string, options: any) {
   });
   
   // Final summary
-  console.log("\n📊 Condensing complete:");
+  console.log("\n📊 Analysis complete:");
   console.log(`  ✅ Successful: ${successful}`);
   console.log(`  ❌ Failed: ${failed}`);
   console.log(`  📄 Total processed: ${processed}`);

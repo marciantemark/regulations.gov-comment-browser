@@ -1,7 +1,8 @@
 #!/usr/bin/env bun
 import { Command } from "commander";
 import { loadCommentsCommand } from "./commands/load-comments";
-import { condenseCommand } from "./commands/condense";
+import { extractTextCommand } from "./commands/extract-text";
+import { analyzeCommand } from "./commands/analyze";
 import { discoverThemesCommand } from "./commands/discover-themes";
 import { scoreThemesCommand } from "./commands/score-themes";
 import { summarizeThemesCommand } from "./commands/summarize-themes";
@@ -21,7 +22,8 @@ const program = new Command()
 
 // Register all commands
 program.addCommand(loadCommentsCommand);
-program.addCommand(condenseCommand);
+program.addCommand(extractTextCommand);
+program.addCommand(analyzeCommand);
 program.addCommand(discoverThemesCommand);
 program.addCommand(scoreThemesCommand);
 program.addCommand(summarizeThemesCommand);

@@ -1,3 +1,4 @@
+import { OpenAI } from "openai";
 import { GoogleGenAI } from "@google/genai";
 import { debugStreamStart, debugStreamWrite, debugStreamEnd } from "./debug";
 
@@ -38,6 +39,41 @@ async function processStream<T>(
   }
   
   return result;
+}
+
+export async function generateWithGPT4o(prompt: string, options?: StreamingOptions): Promise<string> {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    throw new Error("OPENAI_API_KEY environment variable is required");
+  }
+  
+  const ai = new OpenAI({ apiKey });
+  
+   const stream = await ai.chat.completions.create({
+    model: "gpt-4o",
+    messages: [{ role: "user", content: prompt }],
+    temperature: 0,
+    stream: true
+  });
+  
+  return processStream(stream, chunk => chunk.choices[0]?.delta?.content || '', options);
+}
+export async function generateWithGPT4oMini(prompt: string, options?: StreamingOptions): Promise<string> {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    throw new Error("OPENAI_API_KEY environment variable is required");
+  }
+  
+  const openai = new OpenAI({ apiKey });
+  
+  const stream = await openai.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages: [{ role: "user", content: prompt }],
+    temperature: 0,
+    stream: true
+  });
+  
+  return processStream(stream, chunk => chunk.choices[0]?.delta?.content || '', options);
 }
 
 export async function generateWithGeminiPro(prompt: string, options?: StreamingOptions): Promise<string> {
@@ -166,7 +202,9 @@ export const MODEL_FUNCTIONS = {
   "gemini-pro": generateWithGeminiPro,
   "gemini-flash": generateWithGeminiFlash,
   "gemini-flash-lite": generateWithGeminiFlashLite,
-  "claude": generateWithClaude
+  "claude": generateWithClaude,
+  "gpt-4o": generateWithGPT4o,
+  "gpt-4o-mini": generateWithGPT4oMini
 } as const;
 
 export type ModelName = keyof typeof MODEL_FUNCTIONS;
@@ -174,7 +212,7 @@ export type ModelName = keyof typeof MODEL_FUNCTIONS;
 export type GenerationFunction = (prompt: string, options?: StreamingOptions) => Promise<string>;
 
 // Get the appropriate generation function based on model selection
-export function getGenerationFunction(model: string = "gemini-pro"): GenerationFunction {
+export function getGenerationFunction(model: string = "gpt-4o"): GenerationFunction {
   const fn = MODEL_FUNCTIONS[model as ModelName];
   if (!fn) {
     throw new Error(`Unknown model: ${model}. Available: ${Object.keys(MODEL_FUNCTIONS).join(", ")}`);

@@ -176,6 +176,7 @@ Each document gets its own SQLite database in `dbs/<document-id>.sqlite` contain
 ## Environment Variables
 
 - `GEMINI_API_KEY` - Required for AI features (condense, discover-themes, discover-entities, score-themes)
+
 - `REGSGOV_API_KEY` - For regulations.gov API (defaults to DEMO_KEY)
 
 ## Examples
